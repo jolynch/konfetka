@@ -1,0 +1,115 @@
+QTreeView#mediaList {
+background-color: rgba(240, 247, 255,254);
+background-image: url(:/xmmsLogo.png);
+background-repeat:no-repeat;
+background-position: center bottom;
+background-origin: content;
+background-attachment: fixed;
+}
+
+QTreeView#playlist::branch{
+image: url(:/song.png);
+}
+
+QTreeView::branch:has-children:closed {
+image: url(:/right_arrow.png);
+image-position: center center;
+}
+
+QTreeView::branch:has-children:open {
+image: url(:/down_arrow.png);
+image-position: center center;
+}
+
+QLabel#songInfo {
+border-style: inset;
+border-width: 1px;
+border-radius: 4px;
+border-color: #8F8F8F;
+border-right-style:outset;
+border-bottom-style:outset;
+}
+
+QLabel#titleBar {
+border-style: inset;
+border-width: 1px;
+border-radius: 4px;
+border-color: #8F8F8F;
+border-right-style:outset;
+border-bottom-style:outset;
+}
+
+QProgressBar:horizontal {
+border: 1px solid gray;
+border-radius: 3px;
+background: white;
+padding: 1px;
+}
+
+QProgressBar::label {
+subcontrol-position: center center;
+color: white;
+}
+
+QProgressBar::chunk:horizontal {
+background: qlineargradient(x1: 0, y1: 0.5, x2: 1, y2: 0.5, stop: 0 #9fa2a4, stop: 1 #2d363a);
+}
+
+QSlider:horizontal {
+height:20px;
+}
+
+QSlider::groove:horizontal {
+height: 20px;
+background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2d363a, stop:1 #545b5f);
+}
+
+QSlider::handle:horizontal {
+image: url(:/handle.png) ;
+} 
+
+QSlider::add-page:horizontal {
+background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #747779, stop:1 #9fa2a4);
+}
+
+QSlider::sub-page:horizontal {
+border:solid #999999;
+border-width: 0px 1px 0px 0px;
+background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                       stop:0 #747779, stop: 0.3 #9fa2a4,
+                                       stop: 0.7 #2d363a, stop:1 #545b5f);
+}
+
+QSlider#miniSlider:horizontal {
+height:10px;
+}
+
+QSlider#miniSlider::groove:horizontal {
+height: 10px;
+background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2d363a, stop:1 #545b5f);
+}
+
+QSlider#miniSlider::handle:horizontal {
+image: url(:/handle.png) ;
+} 
+
+QSlider#miniSlider::add-page:horizontal {
+background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #747779, stop:1 #9fa2a4);
+}
+
+QSlider#miniSlider::sub-page:horizontal {
+border:solid #999999;
+border-width: 0px 1px 0px 0px;
+background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                       stop:0 #747779, stop: 0.3 #9fa2a4,
+                                       stop: 0.7 #2d363a, stop:1 #545b5f);
+}
+
+QHeaderView::section {
+     background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                       stop:0 #747779, stop: 0.3 #9fa2a4,
+                                       stop: 0.7 #2d363a, stop:1 #545b5f);
+     color: white;
+     padding-left: 4px;
+     border: 0px solid #ffffff;
+ }

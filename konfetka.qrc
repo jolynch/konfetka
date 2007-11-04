@@ -1,0 +1,62 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+	<file alias="xmmsLogo.png">images/xmms2Logo.png</file>	
+	<file alias="right_arrow.png">images/tree_right.png</file>
+	<file alias="down_arrow.png">images/tree_down.png</file>
+	<file alias="groove.png">images/groove.png</file>
+	<file alias="handle.png">images/handle.png</file>
+	<file alias="song.png">images/song.png</file>
+	<file alias="meter.png">images/meter.png</file>
+	<file alias="checkmark.png">images/checkmark.png</file>
+	<file alias="checkhover.png">images/checkhover.png</file>
+	<file alias="checkback.png">images/checkback.png</file>
+
+	<file>images/back_button.png</file>
+	<file>images/dot_small.png</file>
+	<file>images/minus.png</file>
+	<file>images/person.png</file>
+	<file>images/repeat_none.png</file>
+	<file>images/duplicate.png</file>
+	<file>images/logomini.png</file>
+	<file>images/new.png</file>
+	<file>images/play_button.png</file>
+	<file>images/repeat_track.png</file>
+	<file>images/sort.png</file>
+	<file>images/un_minimize.png</file>
+	<file>images/file_system.png</file>
+	<file>images/logoNoXmms2-secondTry.png</file>
+	<file>images/next_button.png</file>
+	<file>images/playlist_handle.png</file>
+	<file>images/save.png</file>
+	<file>images/stop_button.png</file>
+	<file>images/volume_button_NOsound.png</file>
+	<file>images/gradient.png</file>
+	<file>images/no_album150.png</file>
+	<file>images/playlist.png</file>
+	<file>images/shuffle2.png</file>
+	<file>images/toggle_button.png</file>
+	<file>images/volume_button_sound.png</file>
+	<file>images/check.png</file>
+	<file>images/gradient_small.png</file>
+	<file>images/medialib_handle.png</file>
+	<file>images/no_album50.png</file>
+	<file>images/plus.png</file>
+	<file>images/shuffleCube.png</file>
+	<file>images/trashcan02.png</file>
+	<file>images/cube1.png</file>
+	<file>images/open.png</file>
+	<file>images/quit_button.png</file>
+	<file>images/shuffledCards.png</file>
+	<file>images/trashcan.png</file>
+	<file>images/dot.png</file>
+	<file>images/handle.png</file>
+	<file>images/minimize.png</file>
+	<file>images/pause_button.png</file>
+	<file>images/repeat_all.png</file>
+	<file>images/shuffle.png</file>
+
+	<file alias="weirdline">data/weirdline</file>
+</qresource>
+</RCC>
+
+

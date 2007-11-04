@@ -1,0 +1,6 @@
+ 
+qmake (or qmake-qt4)
+make
+(sudo) make install
+
+should work.

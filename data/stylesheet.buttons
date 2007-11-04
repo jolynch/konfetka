@@ -1,0 +1,36 @@
+QTreeView{
+background-color:  rgba(240, 247, 255,128);
+}
+
+QTreeView#mediaList {
+background-image: url(:/xmmsLogo.png);
+background-repeat: no-repeat;
+background-position: center bottom;
+background-origin: content;
+}
+
+QTableView { background-color:  rgb(240, 247, 255) }
+
+QPushButton{
+	background:qlineargradient(x1: .5, y1: 0, x2: .5, y2: 1, stop: 0 #c7d8eb, stop: 1 #f0f7ff);
+	 border: 1px solid gray;
+	border-radius: 3px;
+	padding: 1px;
+}
+
+QPushButton:pressed {
+    background-color:qlineargradient(x1: .5, y1: 0, x2: .5, y2: 1, stop: 0 #f0f7ff, stop: 1 #c7d8eb);
+     border-style: inset;
+}
+
+QComboBox{
+	background:qlineargradient(x1: .5, y1: 0, x2: .5, y2: 1, stop: 0 #c7d8eb, stop: 1 #f0f7ff);
+	 border: 1px solid gray;
+	border-radius: 3px;
+	padding: 1px;
+}
+
+QComboBox:pressed {
+    background-color:qlineargradient(x1: .5, y1: 0, x2: .5, y2: 1, stop: 0 #f0f7ff, stop: 1 #c7d8eb);
+     border-style: inset;
+}

@@ -1,0 +1,6 @@
+README:
+
+in konfetka.pro
+sources+= src/databackend/databackend.cpp src/databackend/xmms2interface.cpp src/databackend/xmmmsqt4.cpp src/databackend/playlistdata.cpp src/databackend/mlibdata.cpp
+
+headers+= src/databackend.h src/databackend/xmms2inteface.h src/databackend/xmmmsqt4.h src/databackend/playlistdata.h src/databackend/mlibdata.h
