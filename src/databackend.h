@@ -7,6 +7,9 @@
 #define DATABACKEND_H
 #include "databackend/xmms2interface.h"
 #include "databackend/xmmsqt4.h"
+#include "databackend/plistdata.h"
+#include "databackend/mlibdata.h"
+#include "databackend/colldata.h"
 
 typedef uint DataBackendType;
 

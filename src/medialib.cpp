@@ -3,35 +3,6 @@
 #include "medialib.h"
 #include <iostream>
 
-void MediaItem::setInfo(QHash<QString,QVariant> hash) {
-songInfo = hash;
-}
-
-QVariant MediaItem::info(QString val) {
-return songInfo.value(val);
-}
-
-QHash<QString,QVariant> MediaItem::allInfo() {
-return songInfo;
-}
-
-bool MediaItem::matches(QString what,QString term) {
-	
-	if(what=="all") {
-	QHash<QString, QVariant>::const_iterator i;
-	for(i=songInfo.constBegin(); i != songInfo.constEnd(); ++i) {
-		if(i.value().toString().contains(term,Qt::CaseInsensitive)) {
-		return true;
-		}
-	}
-	}
-	else {
-		if(songInfo.value(what).toString().contains(term,Qt::CaseInsensitive))
-		return true;
-	}
-return false;
-}
-
 
 MediaLib::MediaLib(DataBackend * conn,  QWidget * parent, Qt::WindowFlags f):QWidget(parent, f)
 	{
@@ -122,11 +93,19 @@ MediaLib::MediaLib(DataBackend * conn,  QWidget * parent, Qt::WindowFlags f):QWi
 
 	connect(&insertTimer,SIGNAL(timeout()),this,SLOT(insertAnyways()));
 	connect(&doubleClickTimer,SIGNAL(timeout()),this,SLOT(startDrag()));
-
+	
+	//New List thingy
+	connect(conn->getDataBackendObject(DataBackend::MLIB),SIGNAL(gotListFromServer(QString, QList<QString>)),
+					this,SLOT(gotNewList(QString, QList<QString>)));
+	connect(conn->getDataBackendObject(DataBackend::MLIB),SIGNAL(infoChanged(int)),
+					this,SLOT(infoChanged(int)));
+	connect(mediaList,SIGNAL(itemExpanded(QTreeWidgetItem*)),this,SLOT(itemExpanded(QTreeWidgetItem*)));
+	visibleMedia = new Xmms::Coll::Universe();
+	((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
 	updating=false;adding=false;
 
 
-	loadFromFile();
+// 	loadFromFile();
 }
 
 MediaLib::~MediaLib() {
@@ -139,6 +118,114 @@ MediaLib::~MediaLib() {
 	delete searchLabel;
 	delete fileList;
 	delete dirModel;
+}
+
+
+void MediaLib::gotNewList(QString property, QList<QString> info) {
+	if(property == "artist")
+	artistList(info);
+}
+void MediaLib::artistList(QList<QString> info) {
+	mediaList->clear();
+		for(int i=0;i<info.size();i++) {
+		QTreeWidgetItem * newItem = new QTreeWidgetItem();
+		newItem->setText(0,info.value(i));
+		mediaList->addTopLevelItem(newItem);
+		QTreeWidgetItem * waitItem = new QTreeWidgetItem(newItem);
+		waitItem->setText(0,"...");
+		}
+	mediaList->sortItems(0,Qt::AscendingOrder);
+	std::cout<<"MLIB TEST DONE"<<std::endl;
+}
+void MediaLib::albumList(QTreeWidgetItem* artist,QList<QString> info) {
+}
+
+void MediaLib::songList(QTreeWidgetItem* album,QList<QString> info){
+}
+
+void MediaLib::itemExpanded(QTreeWidgetItem* item){
+	if(item->parent()==NULL) {
+		if(item->childCount()==1 && item->child(0)->text(0)=="...")
+		getAlbumList(item);
+	}
+	else {
+	getSongInfo(item);
+	}
+}
+
+void MediaLib::getAlbumList(QTreeWidgetItem* item) {
+// 	std::cout<<item->text(0).toStdString()<<std::endl;
+	Xmms::Coll::Equals::Equals albumItems(*visibleMedia,"artist",item->text(0).toStdString(),true);
+
+	std::list<std::string> what;
+ 	what.push_back("album");
+
+	xmms->collection.queryInfos(albumItems,what)(boost::bind(&MediaLib::gotAlbums,this,item,_1));
+}
+
+bool MediaLib::gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &list) {
+	artist->takeChildren();
+		for (list.first();list.isValid(); ++list) {
+			if(list->contains("album")) {
+			QTreeWidgetItem * newAlbum = new QTreeWidgetItem(artist);
+			newAlbum->setText(0,(QString((list->get<std::string>("album")).c_str())));
+			QTreeWidgetItem * tempSong = new QTreeWidgetItem(newAlbum);
+			tempSong->setText(0,"...");
+			}
+		}
+	
+		if(artist->childCount()==0) {
+			QTreeWidgetItem * newAlbum = new QTreeWidgetItem(artist);
+			newAlbum->setText(0,"Unknown");
+			QTreeWidgetItem * tempSong = new QTreeWidgetItem(newAlbum);
+			tempSong->setText(0,"...");
+			}
+	return true;
+}
+
+void MediaLib::getSongInfo(QTreeWidgetItem* item){
+	if(item->parent()==NULL) return;
+	Xmms::Coll::Equals::Equals albumItems(*visibleMedia,"artist",item->parent()->text(0).toStdString(),true);
+		if(item->text(0)!="Unknown") {
+		Xmms::Coll::Equals::Equals songItems(albumItems,"album",item->text(0).toStdString(),true);
+		xmms->collection.queryIds(songItems)(boost::bind(&MediaLib::gotSongs,this,item,_1));
+		}
+		else {
+		Xmms::Coll::Has artColl(*visibleMedia,"album");
+		Xmms::Coll::Complement notColl;
+		notColl.setOperand(artColl);
+		Xmms::Coll::Intersection songItems;
+		songItems.addOperand(albumItems);
+		songItems.addOperand(notColl);
+		xmms->collection.queryIds(songItems)(boost::bind(&MediaLib::gotSongs,this,item,_1));
+		}
+}
+
+bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
+	std::cout<<album->text(0).toStdString()<<std::endl;
+	album->takeChildren();
+	MediaItem* temp;
+		for (list.first();list.isValid(); ++list) {
+			temp = ((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getItem(*list);
+			if(temp == NULL) {
+			temp = new MediaItem();
+			temp->setText(0,"");
+			album->addChild(temp);
+			}
+			else {
+			album->addChild(temp);
+			}
+			idToMediaItem.insert(*list,temp);
+		}
+	return true;
+}
+
+void MediaLib::infoChanged(int id) {
+	if(idToMediaItem.contains(id)) {
+		idToMediaItem.value(id)->parent()->addChild(((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getItem(id));
+		delete(idToMediaItem.value(id));
+		idToMediaItem.value(id)->parent()->sortChildren(0,Qt::AscendingOrder);
+	}
 }
 
 void MediaLib::slotRemove() {
@@ -252,6 +339,7 @@ bool MediaLib::getSongIds(const Xmms::List<unsigned int> &list) {
 }
 
 bool MediaLib::getMediaInfo(const Xmms::PropDict& info) {
+	return true;
 	MediaItem * newItem = new MediaItem();
 	std::cout<<sizeof(*newItem)<<std::endl;
 	QHash<QString,QVariant> curInfo;

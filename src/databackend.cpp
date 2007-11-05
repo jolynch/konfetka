@@ -2,10 +2,6 @@
 #define DATABACKEND_CPP
 #include "databackend.h"
 
-#include "databackend/plistdata.h"
-#include "databackend/mlibdata.h"
-#include "databackend/colldata.h"
-
 
 DataBackend::DataBackend(QObject * parent, std::string name):XMMS2Interface(parent,name) {
 mlibData=new MlibData(this);

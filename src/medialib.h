@@ -4,6 +4,13 @@
 #define XMMSCLIENTPP
 #include <xmmsclient/xmmsclient++.h>
 #endif
+
+#ifndef BOOST_BIND
+#define BOOST_BIND
+#include <boost/bind.hpp>
+#endif
+
+#include "databackend.h"
 #include "collectioneditor.h"
 #include <QTreeWidget>
 #include <QGridLayout>
@@ -11,7 +18,6 @@
 #include <QDirModel>
 #include <QTreeWidgetItem>
 #include <QStringList>
-#include "databackend.h"
 #include <QHeaderView>
 #include <QLabel>
 #include <QFile>
@@ -32,20 +38,11 @@
 #include <QShortcut>
 #include <QSettings>
 #include <QTime>
+#include <QQueue>
 
 //#include <QVariant>
 
 class DropTreeWidget;
-
-class MediaItem:public QTreeWidgetItem {
-	private:
-	QHash<QString,QVariant> songInfo;
-	public:
-	QVariant info(QString);
-	QHash<QString,QVariant> allInfo();
-	void setInfo(QHash<QString,QVariant>);
-	bool matches(QString,QString);
-};
 
 class MediaLib:public QWidget {	
 Q_OBJECT
@@ -75,6 +72,10 @@ Q_OBJECT
 	QStack<int> insertIds;
 	QTimer insertTimer;
 	QTimer doubleClickTimer;
+	
+	//NEW LISTS
+	QHash<uint,MediaItem*> idToMediaItem;
+	Xmms::Coll::Coll * visibleMedia;
 
 	public:
 	MediaLib(DataBackend * conn, QWidget * parent = 0, Qt::WindowFlags f = 0);
@@ -93,6 +94,9 @@ Q_OBJECT
 	bool fromKonfetka;
 	int numDone,total;
 
+	//NEW LISTS
+	bool gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &list);
+	bool gotSongs(QTreeWidgetItem* artist,const Xmms::List <uint> &list);
 
 	public slots:
 	void getSongList();
@@ -115,6 +119,17 @@ Q_OBJECT
 	bool mlibChanged(const unsigned int& id);
 	void insertAnyways();
 	void insertNextFew();
+
+	//NEW LISTS
+	void gotNewList(QString property, QList<QString> info);
+	void artistList(QList<QString> info);
+	void albumList(QTreeWidgetItem* artist,QList<QString> info);
+	void songList(QTreeWidgetItem* album,QList<QString> info);
+	void itemExpanded(QTreeWidgetItem* item);
+	void getAlbumList(QTreeWidgetItem* item);
+	void getSongInfo(QTreeWidgetItem* item);
+
+	void infoChanged(int id);
 	
 };
 
