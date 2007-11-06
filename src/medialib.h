@@ -44,12 +44,13 @@
 
 class DropTreeWidget;
 
+typedef uint ItemType;
+
 class MediaLib:public QWidget {	
 Q_OBJECT
 
 	private:
-	QString mlibHashPath;
-	bool updating,adding,complexSearch;
+	bool adding,complexSearch;
 	DropTreeWidget * mediaList;
 	QPushButton * add;
 	QPushButton * update;
@@ -59,35 +60,35 @@ Q_OBJECT
 	QLabel * searchLabel;
 	QGridLayout * layout;
 	QVBoxLayout * buttons;
-	QList<MediaItem*> songs;
-	QList<MediaItem*> matchedSongs;
-	QProgressBar * bar;
-	QHash<QString,QTreeWidgetItem*> artists;
-	QHash<QString,MediaItem*> titles;
-	QStringList lookUps;
+// 	QList<MediaItem*> songs;
+// 	QList<MediaItem*> matchedSongs;
+// 	QProgressBar * bar;
+// 	QHash<QString,QTreeWidgetItem*> artists;
+// 	QHash<QString,MediaItem*> titles;
+// 	QStringList lookUps;
 	QList<QUrl> urlList;
 	QDrag * drag;
 	QMimeData * mimeData;
 	QShortcut  * delItem;
-	QStack<int> insertIds;
-	QTimer insertTimer;
+// 	QStack<int> insertIds;
+// 	QTimer insertTimer;
 	QTimer doubleClickTimer;
 	
 	//NEW LISTS
 	QHash<uint,MediaItem*> idToMediaItem;
 	Xmms::Coll::Coll * visibleMedia;
+	static const ItemType ARTIST = 0x001;
+	static const ItemType ALBUM = 0x010;
+	static const ItemType SONG = 0x011;
+	ItemType getItemType(QTreeWidgetItem*);	
 
 	public:
 	MediaLib(DataBackend * conn, QWidget * parent = 0, Qt::WindowFlags f = 0);
 	~MediaLib();
-	void saveToFile();
+	
+	Xmms::Coll::Union* selectedAsColl();
+	bool addToPlaylistFromCollectionDrag(const Xmms::List <Xmms::Dict> &list);
 	void formatNode(QTreeWidgetItem * item,QFile * file,int depth);
-	void loadFromFile();	
-	MediaItem* loadItem(QString);
-	void process(QTreeWidgetItem*,int);
-	void removeNode(QTreeWidgetItem *);
-	void pushId(int);
-	void insertStackedIds();
 	DataBackend * xmms;
 	QDirModel * dirModel;
 	QTreeView * fileList;
@@ -99,15 +100,11 @@ Q_OBJECT
 	bool gotSongs(QTreeWidgetItem* artist,const Xmms::List <uint> &list);
 
 	public slots:
-	void getSongList();
-	bool getSongIds(const Xmms::List<unsigned int> &list);
-	bool getMediaInfo(const Xmms::PropDict& info);
+	void refreshList();
 	//refer to cpp
 // 	bool getArtists(const Xmms::List <Xmms::Dict> &list);
 	void toggleFileList();
 	void newColl();
-	void showProgress(int,int);
-	void insert(MediaItem*);
 	void searchMlib(QString);
 	
 	void addToMlibDrag(QTreeWidgetItem*,int);
@@ -118,13 +115,10 @@ Q_OBJECT
 	void slotRemove();
 	bool mlibChanged(const unsigned int& id);
 	void insertAnyways();
-	void insertNextFew();
 
 	//NEW LISTS
 	void gotNewList(QString property, QList<QString> info);
 	void artistList(QList<QString> info);
-	void albumList(QTreeWidgetItem* artist,QList<QString> info);
-	void songList(QTreeWidgetItem* album,QList<QString> info);
 	void itemExpanded(QTreeWidgetItem* item);
 	void getAlbumList(QTreeWidgetItem* item);
 	void getSongInfo(QTreeWidgetItem* item);
