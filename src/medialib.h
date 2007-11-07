@@ -60,18 +60,10 @@ Q_OBJECT
 	QLabel * searchLabel;
 	QGridLayout * layout;
 	QVBoxLayout * buttons;
-// 	QList<MediaItem*> songs;
-// 	QList<MediaItem*> matchedSongs;
-// 	QProgressBar * bar;
-// 	QHash<QString,QTreeWidgetItem*> artists;
-// 	QHash<QString,MediaItem*> titles;
-// 	QStringList lookUps;
 	QList<QUrl> urlList;
 	QDrag * drag;
 	QMimeData * mimeData;
 	QShortcut  * delItem;
-// 	QStack<int> insertIds;
-// 	QTimer insertTimer;
 	QTimer doubleClickTimer;
 	
 	//NEW LISTS
@@ -88,7 +80,6 @@ Q_OBJECT
 	
 	Xmms::Coll::Union* selectedAsColl();
 	bool addToPlaylistFromCollectionDrag(const Xmms::List <Xmms::Dict> &list);
-	void formatNode(QTreeWidgetItem * item,QFile * file,int depth);
 	DataBackend * xmms;
 	QDirModel * dirModel;
 	QTreeView * fileList;
@@ -98,14 +89,14 @@ Q_OBJECT
 	//NEW LISTS
 	bool gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &list);
 	bool gotSongs(QTreeWidgetItem* artist,const Xmms::List <uint> &list);
-
+	
 	public slots:
 	void refreshList();
 	//refer to cpp
 // 	bool getArtists(const Xmms::List <Xmms::Dict> &list);
 	void toggleFileList();
 	void newColl();
-	void searchMlib(QString);
+	void searchMlib();
 	
 	void addToMlibDrag(QTreeWidgetItem*,int);
 	void addToMlibDoubleClick(QTreeWidgetItem *,int);

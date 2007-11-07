@@ -75,7 +75,7 @@ MediaLib::MediaLib(DataBackend * conn,  QWidget * parent, Qt::WindowFlags f):QWi
 
 	connect(add,SIGNAL(clicked()),this,SLOT(toggleFileList()));
 	connect(update,SIGNAL(clicked()),this,SLOT(refreshList()));
-	connect(searchLine,SIGNAL(textChanged(QString)),this,SLOT(searchMlib(QString)));
+	connect(searchLine,SIGNAL(returnPressed()),this,SLOT(searchMlib()));
 	
 	connect(mediaList,SIGNAL(itemPressed(QTreeWidgetItem *,int)),this,SLOT(addToMlibDrag(QTreeWidgetItem*,int))); 
 	connect(mediaList,SIGNAL(itemDoubleClicked(QTreeWidgetItem *,int)),this,SLOT(addToMlibDoubleClick(QTreeWidgetItem*,int)));
@@ -143,8 +143,8 @@ void MediaLib::getAlbumList(QTreeWidgetItem* item) {
 	Xmms::Coll::Equals albumItems(*visibleMedia,"artist",item->text(0).toStdString(),true);
 
 	std::list<std::string> what;
- 	what.push_back("album");
-	what.push_back("url");
+	what.push_back("album");
+	what.push_back("title");
 
 	xmms->collection.queryInfos(albumItems,what)(boost::bind(&MediaLib::gotAlbums,this,item,_1));
 }
@@ -152,30 +152,32 @@ void MediaLib::getAlbumList(QTreeWidgetItem* item) {
 bool MediaLib::gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &list) {
 	artist->takeChildren();
 	QString tmp;
-	bool unknownFound=false;
+	QList<QString> artistList;
 		for (list.first();list.isValid(); ++list) {
 			if(list->contains("album")) {
 			tmp = QString((list->get<std::string>("album")).c_str());
 			}
-			else if(list->contains("url")&&!unknownFound) {
+			else if(list->contains("title")) {
 			tmp = "Unknown";
-			unknownFound=true;
 			}
 			else {
 			continue;
 			}
+	
+			if(artistList.contains(tmp)) continue;
+			artistList.append(tmp);
 			QTreeWidgetItem * newAlbum = new QTreeWidgetItem(artist);
 			newAlbum->setText(0,tmp);
 			QTreeWidgetItem * tempSong = new QTreeWidgetItem(newAlbum);
 			tempSong->setText(0,"...");
 		}
-	
-			if(artist->childCount()==0) {
-			QTreeWidgetItem * newAlbum = new QTreeWidgetItem(artist);
-			newAlbum->setText(0,"Unknown");
-			QTreeWidgetItem * tempSong = new QTreeWidgetItem(newAlbum);
-			tempSong->setText(0,"...");
-			}
+		
+		if(artist->childCount()==0) {	
+		QTreeWidgetItem * newAlbum = new QTreeWidgetItem(artist);
+		newAlbum->setText(0,"Unknown");
+		QTreeWidgetItem * tempSong = new QTreeWidgetItem(newAlbum);
+		tempSong->setText(0,"...");
+		}
 	return true;
 }
 
@@ -207,6 +209,7 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 			temp = new MediaItem();
 			temp->setText(0,"");
 			album->addChild(temp);
+			std::cout<<"creating"<<std::endl;
 			}
 			else {
 			album->addChild(temp);
@@ -215,7 +218,7 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 		}
 		
 		if(album->childCount()==0) {
-		delete album;
+// 		delete album;
 		}
 	return true;
 }
@@ -288,33 +291,24 @@ void MediaLib::toggleFileList() {
 void MediaLib::newColl() {
 }
 
-void MediaLib::searchMlib(QString text) {
+void MediaLib::searchMlib() {
+	std::string text = searchLine->text().toStdString();
+	Xmms::Coll::Universe mlib;
+	Xmms::Coll::Union allMatches;
+	QStringList lookUps;
+		Xmms::Coll::Match matchedArt(mlib,"artist","%"+text+"%");
+		allMatches.addOperand(matchedArt);
+		Xmms::Coll::Match matchedAlb(mlib,"album","%"+text+"%");
+		allMatches.addOperand(matchedAlb);
+		Xmms::Coll::Match matchedTit(mlib,"title","%"+text+"%");
+		allMatches.addOperand(matchedTit);
+		Xmms::Coll::Match matchedUrl(mlib,"url","%"+text+"%");
+		allMatches.addOperand(matchedUrl);
+	delete visibleMedia;
+	visibleMedia = new Xmms::Coll::Union(allMatches);
+	((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
+}
 	
-}
-
-void MediaLib::formatNode(QTreeWidgetItem * item,QFile * file,int depth) {
-	QTextStream out(file);
-	if(item->childCount()==0) {
-	MediaItem* newItem = dynamic_cast<MediaItem *> (item);
-		if(newItem!=NULL) {
-		out<< depth;
-		QHash<QString,QVariant> songInfo = newItem->allInfo();
-		QHash<QString, QVariant>::const_iterator i;
-			for(i=songInfo.constBegin(); i != songInfo.constEnd(); ++i) {
-				out<<" "<<i.key()<<":"<<i.value().toString()<<"|";
-			}
-		out<<"\n";
-		}
-	}
-	else {
-	out<< depth<<" "<<item->text(0)<<"\n";
-	}
-	out.flush();
-		for(int i=0;i<item->childCount();i++) {
-		formatNode(item->child(i),file,depth+1);
-		}
-}
-
 ItemType MediaLib::getItemType(QTreeWidgetItem* item) {
 	if(item->parent() == NULL)
 	return ARTIST;
