@@ -67,6 +67,10 @@ MediaItem* MlibData::getItem(uint id) {
 	}
 }
 
+MediaItem* MlibData::operator[] (uint id) {
+	return getItem(id);
+}
+
 void MlibData::clearCache() {
 	cache.clear();
 }

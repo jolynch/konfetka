@@ -44,6 +44,7 @@ class MlibData:public QObject {
 	QVariant getInfo(std::string property, uint id);
 	QVariant getInfo(QString property, uint id);
 	MediaItem* getItem(uint id);
+	MediaItem* operator[] (uint id);
 	
 	void clearCache();
 	void getItemFromServer(uint id);

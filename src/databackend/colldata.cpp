@@ -41,7 +41,8 @@ void CollData::respondToCollectionChangedBroadcast(const Xmms::Dict& change)
 	switch(change.get<int>("type"))
 		{
 		case XMMS_COLLECTION_CHANGED_UPDATE:
-			emit(updated(change.get<std::string>("name").c_str(),change.get<const char *>("namespace")));
+			if(change.contains("name") && change.contains("namespace"))
+			emit(updated(change.get<std::string>("name").c_str(),change.get<std::string>("namespace").c_str()));
 			break;
 		default:
 			Xmms::Collection::Namespace foo=change.get<const char *>("namespace");

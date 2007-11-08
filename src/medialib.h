@@ -89,7 +89,8 @@ Q_OBJECT
 	//NEW LISTS
 	bool gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &list);
 	bool gotSongs(QTreeWidgetItem* artist,const Xmms::List <uint> &list);
-	
+	bool handleUnknown(const Xmms::List <uint> &list);
+
 	public slots:
 	void refreshList();
 	//refer to cpp
