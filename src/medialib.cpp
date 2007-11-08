@@ -117,6 +117,7 @@ void MediaLib::gotNewList(QString property, QList<QString> info) {
 }
 void MediaLib::artistList(QList<QString> info) {
 	mediaList->clear();
+	((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->clearCache();
 		for(int i=0;i<info.size();i++) {
 		QTreeWidgetItem * newItem = new QTreeWidgetItem();
 		newItem->setText(0,info.value(i));
@@ -204,7 +205,7 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 	album->takeChildren();
 	MediaItem* temp;
 		for (list.first();list.isValid(); ++list) {
-			temp = ((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getItem(*list);
+			temp = dynamic_cast<MediaItem *>(((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getItem(*list));
 			if(temp == NULL) {
 			temp = new MediaItem();
 			temp->setText(0,"");
@@ -213,6 +214,7 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 			}
 			else {
 			album->addChild(temp);
+			std::cout<<"made to here?"<<std::endl;
 			}
 			idToMediaItem.insert(*list,temp);
 		}
@@ -226,7 +228,8 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 void MediaLib::infoChanged(int id) {
 	if(idToMediaItem.contains(id)) {
 		idToMediaItem.value(id)->parent()->addChild(((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getItem(id));
-		delete(idToMediaItem.value(id));
+		delete (idToMediaItem.value(id));
+		idToMediaItem.insert(id,((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getItem(id));
 		idToMediaItem.value(id)->parent()->sortChildren(0,Qt::AscendingOrder);
 	}
 }
@@ -295,7 +298,6 @@ void MediaLib::searchMlib() {
 	std::string text = searchLine->text().toStdString();
 	Xmms::Coll::Universe mlib;
 	Xmms::Coll::Union allMatches;
-	QStringList lookUps;
 		Xmms::Coll::Match matchedArt(mlib,"artist","%"+text+"%");
 		allMatches.addOperand(matchedArt);
 		Xmms::Coll::Match matchedAlb(mlib,"album","%"+text+"%");
@@ -304,6 +306,10 @@ void MediaLib::searchMlib() {
 		allMatches.addOperand(matchedTit);
 		Xmms::Coll::Match matchedUrl(mlib,"url","%"+text+"%");
 		allMatches.addOperand(matchedUrl);
+		Xmms::Coll::Match matchedGenre(mlib,"genre","%"+text+"%");
+		allMatches.addOperand(matchedGenre);
+		Xmms::Coll::Match matchedID(mlib,"id","%"+text+"%");
+		allMatches.addOperand(matchedID);
 	delete visibleMedia;
 	visibleMedia = new Xmms::Coll::Union(allMatches);
 	((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");

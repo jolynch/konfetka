@@ -58,12 +58,17 @@ void MlibData::getInfoFromServer(QString property, uint id) {
 }
 
 MediaItem* MlibData::getItem(uint id) {
-	if(cache.contains(id))
+	if(cache.contains(id)) {
 	return cache.value(id);
+	}
 	else {
 	getItemFromServer(id);
 	return NULL;
 	}
+}
+
+void MlibData::clearCache() {
+	cache.clear();
 }
 
 void MlibData::getItemFromServer(uint id) {

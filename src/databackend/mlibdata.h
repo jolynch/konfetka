@@ -45,6 +45,7 @@ class MlibData:public QObject {
 	QVariant getInfo(QString property, uint id);
 	MediaItem* getItem(uint id);
 	
+	void clearCache();
 	void getItemFromServer(uint id);
 	void getInfoFromServer(QString property, uint id);
 	void getListFromServer(Xmms::Coll::Coll* coll,QString property);
