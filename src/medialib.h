@@ -38,7 +38,7 @@
 #include <QShortcut>
 #include <QSettings>
 #include <QTime>
-#include <QQueue>
+#include <QInputDialog>
 
 //#include <QVariant>
 
@@ -65,6 +65,7 @@ Q_OBJECT
 	QMimeData * mimeData;
 	QShortcut  * delItem;
 	QTimer doubleClickTimer;
+	QStack<uint> idStack;
 	
 	//NEW LISTS
 	QHash<uint,MediaItem*> idToMediaItem;
@@ -93,6 +94,7 @@ Q_OBJECT
 
 	public slots:
 	void refreshList();
+	void checkIfRefreshIsNeeded();
 	//refer to cpp
 // 	bool getArtists(const Xmms::List <Xmms::Dict> &list);
 	void toggleFileList();
@@ -105,8 +107,10 @@ Q_OBJECT
 	void stopTimerAndClearList();
 
 	void slotRemove();
+	void removeNodes(QList<QTreeWidgetItem*>);
+	bool removeIds(const Xmms::List <uint> &list);
+	
 	bool mlibChanged(const unsigned int& id);
-	void insertAnyways();
 
 	//NEW LISTS
 	void gotNewList(QString property, QList<QString> info);

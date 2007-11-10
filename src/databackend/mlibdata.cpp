@@ -39,7 +39,21 @@ return false;
 MlibData::MlibData(DataBackend * conn,QObject * parent):QObject(parent) {
 	this->conn = conn;
 	lookUps<<"artist"<<"album"<<"url"<<"encodedurl"<< "title"<<"genre"<<"duration"<<"timesplayed"<<"rating"<<"lastplayed"<<"id";
+	conn->medialib.broadcastEntryChanged()(Xmms::bind(&MlibData::mlibChanged, this));
+	connect(&changeTimer,SIGNAL(timeout()),this,SIGNAL(updatesDone()));
+	connect(&changeTimer,SIGNAL(timeout()),&changeTimer,SLOT(stop()));
+
 }
+
+bool MlibData::mlibChanged(const unsigned int& id) {
+		if(changeTimer.isActive())
+		changeTimer.stop();
+		changeTimer.start(1000);
+	getItemFromServer(id);
+// 	std::cout<<"GETING ID FROM SERVER"<<std::endl;
+	return true;
+}
+
 
 QVariant MlibData::getInfo(QString property, uint id) {
 	if(cache.contains(id))
@@ -125,14 +139,14 @@ bool MlibData::getMediaInfo(const Xmms::PropDict& info) {
 		}
 	cache.insert(info.get<int>("id"),newItem);
 	emit infoChanged(info.get<int>("id"));
-	std::cout<<"got info"<<std::endl;
+// 	std::cout<<"got info"<<std::endl;
 	return true;
 }
 
 void MlibData::getListFromServer(Xmms::Coll::Coll* mlib,QString property) {
  	std::list<std::string> what;
  	what.push_back(property.toStdString());
- 	std::cout<<"getting"<<std::endl;
+//  	std::cout<<"getting"<<std::endl;
  	conn->collection.queryInfos(*mlib,what)(boost::bind(&MlibData::gotList,this,property.toStdString(),_1));
 }
 
@@ -143,10 +157,10 @@ bool MlibData::gotList(std::string property,const Xmms::List <Xmms::Dict> &list)
 		info.append(QString((list->get<std::string>(property)).c_str()));
 	}
 
-	std::cout<<"BEGIN MLIB TEST"<<std::endl;
-	std::cout<<property<<std::endl;
+// 	std::cout<<"BEGIN MLIB TEST"<<std::endl;
+// 	std::cout<<property<<std::endl;
 	emit gotListFromServer(QString(property.c_str()),info);
-	std::cout<<"END MLIB TEST"<<std::endl;
+// 	std::cout<<"END MLIB TEST"<<std::endl;
 
 	return true;
 }

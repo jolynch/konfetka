@@ -18,6 +18,7 @@
 #include <QTreeWidgetItem>
 #include <QStringList>
 #include <QTime>
+#include <QTimer>
 #include <string>
 
 class MediaItem:public QTreeWidgetItem {
@@ -38,6 +39,7 @@ class MlibData:public QObject {
 	DataBackend * conn;
 	QHash<uint,MediaItem*> cache;
 	QStringList lookUps;
+	QTimer changeTimer;
 	
 	public:
 	MlibData(DataBackend *,QObject * parent = 0);
@@ -52,10 +54,12 @@ class MlibData:public QObject {
 	void getListFromServer(Xmms::Coll::Coll* coll,QString property);
 	bool gotList(std::string property,const Xmms::List <Xmms::Dict> &list);
 	bool getMediaInfo(const Xmms::PropDict& info);
+	bool mlibChanged(const unsigned int& id);
 	
 	signals:
 	void infoChanged(int id);
 	void gotListFromServer(QString property, QList<QString> info);
+	void updatesDone();
 
 };
 
