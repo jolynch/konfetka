@@ -39,10 +39,13 @@
 #include <QSettings>
 #include <QTime>
 #include <QInputDialog>
+#include <QCheckBox>
+#include <QDialogButtonBox>
 
 //#include <QVariant>
 
 class DropTreeWidget;
+class ComplexSearchDialog;
 
 typedef uint ItemType;
 enum Operator {opor, opand, opnot}; 
@@ -67,7 +70,7 @@ Q_OBJECT
 	QShortcut  * delItem;
 	QTimer doubleClickTimer;
 	QStack<uint> idStack;
-	QList< QPair <Xmms::Coll::Coll,Operator> > complexSearchItems;
+	ComplexSearchDialog * searchDialog;
 	
 	//NEW LISTS
 	QHash<uint,MediaItem*> idToMediaItem;
@@ -151,7 +154,30 @@ Q_OBJECT
 
 class ComplexSearchDialog:public QDialog {
 	Q_OBJECT
+	
+	private:
+	QList< QPair <Xmms::Coll::Coll,Operator>* > complexSearchItems;
+	QTreeWidget * itemList;
+	QLabel * tagLabel;
+	QComboBox * tag;
+	QLabel * operLabel;
+	QComboBox * oper;
+	QLabel * valueLabel;
+	QLineEdit * value;
+	QLabel * appendageTypeLabel;
+	QComboBox * appendageType;
+	QPushButton * add;
+	QCheckBox * notCheck;
+	QDialogButtonBox * buttons;
+	QGridLayout * layout;
 
+	public:
+	ComplexSearchDialog();
+	
+	public slots:
+	void addOperand();
+	void clearItems();
+	
 };
 
 

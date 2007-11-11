@@ -76,6 +76,8 @@ MediaLib::MediaLib(DataBackend * conn,  QWidget * parent, Qt::WindowFlags f):QWi
 
 	fileList->hide();
 
+	searchDialog = new ComplexSearchDialog();
+
 
 	connect(add,SIGNAL(clicked()),this,SLOT(toggleFileList()));
 	connect(update,SIGNAL(clicked()),this,SLOT(refreshList()));
@@ -192,7 +194,7 @@ bool MediaLib::gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &
 	QList<QString> artistList;
 		for (list.first();list.isValid(); ++list) {
 			if(list->contains("album")) {
-			tmp = QString::fromUtf8((list->get<std::string>("album")).c_str());
+			tmp = QString((list->get<std::string>("album")).c_str());
 			}
 			else if(list->contains("title")) {
 			tmp = "Unknown";
@@ -563,6 +565,7 @@ void MediaLib::toggleComplexSearch() {
 	complexSearchButton->setText("Simple");
 	searchLine->clear();
 	searchLine->setEnabled(true);
+	searchDialog->clearItems();
 	}
 
 	QMenu * menu = new QMenu();
@@ -572,6 +575,8 @@ void MediaLib::toggleComplexSearch() {
 }
 
 void MediaLib::addAnotherSearchItem() {
+	if(complexSearch)
+	searchDialog->exec();
 }
 
 DropTreeWidget::DropTreeWidget(MediaLib* newLib):QTreeWidget() {
@@ -677,6 +682,90 @@ void DropTreeWidget::dropEvent(QDropEvent *event){
 		}
 }
 
+ComplexSearchDialog::ComplexSearchDialog() {
+	QStringList temp;
+
+	itemList = new QTreeWidget();
+	temp<<"Attribute"<<"Operator"<<"Value"<<"Appendage Type"<<"Not?";
+	itemList->setHeaderLabels(temp);
+
+	tagLabel = new QLabel("Attribute:");
+	tag = new QComboBox();
+	temp.clear();
+	temp<<"artist"<<"album"<<"url"<<"title"<<"genre"<<"duration(doesn't work)"<<"timesplayed"<<"lastplayed (doesn't work)"<<"id";
+	tag->addItems(temp);
+
+	operLabel = new QLabel("Operator:");
+	oper = new QComboBox();
+	temp.clear();
+	temp<<"="<<"matches"<<"has tag"<<"<"<<">"<<"<="<<">=";
+	oper->addItems(temp);
+	
+	valueLabel = new QLabel("Value:");
+	value = new QLineEdit();	
+	
+	appendageTypeLabel = new QLabel("Appendage Type:");
+	appendageType = new QComboBox();
+	temp.clear();
+	temp<<"AND"<<"OR";
+	appendageType->addItems(temp);
+	
+	notCheck = new QCheckBox("Inverse");
+
+	add = new QPushButton("Append");
+	
+	buttons = new QDialogButtonBox(QDialogButtonBox::Ok
+                                      | QDialogButtonBox::Cancel);
+	buttons->setCenterButtons(1);
+	connect(buttons,SIGNAL(accepted()),this,SLOT(accept()));
+	connect(buttons,SIGNAL(rejected()),this,SLOT(reject()));
+	connect(add,SIGNAL(clicked()),this,SLOT(addOperand()));
+
+	layout = new QGridLayout();
+	
+	layout->addWidget(itemList,0,0,6,2);
+	layout->addWidget(tagLabel,0,2);
+	layout->addWidget(tag,0,3);
+	layout->addWidget(operLabel,1,2);
+	layout->addWidget(oper,1,3);
+	layout->addWidget(valueLabel,2,2,1,2);
+	layout->addWidget(value,3,2,1,2);
+	layout->addWidget(appendageTypeLabel,4,2);
+	layout->addWidget(appendageType,4,3);
+	layout->addWidget(notCheck,5,2);
+	layout->addWidget(add,5,3);
+	layout->addWidget(buttons,6,0);
+	this->setLayout(layout);
+
+}
+
+void ComplexSearchDialog::addOperand() {
+	if(value->text()=="" && oper->currentText()!="has tag") {
+		std::cout<<oper->currentText().toStdString()<<std::endl;
+		return;
+	}
+	else {
+		QTreeWidgetItem* item = new QTreeWidgetItem;
+		item->setText(0,tag->currentText());
+		item->setText(1,oper->currentText());
+			if(oper->currentText()!="has tag") {
+			item->setText(2,value->text());
+			}
+		item->setText(3,appendageType->currentText());
+			if(notCheck->checkState()==Qt::Checked)
+			item->setText(4,"1");
+			else
+			item->setText(4,"0");
+
+		itemList->addTopLevelItem(item);
+	}
+
+}
+
+void ComplexSearchDialog::clearItems() {
+	itemList->clear();
+	complexSearchItems.clear();
+}
 
 #endif
 
