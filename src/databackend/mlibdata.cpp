@@ -108,8 +108,10 @@ bool MlibData::getMediaInfo(const Xmms::PropDict& info) {
 				tmpString = info.get<std::string>(lookUps.value(i).toStdString());
 
 				if(lookUps.value(i)=="url")
-				tmpString = QString::fromUtf8 (xmmsc_result_decode_url (NULL,tmpString.c_str())).toStdString();
-			curInfo.insert(lookUps.value(i),QVariant(tmpString.c_str()));
+				tmpString = xmmsc_result_decode_url (NULL,tmpString.c_str());
+
+
+				curInfo.insert(lookUps.value(i),QVariant(QString::fromUtf8(tmpString.c_str())));
 			} catch(Xmms::wrong_type_error& err) {
 			tmpInt = info.get<int>(lookUps.value(i).toStdString());
 				if(lookUps.value(i)=="duration") {
@@ -154,7 +156,7 @@ bool MlibData::gotList(std::string property,const Xmms::List <Xmms::Dict> &list)
 	QList<QString> info;
 	for (list.first();list.isValid(); ++list) {
 		if(list->contains(property))
-		info.append(QString((list->get<std::string>(property)).c_str()));
+		info.append(QString::fromUtf8((list->get<std::string>(property)).c_str()));
 	}
 
 // 	std::cout<<"BEGIN MLIB TEST"<<std::endl;

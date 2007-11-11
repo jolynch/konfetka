@@ -192,7 +192,7 @@ bool MediaLib::gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &
 	QList<QString> artistList;
 		for (list.first();list.isValid(); ++list) {
 			if(list->contains("album")) {
-			tmp = QString((list->get<std::string>("album")).c_str());
+			tmp = QString::fromUtf8((list->get<std::string>("album")).c_str());
 			}
 			else if(list->contains("title")) {
 			tmp = "Unknown";
