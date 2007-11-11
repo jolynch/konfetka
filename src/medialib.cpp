@@ -42,7 +42,11 @@ MediaLib::MediaLib(DataBackend * conn,  QWidget * parent, Qt::WindowFlags f):QWi
 	searchLine = new QLineEdit();
 	searchLabel = new QLabel("Search");
 	complexSearchButton = new QPushButton("Simple");
-	complexSearchButton->setFixedSize(40,25);
+	QMenu * menu = new QMenu();
+	menu->addAction(QIcon(":images/repeat_all"),"Toggle to Complex",this,SLOT(toggleComplexSearch()));
+	menu->addAction(QIcon(":images/plus"),"Add Another Search Term",this,SLOT(addAnotherSearchItem()));
+	complexSearchButton->setMenu(menu);
+// 	complexSearchButton->setFixedSize(42,25);
 
 	fileList = new QTreeView();
 	dirModel = new QDirModel();
@@ -365,8 +369,21 @@ void MediaLib::newColl() {
 			"Are you sure that you want to save\nthe visible items to the collection: "+name,
 			QMessageBox::Yes | QMessageBox::No,QMessageBox::Yes);
 	if(val != QMessageBox::Yes) return;
-	xmms->collection.save(*visibleMedia,name.toStdString(),xmms->collection.COLLECTIONS)(Xmms::bind(&DataBackend::scrapResult, xmms));
 
+	QStringList list; ok = true;
+	list << "All"<<"Collections"<<"Playlists";
+	QString ns =  QInputDialog::getItem(this,"Namespace?","What Namespace would you like to save the collection to",
+			list,1,true,&ok);
+	if(!ok) return;
+	Xmms::Collection::Namespace collNamespace;
+		if(ns == "All")
+		collNamespace = xmms->collection.ALL;
+		else if(ns == "Collections")
+		collNamespace = xmms->collection.COLLECTIONS;
+		else
+		collNamespace = xmms->collection.PLAYLISTS;
+	((CollData*)(xmms->getDataBackendObject(DataBackend::COLL)))->
+	createCollection(*visibleMedia,name.toStdString(),collNamespace);
 
 }
 
@@ -452,13 +469,6 @@ void MediaLib::addToMlibDrag(QTreeWidgetItem*,int) {
 	std::list<std::string> tmp;
  	tmp.push_back("url");
 	xmms->collection.queryInfos(*media,tmp)(Xmms::bind(&MediaLib::addToPlaylistFromCollectionDrag,this));
-// 	relevant.removeAll(NULL);
-// 	urlList.clear();
-// 		for(int j=0;j<relevant.size();j++) {
-// 		QString tmp = relevant.value(j)->info("url").toString();
-// 		urlList.append(QUrl(tmp));
-// 		}
-// 	doubleClickTimer.start(qApp->doubleClickInterval());
 }
 
 bool MediaLib::addToPlaylistFromCollectionDrag(const Xmms::List <Xmms::Dict> &list) {
@@ -485,11 +495,11 @@ void MediaLib::addToMlibDoubleClick(QTreeWidgetItem * item,int) {
 }
 
 void MediaLib::startDrag() {
-	drag = new QDrag(this);
-	mimeData = new QMimeData;
+	QDrag * drag = new QDrag(this);
+	QMimeData * mimeData = new QMimeData;
 	mimeData->setUrls(urlList);
 	drag->setMimeData(mimeData);
-	drag->setPixmap(*new QPixmap(":images/volume_button_sound"));
+	drag->setPixmap(QPixmap(":images/volume_button_sound"));
 // 	std::cout<<urlList.size()<<std::endl;
 	urlList.clear();
 	drag->start();
@@ -536,6 +546,32 @@ void MediaLib::checkIfRefreshIsNeeded() {
 		}
 	}
 
+}
+
+void MediaLib::toggleComplexSearch() {
+	complexSearch = ! complexSearch;
+	QString toggleTo;
+	if(complexSearch) {
+	toggleTo = "Toggle to Simple";
+	complexSearchButton->setText("Complex");
+	searchLine->setEnabled(false);
+	searchLine->setText("Hello World");
+	addAnotherSearchItem();
+	}
+	else {
+	toggleTo = "Toggle to Complex";
+	complexSearchButton->setText("Simple");
+	searchLine->clear();
+	searchLine->setEnabled(true);
+	}
+
+	QMenu * menu = new QMenu();
+	menu->addAction(QIcon(":images/repeat_all"),toggleTo,this,SLOT(toggleComplexSearch()));
+	menu->addAction(QIcon(":images/plus"),"Add Another Search Term",this,SLOT(addAnotherSearchItem()));
+	complexSearchButton->setMenu(menu);
+}
+
+void MediaLib::addAnotherSearchItem() {
 }
 
 DropTreeWidget::DropTreeWidget(MediaLib* newLib):QTreeWidget() {

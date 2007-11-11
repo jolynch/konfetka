@@ -45,6 +45,7 @@
 class DropTreeWidget;
 
 typedef uint ItemType;
+enum Operator {opor, opand, opnot}; 
 
 class MediaLib:public QWidget {	
 Q_OBJECT
@@ -61,11 +62,12 @@ Q_OBJECT
 	QGridLayout * layout;
 	QVBoxLayout * buttons;
 	QList<QUrl> urlList;
-	QDrag * drag;
-	QMimeData * mimeData;
+// 	QDrag * drag;
+// 	QMimeData * mimeData;
 	QShortcut  * delItem;
 	QTimer doubleClickTimer;
 	QStack<uint> idStack;
+	QList< QPair <Xmms::Coll::Coll,Operator> > complexSearchItems;
 	
 	//NEW LISTS
 	QHash<uint,MediaItem*> idToMediaItem;
@@ -120,6 +122,8 @@ Q_OBJECT
 	void getSongInfo(QTreeWidgetItem* item);
 
 	void infoChanged(int id);
+	void toggleComplexSearch();
+	void addAnotherSearchItem();
 	
 };
 
@@ -144,6 +148,12 @@ Q_OBJECT
 	void recurAdd(QString,bool);
 	void numSongs(QString path);
 };
+
+class ComplexSearchDialog:public QDialog {
+	Q_OBJECT
+
+};
+
 
 
 

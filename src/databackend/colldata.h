@@ -29,6 +29,7 @@ class CollData:public QObject
 //		QStringList getAllSorted();
 		bool getPlaylistsFromServer(const Xmms::List<std::string>& list);
 		bool getCollectionsFromServer(const Xmms::List<std::string>& list);
+		void createCollection(const Xmms::Coll::Coll&,std::string,Xmms::Collection::Namespace);
 	public slots:
 		void respondToCollectionChangedBroadcast(const Xmms::Dict& change);
 	signals:
