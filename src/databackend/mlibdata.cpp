@@ -38,11 +38,14 @@ return false;
 
 MlibData::MlibData(DataBackend * conn,QObject * parent):QObject(parent) {
 	this->conn = conn;
-	lookUps<<"artist"<<"album"<<"url"<<"encodedurl"<< "title"<<"genre"<<"duration"<<"timesplayed"<<"rating"<<"lastplayed"<<"id";
+	standardTags<<"artist"<<"album"<<"url"<<"encodedurl"<< "title"<<"genre"<<"duration"<<"timesplayed"<<"rating"<<"laststarted"<<"id";
+	QSettings s;
+	if(s.contains("standardTags"))
+	standardTags = s.value("standardTags").toStringList();
+	s.setValue("standardTags",standardTags);
 	conn->medialib.broadcastEntryChanged()(Xmms::bind(&MlibData::mlibChanged, this));
 	connect(&changeTimer,SIGNAL(timeout()),this,SIGNAL(updatesDone()));
 	connect(&changeTimer,SIGNAL(timeout()),&changeTimer,SLOT(stop()));
-
 }
 
 bool MlibData::mlibChanged(const unsigned int& id) {
@@ -54,6 +57,9 @@ bool MlibData::mlibChanged(const unsigned int& id) {
 	return true;
 }
 
+QStringList MlibData::getStandardTags() {
+	return standardTags;
+}
 
 QVariant MlibData::getInfo(QString property, uint id) {
 	if(cache.contains(id))
@@ -99,22 +105,22 @@ bool MlibData::getMediaInfo(const Xmms::PropDict& info) {
 	int tmpInt;
 	std::string tmpString;
 	
-	for(int i=0;i<lookUps.size();i++) {
-		if(info.contains(lookUps.value(i).toStdString()) || lookUps.value(i)=="encodedurl") {
+	for(int i=0;i<standardTags.size();i++) {
+		if(info.contains(standardTags.value(i).toStdString()) || standardTags.value(i)=="encodedurl") {
 			try {
-				if(lookUps.value(i)=="encodedurl")
+				if(standardTags.value(i)=="encodedurl")
 				tmpString = info.get<std::string>("url");
 				else
-				tmpString = info.get<std::string>(lookUps.value(i).toStdString());
+				tmpString = info.get<std::string>(standardTags.value(i).toStdString());
 
-				if(lookUps.value(i)=="url")
+				if(standardTags.value(i)=="url")
 				tmpString = xmmsc_result_decode_url (NULL,tmpString.c_str());
 
 
-				curInfo.insert(lookUps.value(i),QVariant(QString::fromUtf8(tmpString.c_str())));
+				curInfo.insert(standardTags.value(i),QVariant(QString::fromUtf8(tmpString.c_str())));
 			} catch(Xmms::wrong_type_error& err) {
-			tmpInt = info.get<int>(lookUps.value(i).toStdString());
-				if(lookUps.value(i)=="duration") {
+			tmpInt = info.get<int>(standardTags.value(i).toStdString());
+				if(standardTags.value(i)=="duration") {
 				QString tmp;
 				QTime foo (0,0,0);
 				foo=foo.addMSecs(tmpInt);
@@ -122,16 +128,16 @@ bool MlibData::getMediaInfo(const Xmms::PropDict& info) {
 					tmp =foo.toString("h:mm:ss");
 				else
 					tmp =foo.toString("mm:ss");
-				curInfo.insert(lookUps.value(i),QVariant(tmp));
+				curInfo.insert(standardTags.value(i),QVariant(tmp));
 				}
 				else {
-				curInfo.insert(lookUps.value(i),QVariant(tmpInt));
+				curInfo.insert(standardTags.value(i),QVariant(tmpInt));
 				}
 			}
 		} else {
-			if(lookUps.value(i) == "title")
-			curInfo.insert(lookUps.value(i),curInfo.value("url"));
-		curInfo.insert(lookUps.value(i),QVariant("Unknown"));
+			if(standardTags.value(i) == "title")
+			curInfo.insert(standardTags.value(i),curInfo.value("url"));
+		curInfo.insert(standardTags.value(i),QVariant("Unknown"));
 		}
 	}
 	newItem->setInfo(curInfo);

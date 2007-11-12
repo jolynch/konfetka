@@ -159,6 +159,7 @@ class ComplexSearchDialog:public QDialog {
 	Q_OBJECT
 	
 	private:
+	DataBackend* conn;
 	Xmms::Coll::Coll* searchMedia;
 	QList< QPair <Xmms::Coll::Coll*,Operator> > complexSearchItems;
 	QTreeWidget * itemList;
@@ -176,7 +177,7 @@ class ComplexSearchDialog:public QDialog {
 	QGridLayout * layout;
 
 	public:
-	ComplexSearchDialog();
+	ComplexSearchDialog(DataBackend*);
 	Xmms::Coll::Coll* newColl(QString attr,QString oper,QString val,bool notFlag);	
 
 	public slots:

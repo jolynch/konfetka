@@ -38,7 +38,7 @@ class MlibData:public QObject {
 	private:
 	DataBackend * conn;
 	QHash<uint,MediaItem*> cache;
-	QStringList lookUps;
+	QStringList standardTags;
 	QTimer changeTimer;
 	
 	public:
@@ -47,7 +47,9 @@ class MlibData:public QObject {
 	QVariant getInfo(QString property, uint id);
 	MediaItem* getItem(uint id);
 	MediaItem* operator[] (uint id);
-	
+	QStringList getStandardTags();
+		
+
 	void clearCache();
 	void getItemFromServer(uint id);
 	void getInfoFromServer(QString property, uint id);

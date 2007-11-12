@@ -76,7 +76,7 @@ MediaLib::MediaLib(DataBackend * conn,  QWidget * parent, Qt::WindowFlags f):QWi
 
 	fileList->hide();
 
-	searchDialog = new ComplexSearchDialog();
+	searchDialog = new ComplexSearchDialog(conn);
 
 
 	connect(add,SIGNAL(clicked()),this,SLOT(toggleFileList()));
@@ -265,12 +265,12 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 // 			std::cout<<"creating"<<std::endl;
 			}
 			else {
-// 			MediaItem * tmp = new MediaItem();
-// 			QHash<QString,QVariant> tmp2 = temp->allInfo();
-// 			tmp->setText(0,temp->text(0));
-// 			tmp->setInfo(tmp2);
+			MediaItem * tmp = new MediaItem();
+			QHash<QString,QVariant> tmp2 = temp->allInfo();
+			tmp->setText(0,temp->text(0));
+			tmp->setInfo(tmp2);
 
-			album->addChild(temp);
+			album->addChild(tmp);
 // 			std::cout<<"made to here?"<<std::endl;
 			}
 			idToMediaItem.insert(*list,temp);
@@ -724,9 +724,9 @@ void DropTreeWidget::dropEvent(QDropEvent *event){
 		}
 }
 
-ComplexSearchDialog::ComplexSearchDialog() {
+ComplexSearchDialog::ComplexSearchDialog(DataBackend* conn) {
 	QStringList temp;
-
+	this->conn = conn;
 	itemList = new QTreeWidget();
 	temp<<"Attribute"<<"Operator"<<"Value"<<"Appendage Type"<<"Not?";
 	itemList->setHeaderLabels(temp);
@@ -734,7 +734,7 @@ ComplexSearchDialog::ComplexSearchDialog() {
 	tagLabel = new QLabel("Attribute:");
 	tag = new QComboBox();
 	temp.clear();
-	temp<<"artist"<<"album"<<"url"<<"title"<<"genre"<<"duration(doesn't work)"<<"timesplayed"<<"lastplayed (doesn't work)"<<"id";
+	temp = 	((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getStandardTags();
 	tag->addItems(temp);
 
 	operLabel = new QLabel("Operator:");
@@ -765,18 +765,18 @@ ComplexSearchDialog::ComplexSearchDialog() {
 
 	layout = new QGridLayout();
 	
-	layout->addWidget(itemList,0,0,6,2);
+	layout->addWidget(itemList,0,0,5,2);
 	layout->addWidget(tagLabel,0,2);
 	layout->addWidget(tag,0,3);
 	layout->addWidget(operLabel,1,2);
 	layout->addWidget(oper,1,3);
-	layout->addWidget(valueLabel,2,2,1,2);
-	layout->addWidget(value,3,2,1,2);
-	layout->addWidget(appendageTypeLabel,4,2);
-	layout->addWidget(appendageType,4,3);
-	layout->addWidget(notCheck,5,2);
-	layout->addWidget(add,5,3);
-	layout->addWidget(buttons,6,0);
+	layout->addWidget(valueLabel,2,2);
+	layout->addWidget(value,2,3);
+	layout->addWidget(appendageTypeLabel,3,2);
+	layout->addWidget(appendageType,3,3);
+	layout->addWidget(notCheck,4,2);
+	layout->addWidget(add,4,3);
+	layout->addWidget(buttons,5,0);
 	this->setLayout(layout);
 
 }
@@ -824,7 +824,9 @@ Xmms::Coll::Coll* ComplexSearchDialog::newColl(QString attr,QString oper,QString
 		resultColl = new Xmms::Coll::Equals(mlib,attr.toStdString(),val.toStdString(),true);
 		}
 		else if(oper == "matches") {
-		resultColl = new Xmms::Coll::Match(mlib,attr.toStdString(),val.toStdString(),false);
+		std::string tmp = val.toStdString();
+		tmp = "%"  + tmp + "%";
+		resultColl = new Xmms::Coll::Match(mlib,attr.toStdString(),tmp,false);
 		}
 		else if(oper == "has tag") {
 		resultColl = new Xmms::Coll::Has(mlib,attr.toStdString());
