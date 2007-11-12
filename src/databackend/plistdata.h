@@ -4,21 +4,24 @@
 #endif
 #ifndef PLISTDATA_H
 #define PLISTATA_H
-// #include "../databackend.h"
+#include "colldata.h"
+#include "../databackend.h"
 #include <QObject>
 #include <QString>
 #include <QHash>
 #include <string>
 
-class DataBackend;
 
 class SinglePlaylist:public QObject
 	{	Q_OBJECT
-/*	private:
-		QList <uint> ids;
+	private:
+		bool connected;
+/*		QList <uint> ids;
 		DataBackend * conn;
-	public:
-*/		SinglePlaylist(DataBackend * c);
+*/	public:
+		SinglePlaylist(DataBackend * c);
+		bool isConnected();
+		void connectToggle();
 /*		QList <uint> getIds();
 		void setIds(QList <uint> newVals);
 	public slots:
@@ -33,23 +36,25 @@ class SinglePlaylist:public QObject
 class PlistData:public QObject
 	{	Q_OBJECT
 	private:
-/*		DataBackend * conn;
+		DataBackend * conn;
 		std::string currentPlist;
-		QHash <std::string, SinglePlaylist *> plists;
+		QHash <QString, SinglePlaylist *> plists;
 
 		void createPlaylist(std::string name);
-		void refreshPlaylist(SinglePlaylist * plist);
+		void refreshPlaylist(SinglePlaylist * plist,std::string name="");
 
 		void connectToServer(SinglePlaylist * plist);
 		void disconnectFromServer(SinglePlaylist * plist);
-*/	public:
+	public:
 		PlistData(DataBackend * c,QObject * parent=0);
-/*		SinglePlaylist * operator[] (std::string plist="");
-		std::string getCurrentName();
+		SinglePlaylist * getPlist (std::string plist="");
+		QString getCurrentName();
 	public slots:
 		void setCurrentName(const std::string & name);
 		void collectionChanged(QString name, Xmms::Collection::Namespace ns);
-*/	};
+	signals:
+		void playlistReady(std::string,SinglePlaylist *);
+	};
 
 #endif
 

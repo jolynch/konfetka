@@ -3,10 +3,15 @@
 #include "databackend.h"
 
 
+#include "databackend/plistdata.h"
+#include "databackend/mlibdata.h"
+#include "databackend/colldata.h"
+
+
 DataBackend::DataBackend(QObject * parent, std::string name):XMMS2Interface(parent,name) {
 mlibData=new MlibData(this);
-plistData=new PlistData(this);
 collData=new CollData(this);
+plistData=new PlistData(this);
 }
 
 QObject * DataBackend::getDataBackendObject(DataBackendType type)

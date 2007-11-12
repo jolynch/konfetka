@@ -10,6 +10,8 @@
 #include <boost/bind.hpp>
 #endif
 
+#include "databackend/mlibdata.h"
+#include "databackend/colldata.h"
 #include "databackend.h"
 #include "collectioneditor.h"
 #include <QTreeWidget>
