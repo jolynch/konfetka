@@ -10,9 +10,9 @@
 #include <boost/bind.hpp>
 #endif
 
+#include "databackend.h"
 #include "databackend/mlibdata.h"
 #include "databackend/colldata.h"
-#include "databackend.h"
 #include "collectioneditor.h"
 #include <QTreeWidget>
 #include <QGridLayout>
@@ -50,7 +50,7 @@ class DropTreeWidget;
 class ComplexSearchDialog;
 
 typedef uint ItemType;
-enum Operator {opor, opand, opnot}; 
+enum Operator {opor, opand}; 
 
 class MediaLib:public QWidget {	
 Q_OBJECT
@@ -129,6 +129,7 @@ Q_OBJECT
 	void infoChanged(int id);
 	void toggleComplexSearch();
 	void addAnotherSearchItem();
+	void recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> >);
 	
 };
 
@@ -158,7 +159,8 @@ class ComplexSearchDialog:public QDialog {
 	Q_OBJECT
 	
 	private:
-	QList< QPair <Xmms::Coll::Coll,Operator>* > complexSearchItems;
+	Xmms::Coll::Coll* searchMedia;
+	QList< QPair <Xmms::Coll::Coll*,Operator> > complexSearchItems;
 	QTreeWidget * itemList;
 	QLabel * tagLabel;
 	QComboBox * tag;
@@ -175,10 +177,15 @@ class ComplexSearchDialog:public QDialog {
 
 	public:
 	ComplexSearchDialog();
-	
+	Xmms::Coll::Coll* newColl(QString attr,QString oper,QString val,bool notFlag);	
+
 	public slots:
+	void accept();
 	void addOperand();
 	void clearItems();
+	
+	signals:
+	void newList(QList< QPair <Xmms::Coll::Coll*,Operator> >);
 	
 };
 
