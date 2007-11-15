@@ -35,6 +35,7 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 		random=getRandom(false);
 	random->setAlignment(Qt::AlignCenter);
 	random->setWordWrap(true);
+	random->setTextInteractionFlags(random->textInteractionFlags() | Qt::TextSelectableByMouse);
 	infoLayout=new QGridLayout();
 	infoLayout->addWidget(logo,0,0);
 	infoLayout->addWidget(authors,1,0);
