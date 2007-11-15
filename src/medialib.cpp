@@ -604,6 +604,7 @@ void MediaLib::recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> > newLi
 		if(temp.second == opor) {
 		Xmms::Coll::Union* tmp = new Xmms::Coll::Union();
 		tmp->addOperand(*temp.first);
+		if(val!=NULL)
 		tmp->addOperand(*val);
 		val = tmp;
 		}

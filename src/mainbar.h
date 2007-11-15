@@ -68,7 +68,6 @@ class MainBar:public QWidget
 		void slotPause();
 		void slotStop();
 		void slotForward();
-		void slotChangeTime(const Xmms::PropDict&);
 		void slotUpdateInfo(const Xmms::PropDict&);
 		void slotScroll();
 		void slotSetVolume(int);

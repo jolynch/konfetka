@@ -261,13 +261,6 @@ void MiniMode::setNewInfo(Xmms::PropDict info){
 	}
 	setToolTip(curSongInfo);
 	
-		if(info.contains("duration")) { 
-			position->setDuration(info.get<int>("duration"));
-		}
-		else {
-		qDebug()<<"ERROR: Song duration not found.";
-		}
-	
 	update();
 }
 

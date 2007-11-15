@@ -46,6 +46,7 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		bool curPos(const unsigned int& val);
 		bool getCurrentPlaylist(const std::string& name);
 		bool handleCollChange(const Xmms::Dict& change);
+		bool handlePlaytimeSignal(uint);
 		void emitSongAboutToChange();
 		//there can only be one master playlist taking movement directions.
 		Playlist* getMainPlaylist();
@@ -68,5 +69,6 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		void aboutToChangeSong();
 		void changeSong(int);
 		void syncTime(int,SongPositionSlider*);
+		void songPositionChanged(uint);
 	};
 #endif

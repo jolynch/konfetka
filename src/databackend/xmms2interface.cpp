@@ -70,6 +70,8 @@ XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObjec
 	this->playlist.broadcastLoaded()(Xmms::bind(&XMMS2Interface::getCurrentPlaylist, this));
 	this->collection.broadcastCollectionChanged()
 								(Xmms::bind(&XMMS2Interface::handleCollChange, this));
+	this->playback.signalPlaytime()(Xmms::bind (&XMMS2Interface::handlePlaytimeSignal, this));
+
 	}
 
 XMMS2Interface::~XMMS2Interface()
@@ -206,6 +208,11 @@ XMMS2Interface::Client::~Client() {}
 
 void XMMS2Interface::emitSongAboutToChange() {
 	emit aboutToChangeSong();
+}
+
+bool XMMS2Interface::handlePlaytimeSignal(uint newTime) {
+	emit songPositionChanged(newTime);
+	return true;
 }
 
 

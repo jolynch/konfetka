@@ -139,8 +139,6 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 
 	QObject::connect(scrollTimer, SIGNAL(timeout()), this, SLOT(slotScroll()));
 
-	QObject::connect(conn,SIGNAL(newSong(Xmms::PropDict)),this,SLOT(slotChangeTime(Xmms::PropDict)));
-
 	QObject::connect(conn,SIGNAL(newSong(Xmms::PropDict)),this,SLOT(slotUpdateInfo(Xmms::PropDict)));
 	QObject::connect(conn,SIGNAL(volumeChanged(Xmms::Dict)),
 					this,SLOT(slotGetVolume(Xmms::Dict)));
@@ -198,18 +196,6 @@ void MainBar::slotForward()
 // 	conn->playlist.setNextRel(1)(Xmms::bind(&DataBackend::scrapResultI, conn));
 // 	conn->playback.tickle()(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
-
-void MainBar::slotChangeTime(const Xmms::PropDict& info)
-	{
-	conn->playback.getPlaytime()(Xmms::bind(&DataBackend::getCurPlaytime, conn));
-		if(info.contains("duration")) { 
-			positionSlider->setDuration(info.get<int>("duration"));
-		}
-		else {
-		qDebug()<<"ERROR: Song duration not found.";
-		}
-	}
-
 
 /*All stuff to do with seeking and timing of the song*/
 
