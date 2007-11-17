@@ -4,9 +4,9 @@
 #include "playlist.h"
 Playlist::Playlist(DataBackend * c, QWidget * p):QTreeWidget(p)
 	{
-	QPalette pal = palette();
-	pal.setColor( QPalette::Active, QPalette::Base,QColor(240, 247, 255));
-	this->setPalette(pal); 
+// 	QPalette pal = palette();
+// 	pal.setColor( QPalette::Active, QPalette::Base,QColor(240, 247, 255));
+// 	this->setPalette(pal); 
 
 	clear();
 	items=0;

@@ -15,6 +15,8 @@
 #include <QDebug>
 #include <QMouseEvent>
 #include <QStyle>
+#include <QPainter>
+#include <QLinearGradient>
 
 class DataBackend;
 typedef int SongType;
@@ -45,6 +47,7 @@ class SongPositionSlider:public QSlider
 		void mousePressEvent ( QMouseEvent *);
 		void mouseReleaseEvent ( QMouseEvent *);
 		void mouseMoveEvent(QMouseEvent *);
+		void paintEvent(QPaintEvent * event);
 		
 		void setTimeFromSlider();
 		void setInitTime(int);	

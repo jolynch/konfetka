@@ -16,6 +16,7 @@
 #include <QUrl>
 #include <QDesktopServices>
 #include <QCompleter>
+// #include <QFileDialog>
 
 
 class FileBrowser:public QWidget {
@@ -36,14 +37,11 @@ class FileBrowser:public QWidget {
 	void handleListDoubleClick(QModelIndex);
 };
 
-// class MyFileIconProvider:public QFileIconProvider {
-// 	Q_OBJECT
-// 	private:
-// 	QList<QIcon> icons;
-// 	public:
-// 	MyFileIconProvider(QList<QIcon>);
-// 	QIcon icon(IconType type);
-// };
+class MyFileIconProvider:public QFileIconProvider {
+	public:
+	QIcon icon(IconType type);
+	QIcon icon(QFileInfo info);
+};
 
 
 

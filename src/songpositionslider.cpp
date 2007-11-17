@@ -82,7 +82,7 @@ void SongPositionSlider::setInitTime(int time) {
 void SongPositionSlider::mousePressEvent(QMouseEvent * event) {
 	time = value();
 	timer.stop();
-	std::cout<<"press"<<std::endl;
+// 	std::cout<<"press"<<std::endl;
 	QSlider::mousePressEvent(event);
 	released = false;
 }
@@ -93,7 +93,7 @@ void SongPositionSlider::mouseReleaseEvent(QMouseEvent * event) {
 	time = -1;
 	setValue(QStyle::sliderValueFromPosition(0,duration,event->x(),width(),0));
 	setTimeFromSlider();
-	std::cout<<"release"<<std::endl;
+// 	std::cout<<"release"<<std::endl;
 	released = true;
 	}
 	allowUpdates = true;
@@ -117,6 +117,17 @@ void SongPositionSlider::mouseMoveEvent(QMouseEvent *event) {
 		}
 		else
 		return;
+}
+
+void SongPositionSlider::paintEvent(QPaintEvent * event) {
+	QPainter painter(this);
+	if(duration!=0) {
+	double percent = value()/(double)duration;
+	int pxlBlack = (int)(width()*percent);
+
+	painter.fillRect(0,0,pxlBlack+2,20,QBrush(QColor("#696969")));
+	painter.fillRect(pxlBlack,0,width()-(pxlBlack+2),20,QBrush(QColor("#A1A1A1")));
+	}
 }
 
 #endif
