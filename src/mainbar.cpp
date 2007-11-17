@@ -246,7 +246,14 @@ void MainBar::updateTime() {
 		positionMinusTime->setText(tmpTime.toString(format));
 		else
 		positionMinusTime->setText(tmpTime.toString(format.remove(format.indexOf("h"),2)));
-	
+	if(positionSlider->curType == positionSlider->STREAM) {
+	positionTime->setText("STREAM");
+	positionMinusTime->setText("STREAM");
+	}
+	else if(positionSlider->curType == positionSlider->UNKNOWN) {
+	positionTime->setText("ERROR");
+	positionMinusTime->setText("ERROR");
+	}
 }
 
 void MainBar::slotUpdateInfo(const Xmms::PropDict& info)

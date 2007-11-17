@@ -54,6 +54,7 @@
 	<file>images/pause_button.png</file>
 	<file>images/repeat_all.png</file>
 	<file>images/shuffle.png</file>
+	<file>images/lock.png</file>
 
 	<file alias="weirdline">data/weirdline</file>
 </qresource>

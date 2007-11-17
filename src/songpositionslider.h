@@ -17,6 +17,8 @@
 #include <QStyle>
 
 class DataBackend;
+typedef int SongType;
+
 class SongPositionSlider:public QSlider 
 	{	Q_OBJECT
 		private:
@@ -28,12 +30,16 @@ class SongPositionSlider:public QSlider
 		bool songEmitted;
 		int MAGFACTOR;
 		int GRACE_DISTANCE;
-
+		
 		public:
 		SongPositionSlider(DataBackend * c,Qt::Orientation , QWidget * parent = 0);	
 		int getDuration();
 		int getPositiveTime();
 		int getNegativeTime();
+		static const SongType FILE = -0x001;
+		static const SongType STREAM = -0x010;
+		static const SongType UNKNOWN = -0x011;
+		SongType curType;
 
 		public slots:
 		void mousePressEvent ( QMouseEvent *);

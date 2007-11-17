@@ -384,20 +384,8 @@ void MediaLib::newColl() {
 			QMessageBox::Yes | QMessageBox::No,QMessageBox::Yes);
 	if(val != QMessageBox::Yes) return;
 
-	QStringList list; ok = true;
-	list << "All"<<"Collections"<<"Playlists";
-	QString ns =  QInputDialog::getItem(this,"Namespace?","What Namespace would you like to save the collection to",
-			list,1,true,&ok);
-	if(!ok) return;
-	Xmms::Collection::Namespace collNamespace;
-		if(ns == "All")
-		collNamespace = xmms->collection.ALL;
-		else if(ns == "Collections")
-		collNamespace = xmms->collection.COLLECTIONS;
-		else
-		collNamespace = xmms->collection.PLAYLISTS;
 	((CollData*)(xmms->getDataBackendObject(DataBackend::COLL)))->
-	createCollection(*visibleMedia,name.toStdString(),collNamespace);
+	createCollection(*visibleMedia,name.toStdString(),xmms->collection.COLLECTIONS);
 
 }
 

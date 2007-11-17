@@ -113,3 +113,25 @@ QHeaderView::section {
      padding-left: 4px;
      border: 0px solid #ffffff;
  }
+
+QWidget#miniMode {
+background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #747779, stop:1 #9fa2a4);
+}
+
+QPushButton#miniButton{
+border: 2px solid #82AABC;
+border-radius: 5px;
+background-color: #828F94;
+min-width: 80px;
+}
+
+QPushButton#miniButton:pressed {
+background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #828F94, stop: 1 #96A5AB);
+}
+
+QPushButton#miniTimeButton {
+border: 2px solid #82AABC;
+border-radius: 1px;
+background-color: #828F94;
+min-width: 80px;
+}

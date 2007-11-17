@@ -22,7 +22,7 @@ SongPositionSlider::SongPositionSlider(DataBackend * c,Qt::Orientation o, QWidge
 }
 
 bool SongPositionSlider::handlePlaytimeSignal(uint newTime) {
-	if(isSliderDown() && !released || duration==0) return true;
+	if(isSliderDown() && !released || duration==0 || curType != FILE) return true;
 	newTime = newTime/MAGFACTOR;
 	setValue(newTime);
 	
@@ -60,14 +60,19 @@ void SongPositionSlider::setDuration(const Xmms::PropDict& info) {
 	duration = (info.get<int>("duration")) /MAGFACTOR;
 	setRange(0,duration);
 	songEmitted = false;
- 	}
- 	else {
- 	qDebug()<<"Could not retrieve duration of song from Server ... DIE";
+	curType = FILE;
+	}
+ 	else if(info.contains("url") && (info.get<std::string>("url")).find("file://") == std::string::npos){
+ 	curType = STREAM;
+	}
+	else {
+	curType = UNKNOWN;
+	qDebug()<<"Could not retrieve duration of song from Server and is not a stream  [ERROR]";
 	}
 }
 
 //Sets the initial time of the slider, so if yous start the program when 
-// the song is at time 500, the slider knows, also allows my little callback
+// the song is at time 500, the slider knows
 void SongPositionSlider::setInitTime(int time) {
 	this->time = time;
 	setValue(this->time);
@@ -78,7 +83,6 @@ void SongPositionSlider::mousePressEvent(QMouseEvent * event) {
 	time = value();
 	timer.stop();
 	std::cout<<"press"<<std::endl;
-	//!FIX!// we need to make it so that if the mouse leaves the slider the slide stops and goes to time
 	QSlider::mousePressEvent(event);
 	released = false;
 }
@@ -100,7 +104,7 @@ void SongPositionSlider::mouseMoveEvent(QMouseEvent *event) {
 	int x,y,w,h,gd;
 	x = event->x();	y = event->y();
 	w = width(); h = height();
-	gd = GRACE_DISTANCE;
+	gd = GRACE_DISTANCE; //How far can you stray from the widget before you have 'left' the widget
 		if(x + gd > 0 && x - gd < w && y + gd > 0 && y - gd < h) {
 			if(!allowUpdates) allowUpdates = true;
 			if(!isSliderDown()) setSliderDown(1);
