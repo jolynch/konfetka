@@ -134,7 +134,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	mlibincompatlist->append(mlibPanel);
 	pc->registerPanel(mlibPanel,PanelController::DOUBLE_SIDED_PANEL,mlibincompatlist);
 	pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn,this)),PanelController::RIGHTPANEL);
-	pc->registerPanel(new Panel(this,"FILESYSTEM",new PlaylistPanel(conn,this)),PanelController::RIGHTPANEL);
+	pc->registerPanel(new Panel(this,"FILESYSTEM",new FileBrowser(conn,this)),PanelController::RIGHTPANEL);
 	}
 
 void MainWindow::trayTool() {

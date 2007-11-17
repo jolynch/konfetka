@@ -11,6 +11,7 @@
 #include "playlist.h"
 #include "collectioneditor.h"
 #include "minimode.h"
+#include "filebrowser.h"
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QWidget>
