@@ -7,10 +7,16 @@
 #define DATABACKEND_H
 #include "databackend/xmms2interface.h"
 #include "databackend/xmmsqt4.h"
+#include <QObject>
+#include <QSettings>
+#include <QString>
+#include <QStringList>
+#include <QVariant>
 
 typedef uint DataBackendType;
 
-class DataBackend:public XMMS2Interface {
+class DataBackend:public XMMS2Interface//, public QObject
+	{	Q_OBJECT
 	private:
 	QObject * mlibData;
 	QObject * plistData;
@@ -23,7 +29,20 @@ class DataBackend:public XMMS2Interface {
 	
 	DataBackend(QObject * parent, std::string name);
 	QObject * getDataBackendObject(DataBackendType type);
-};
+
+	/**
+	***All QSettings keys starting with "konfetka"
+	***have their inital values sent out in qsettingsValueChanged
+	**/
+	void emitInitialQSettings();
+
+	public slots:
+	//Only call this from the options GUI, please.
+	void changeAndSaveQSettings(QString name, QVariant newValue);
+
+	signals:
+	void qsettingsValueChanged(QString /*name*/, QVariant /*newValue*/);
+	};
 
 #endif
 

@@ -1,12 +1,19 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 #include "databackend.h"
+
+#include "databackend/plistdata.h"
+#include <QTreeView>
+
 #include "mainbar.h"
 #include "rearpanel.h"
 //#include "handle.h"
 #include "panelcontroller.h"
 #include "panel.h"
 #include "playlistpanel.h"
+
+#include "newplaylistpanel.h"
+
 #include "medialib.h"
 #include "playlist.h"
 #include "collectioneditor.h"
