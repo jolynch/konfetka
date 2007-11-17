@@ -15,6 +15,7 @@
 #include <QSplitter>
 #include <QUrl>
 #include <QDesktopServices>
+#include <QCompleter>
 
 
 class FileBrowser:public QWidget {
@@ -39,8 +40,10 @@ class FileBrowser:public QWidget {
 // 	Q_OBJECT
 // 	private:
 // 	QList<QIcon> icons;
-// 	
-// }
+// 	public:
+// 	MyFileIconProvider(QList<QIcon>);
+// 	QIcon icon(IconType type);
+// };
 
 
 

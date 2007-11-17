@@ -255,25 +255,21 @@ void MediaLib::getSongInfo(QTreeWidgetItem* item){
 bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 // 	std::cout<<album->text(0).toStdString()<<std::endl;
 	album->takeChildren();
-	MediaItem* temp;
+	QTreeWidgetItem * temp;
+	QVariant tmp; QString title = "";
 		for (list.first();list.isValid(); ++list) {
-			temp = dynamic_cast<MediaItem *>(((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getItem(*list));
-			if(temp == NULL) {
-			temp = new MediaItem();
-			temp->setText(0,"");
-			album->addChild(temp);
-// 			std::cout<<"creating"<<std::endl;
+			tmp = ((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getInfo(QString("title"),*list);
+			if(tmp.toInt() == -1) {
+			title = "";
 			}
 			else {
-			MediaItem * tmp = new MediaItem();
-			QHash<QString,QVariant> tmp2 = temp->allInfo();
-			tmp->setText(0,temp->text(0));
-			tmp->setInfo(tmp2);
-
-			album->addChild(tmp);
-// 			std::cout<<"made to here?"<<std::endl;
+			title = tmp.toString();
 			}
-			idToMediaItem.insert(*list,temp);
+			temp = new QTreeWidgetItem();
+			temp->setText(0,title);
+			std::cout<<*list << title.toStdString()<<std::endl;
+			album->addChild(temp);
+			idToSongItem.insert(*list,temp);
 		}
 		
 		if(album->childCount()==0) {
@@ -284,11 +280,9 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 }
 
 void MediaLib::infoChanged(int id) {
-	if(idToMediaItem.contains(id)) {
-		idToMediaItem.value(id)->parent()->addChild(((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getItem(id));
-		delete (idToMediaItem.value(id));
-		idToMediaItem.insert(id,((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getItem(id));
-		idToMediaItem.value(id)->parent()->sortChildren(0,Qt::AscendingOrder);
+	if(idToSongItem.contains(id)) {
+		QVariant tmp = ((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getInfo(QString("title"),id);
+		idToSongItem.value(id)->setText(0,tmp.toString());
 	}
 	else {
 	idStack.push(id);
@@ -451,7 +445,7 @@ Xmms::Coll::Union* MediaLib::selectedAsColl() {
 				}
 				case SONG: {
 				Xmms::Coll::Idlist moreItems;
-				moreItems.append((((MediaItem*)(what.value(i)))->info("id")).toUInt());
+				moreItems.append(idToSongItem.key(what.value(i)));
 				media->addOperand(moreItems);
 // 				std::cout<<"SONG"<<std::endl;
 				break;
@@ -516,36 +510,36 @@ void MediaLib::stopTimerAndClearList() {
 void MediaLib::checkIfRefreshIsNeeded() {
 	uint id;
 		while(!idStack.isEmpty()) {
-		id = idStack.pop();
-		MediaItem* itm = ((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getItem(id);
-		bool needToUpdate = false;
-		QString artist = itm->info("artist").toString();
-		QString album = itm->info("album").toString();
-		QTreeWidgetItem* artistNode = NULL;
-		QList<QTreeWidgetItem*> listArtist = mediaList->findItems(artist,Qt::MatchExactly);
-			for(int i=0;i<listArtist.size();i++) {
-				if(listArtist.value(i)->parent()==NULL) {
-					artistNode = listArtist.value(i);
-					if(listArtist.value(i)->isExpanded())
-					needToUpdate = true;
-					break;
-				}
-			}
-			if(artistNode == NULL)
-			needToUpdate = true;
-		QList<QTreeWidgetItem*> listAlbum = mediaList->findItems(album,Qt::MatchExactly);
-			for(int i=0;i<listAlbum.size();i++) {
-				if(listAlbum.value(i)->parent()==NULL && listAlbum.value(i)->isExpanded()) {
-					needToUpdate = true;
-					break;
-				}
-			}
-		if(needToUpdate) {
-		((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
-		while(!idStack.isEmpty())
+// 		id = idStack.pop();
+// 		QTreeWidgetItem * itm = ((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getItem(id);
+// 		bool needToUpdate = false;
+// 		QString artist = itm->info("artist").toString();
+// 		QString album = itm->info("album").toString();
+// 		QTreeWidgetItem* artistNode = NULL;
+// 		QList<QTreeWidgetItem*> listArtist = mediaList->findItems(artist,Qt::MatchExactly);
+// 			for(int i=0;i<listArtist.size();i++) {
+// 				if(listArtist.value(i)->parent()==NULL) {
+// 					artistNode = listArtist.value(i);
+// 					if(listArtist.value(i)->isExpanded())
+// 					needToUpdate = true;
+// 					break;
+// 				}
+// 			}
+// 			if(artistNode == NULL)
+// 			needToUpdate = true;
+// 		QList<QTreeWidgetItem*> listAlbum = mediaList->findItems(album,Qt::MatchExactly);
+// 			for(int i=0;i<listAlbum.size();i++) {
+// 				if(listAlbum.value(i)->parent()==NULL && listAlbum.value(i)->isExpanded()) {
+// 					needToUpdate = true;
+// 					break;
+// 				}
+// 			}
+// 		if(needToUpdate) {
+// 		((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
+// 		while(!idStack.isEmpty())
 		idStack.pop();
-		return;
-		}
+// 		return;
+// 		}
 	}
 
 }

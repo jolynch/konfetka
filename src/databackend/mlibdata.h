@@ -21,14 +21,18 @@
 #include <QTimer>
 #include <string>
 
-class MediaItem:public QTreeWidgetItem {
+class MediaInfo{
 	private:
 	QHash<QString,QVariant> songInfo;
+	QHash<QString,QString> infoSource;
 	public:
+	MediaInfo();
+	MediaInfo(QHash<QString,QVariant>);
 	QVariant info(QString);
+	void setInfo(QString,QVariant);
+	void setSource(QString,QString);
 	QHash<QString,QVariant> allInfo();
-	void setInfo(QHash<QString,QVariant>);
-	bool matches(QString,QString);
+	void setAllInfo(QHash<QString,QVariant>);
 };
 
 class MlibData:public QObject {
@@ -37,7 +41,7 @@ class MlibData:public QObject {
 	///WHATEVER IS NEEDED
 	private:
 	DataBackend * conn;
-	QHash<uint,MediaItem*> cache;
+	QHash<uint,MediaInfo*> cache;
 	QStringList standardTags;
 	QTimer changeTimer;
 	
@@ -45,18 +49,16 @@ class MlibData:public QObject {
 	MlibData(DataBackend *,QObject * parent = 0);
 	QVariant getInfo(std::string property, uint id);
 	QVariant getInfo(QString property, uint id);
-	MediaItem* getItem(uint id);
-	MediaItem* operator[] (uint id);
 	QStringList getStandardTags();
 		
 
 	void clearCache();
-	void getItemFromServer(uint id);
-	void getInfoFromServer(QString property, uint id);
+	void getInfoFromServer(uint id);
 	void getListFromServer(Xmms::Coll::Coll* coll,QString property);
 	bool gotList(std::string property,const Xmms::List <Xmms::Dict> &list);
 	bool getMediaInfo(const Xmms::PropDict& info);
 	bool mlibChanged(const unsigned int& id);
+	bool getAllMediaInfoForId(int,std::string,Xmms::Dict::Variant,std::string);
 	
 	signals:
 	void infoChanged(int id);

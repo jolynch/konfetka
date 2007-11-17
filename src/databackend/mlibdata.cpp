@@ -2,39 +2,37 @@
 #define MLIBDATA_CPP
 #include "mlibdata.h"
 
-void MediaItem::setInfo(QHash<QString,QVariant> hash) {
-songInfo = hash;
+MediaInfo::MediaInfo() {
 }
 
-QVariant MediaItem::info(QString val) {
-	if(songInfo.contains(val))
+MediaInfo::MediaInfo(QHash<QString,QVariant> hash) {
+	songInfo = hash;
+}
+
+QVariant MediaInfo::info(QString val) {
+	if(songInfo.contains(val)) {
 	return songInfo.value(val);
+	}
 	else
-	return QVariant(-1);
+	return QVariant("Unknown");
 }
 
-QHash<QString,QVariant> MediaItem::allInfo() {
-return songInfo;
+void MediaInfo::setInfo(QString property,QVariant value) {
+	songInfo.insert(property,value);
 }
 
-bool MediaItem::matches(QString what,QString term) {
-	
-	if(what=="all") {
-	QHash<QString, QVariant>::const_iterator i;
-	for(i=songInfo.constBegin(); i != songInfo.constEnd(); ++i) {
-		if(i.value().toString().contains(term,Qt::CaseInsensitive)) {
-		return true;
-		}
-	}
-	}
-	else {
-		if(songInfo.value(what).toString().contains(term,Qt::CaseInsensitive))
-		return true;
-	}
-return false;
+void MediaInfo::setSource(QString property, QString source) {
+	infoSource.insert(property,source);
 }
 
+QHash<QString,QVariant> MediaInfo::allInfo() {
+	QHash<QString,QVariant> returnVal(songInfo);
+	return returnVal;
+}
 
+void MediaInfo::setAllInfo(QHash<QString,QVariant> hash) {
+	songInfo = hash;
+}
 
 MlibData::MlibData(DataBackend * conn,QObject * parent):QObject(parent) {
 	this->conn = conn;
@@ -52,7 +50,7 @@ bool MlibData::mlibChanged(const unsigned int& id) {
 		if(changeTimer.isActive())
 		changeTimer.stop();
 		changeTimer.start(1000);
-	getItemFromServer(id);
+	getInfoFromServer(id);
 // 	std::cout<<"GETING ID FROM SERVER"<<std::endl;
 	return true;
 }
@@ -65,7 +63,7 @@ QVariant MlibData::getInfo(QString property, uint id) {
 	if(cache.contains(id))
 	return (cache.value(id))->info(property);
 	else {
-	getInfoFromServer(property,id);
+	getInfoFromServer(id);
 	return QVariant(-1);
 	}
 }
@@ -74,81 +72,58 @@ QVariant MlibData::getInfo(std::string property, uint id) {
 	return getInfo(QString(property.c_str()),id);
 }
 
-void MlibData::getInfoFromServer(QString property, uint id) {
+void MlibData::getInfoFromServer(uint id) {
 	conn->medialib.getInfo(id)(Xmms::bind(&MlibData::getMediaInfo,this));
-}
-
-MediaItem* MlibData::getItem(uint id) {
-	if(cache.contains(id)) {
-	return cache.value(id);
-	}
-	else {
-	getItemFromServer(id);
-	return NULL;
-	}
-}
-
-MediaItem* MlibData::operator[] (uint id) {
-	return getItem(id);
 }
 
 void MlibData::clearCache() {
 	cache.clear();
 }
 
-void MlibData::getItemFromServer(uint id) {
-	conn->medialib.getInfo(id)(Xmms::bind(&MlibData::getMediaInfo,this));
+bool MlibData::getMediaInfo(const Xmms::PropDict& info) {
+// 	(boost::bind (&XClient::propDictToQHash,_1, _2, _3, boost::ref (hash))
+	MediaInfo * newInfo = new MediaInfo();
+	int id = info.get<int>("id");
+	cache.insert(id,newInfo);
+	info.each(boost::bind(&MlibData::getAllMediaInfoForId,this,id,_1,_2,_3));
+	emit infoChanged(id);
+	return true;
 }
 
-bool MlibData::getMediaInfo(const Xmms::PropDict& info) {
-	MediaItem * newItem = new MediaItem();
-	QHash<QString,QVariant> curInfo;
-	int tmpInt;
-	std::string tmpString;
-	
-	for(int i=0;i<standardTags.size();i++) {
-		if(info.contains(standardTags.value(i).toStdString()) || standardTags.value(i)=="encodedurl") {
-			try {
-				if(standardTags.value(i)=="encodedurl")
-				tmpString = info.get<std::string>("url");
-				else
-				tmpString = info.get<std::string>(standardTags.value(i).toStdString());
-
-				if(standardTags.value(i)=="url")
-				tmpString = xmmsc_result_decode_url (NULL,tmpString.c_str());
-
-
-				curInfo.insert(standardTags.value(i),QVariant(QString::fromUtf8(tmpString.c_str())));
-			} catch(Xmms::wrong_type_error& err) {
-			tmpInt = info.get<int>(standardTags.value(i).toStdString());
-				if(standardTags.value(i)=="duration") {
-				QString tmp;
-				QTime foo (0,0,0);
-				foo=foo.addMSecs(tmpInt);
-				if(foo.hour()>0)
-					tmp =foo.toString("h:mm:ss");
-				else
-					tmp =foo.toString("mm:ss");
-				curInfo.insert(standardTags.value(i),QVariant(tmp));
-				}
-				else {
-				curInfo.insert(standardTags.value(i),QVariant(tmpInt));
-				}
+bool MlibData::getAllMediaInfoForId(int id,std::string key,Xmms::Dict::Variant val,std::string src) {
+	QString newKey = QString::fromUtf8(key.c_str());
+	QVariant newValue;
+		if(val.type() == typeid(int)) {
+			if(key=="duration") {
+			int tmpInt = boost::get<int>(val);
+			QString tmp;
+			QTime foo (0,0,0);
+			foo=foo.addMSecs(tmpInt);
+			if(foo.hour()>0)
+				tmp =foo.toString("h:mm:ss");
+			else
+				tmp =foo.toString("mm:ss");
+			newValue = QVariant(tmp);
 			}
-		} else {
-			if(standardTags.value(i) == "title")
-			curInfo.insert(standardTags.value(i),curInfo.value("url"));
-		curInfo.insert(standardTags.value(i),QVariant("Unknown"));
+			else {
+			newValue = QVariant(boost::get<int>(val));
+			}
 		}
-	}
-	newItem->setInfo(curInfo);
-	newItem->setText(0,(newItem->info("title")).toString());
-		if(info.get<int>("status") == 3) {
-		newItem->setForeground(0,QBrush(QColor(119,119,119,255),Qt::SolidPattern));
+		else if(val.type() == typeid(uint32_t)) {
+		newValue = QVariant(boost::get<uint32_t>(val));
 		}
-	cache.insert(info.get<int>("id"),newItem);
-	emit infoChanged(info.get<int>("id"));
-// 	std::cout<<"got info"<<std::endl;
+		else {
+			if(key == "url") {
+			std::string tmpStr = boost::get<std::string>(val);
+			tmpStr = xmmsc_result_decode_url(NULL,tmpStr.c_str());
+			newValue = QVariant(tmpStr.c_str());
+			}
+			else {
+			newValue = QVariant(QString::fromUtf8(boost::get<std::string>(val).c_str()));
+			}
+		}
+	(cache.value(id))->setInfo(newKey,newValue);
+	(cache.value(id))->setSource(newKey,QString::fromUtf8(src.c_str()));
 	return true;
 }
 

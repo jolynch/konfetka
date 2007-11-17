@@ -75,7 +75,7 @@ Q_OBJECT
 	ComplexSearchDialog * searchDialog;
 	
 	//NEW LISTS
-	QHash<uint,MediaItem*> idToMediaItem;
+	QHash<uint,QTreeWidgetItem*> idToSongItem;
 	Xmms::Coll::Coll * visibleMedia;
 	static const ItemType ARTIST = 0x001;
 	static const ItemType ALBUM = 0x010;

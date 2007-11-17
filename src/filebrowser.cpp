@@ -6,11 +6,15 @@
 
 FileBrowser::FileBrowser(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QWidget(parent,f) {
 	conn = c;
+	model = new QDirModel;
+
 	filterLine = new QLineEdit();
+	QCompleter* completer = new QCompleter(filterLine);
+	filterLine->setCompleter(completer);
+	completer->setModel(model);
+	
 	splitter  = new QSplitter();
 
-	model = new QDirModel;
-	
 	fileTree = new QTreeView(splitter);
 	fileTree->setModel(model);
 	fileTree->setSelectionMode(QAbstractItemView::ExtendedSelection);	
@@ -37,6 +41,8 @@ FileBrowser::FileBrowser(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QW
 // 	
 	connect(fileList,SIGNAL(doubleClicked(QModelIndex)),this,SLOT(handleListDoubleClick(QModelIndex)));
 	connect(fileTree,SIGNAL(expanded(QModelIndex)),fileList,SLOT(setRootIndex(QModelIndex)));
+	connect(completer,SIGNAL(activated(QModelIndex)),this,SLOT(handleListDoubleClick(QModelIndex)));
+// 	connect(lineEdit,SIGNAL(returnPressed()),this, SLOT(setRootPath()));
 }
 
 void FileBrowser::handleListDoubleClick(QModelIndex item) {
@@ -49,5 +55,19 @@ void FileBrowser::handleListDoubleClick(QModelIndex item) {
 		QDesktopServices::openUrl(QUrl((model->fileInfo(item).absoluteFilePath())));
 	}
 }
+// 
+// MyFileIconProvider::MyFileIconProvider(QList<QIcon> items) {
+// 	if(items != NULL) {
+// 		for(int i=0;i<items.size();i++) {
+// 		icons.append(items.value(i));
+// 		}
+// 	}
+// }
+// 
+// QIcon MyFileIconProvider::icon(IconType type) {
+// 	if(items.contains(type)) {
+// 	std::cout<<type<<std::endl;
+// 	}
+// }
 
 
