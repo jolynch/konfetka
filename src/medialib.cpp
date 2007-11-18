@@ -280,7 +280,7 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 }
 
 void MediaLib::infoChanged(int id) {
-	if(idToSongItem.contains(id)) {
+	if(idToSongItem.contains(id) && idToSongItem.value(id)!=NULL) {
 		QVariant tmp = ((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getInfo(QString("title"),id);
 		idToSongItem.value(id)->setText(0,tmp.toString());
 	}
@@ -305,19 +305,19 @@ void MediaLib::removeNodes(QList<QTreeWidgetItem*> list) {
 			curItem = list.value(i);
 			switch (getItemType(curItem)) {
 				case ARTIST: {
-					delete mediaList->takeTopLevelItem(mediaList->indexOfTopLevelItem(curItem));
+					for(int i=0;i<curItem->childCount();i++)
+					list.append(curItem->child(i));
 					break;
 				}
 				case ALBUM: {
-					QTreeWidgetItem* ptr = curItem->parent();					
-					delete ptr->takeChild(ptr->indexOfChild(curItem));
-					if(ptr->childCount()==0)
-					delete mediaList->takeTopLevelItem(mediaList->indexOfTopLevelItem(ptr));
+					for(int i=0;i<curItem->childCount();i++)
+					list.append(curItem->child(i));
 					break;
 				}
 				case SONG: {
 					QTreeWidgetItem* ptr = curItem->parent();
-					QTreeWidgetItem* ptr2 = curItem->parent()->parent();	
+					QTreeWidgetItem* ptr2 = curItem->parent()->parent();
+					idToSongItem.remove(idToSongItem.key(curItem));
 					delete ptr->takeChild(ptr->indexOfChild(curItem));
 					if(ptr->childCount()==0)
 					delete ptr2->takeChild(ptr2->indexOfChild(ptr));
@@ -541,7 +541,7 @@ void MediaLib::checkIfRefreshIsNeeded() {
 // 		return;
 // 		}
 	}
-
+	((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
 }
 
 void MediaLib::toggleComplexSearch() {
@@ -657,7 +657,6 @@ DropTreeWidget::~DropTreeWidget() {
 }
 
 void DropTreeWidget::dragEnterEvent(QDragEnterEvent *event) {
-	if(event->source() == lib->fileList)
 	event->acceptProposedAction();
 }
 

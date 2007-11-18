@@ -13,8 +13,9 @@
 #include <QSettings>
 #include <QMessageBox>
 #include <QProcess>
-#include <qobject.h>
-#include <qtimer.h>
+#include <QObject>
+#include <QTimer>
+#include <QUrl>
 #include <string>
 class SongPositionSlider;
 class Playlist;
@@ -53,6 +54,7 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		void setMainPlaylist(Playlist*);
 		void next();
 		void previous();
+		QString encodeUrl(QString);
 // 	public slots:
 // 		void changeSongInPlaylist(int);
 	signals:

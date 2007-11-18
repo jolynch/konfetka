@@ -5,6 +5,8 @@
 #ifndef FILEBROWSER_H
 #define FILEBROWSER_H
 #include "databackend.h"
+#include "databackend/colldata.h"
+#include "databackend/plistdata.h"
 #include <QObject>
 #include <QWidget>
 #include <QGridLayout>
@@ -16,6 +18,15 @@
 #include <QUrl>
 #include <QDesktopServices>
 #include <QCompleter>
+#include <QShortcut>
+#include <QItemSelectionModel>
+#include <QPushButton>
+#include <QComboBox>
+#include <QLabel>
+#include <QWidgetAction>
+#include <QAction>
+#include <QToolBar>
+
 // #include <QFileDialog>
 
 
@@ -28,22 +39,23 @@ class FileBrowser:public QWidget {
 	QListView * fileList;
 	QDirModel * model;
 	QLineEdit * filterLine;
-	QSplitter* splitter;
+	QSplitter * splitter;
+	QShortcut * deleteSC; 
+	
+	QComboBox * toWhat;
+	QComboBox * whichPlaylist;
 
 	public:
 	FileBrowser(DataBackend * c,QWidget * parent = 0, Qt::WindowFlags f = 0);
 
 	public slots:
-	void handleListDoubleClick(QModelIndex);
+	void setRoot(QModelIndex);
+	void slotRemove();
+	void addSelected();
+	void destinationChanged(QString);
+	void handleCompleter();
+	void handleCompleter(QModelIndex);
 };
-
-class MyFileIconProvider:public QFileIconProvider {
-	public:
-	QIcon icon(IconType type);
-	QIcon icon(QFileInfo info);
-};
-
-
 
 #endif
 

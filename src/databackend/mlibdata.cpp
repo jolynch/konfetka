@@ -72,6 +72,7 @@ QVariant MlibData::getInfo(std::string property, uint id) {
 	return getInfo(QString(property.c_str()),id);
 }
 
+
 void MlibData::getInfoFromServer(uint id) {
 	conn->medialib.getInfo(id)(Xmms::bind(&MlibData::getMediaInfo,this));
 }

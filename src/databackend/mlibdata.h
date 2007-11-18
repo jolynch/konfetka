@@ -19,6 +19,7 @@
 #include <QStringList>
 #include <QTime>
 #include <QTimer>
+#include <QUrl>
 #include <string>
 
 class MediaInfo{
@@ -50,7 +51,6 @@ class MlibData:public QObject {
 	QVariant getInfo(std::string property, uint id);
 	QVariant getInfo(QString property, uint id);
 	QStringList getStandardTags();
-		
 
 	void clearCache();
 	void getInfoFromServer(uint id);

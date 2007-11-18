@@ -215,5 +215,15 @@ bool XMMS2Interface::handlePlaytimeSignal(uint newTime) {
 	return true;
 }
 
+QString XMMS2Interface::encodeUrl(QString val) {
+
+        QByteArray exclude = "ABCDEFGHIJKLMNOPQRSTUVWXWZabcdefghijklmnopqrstuvwxyz0123456789:/-._";
+        QByteArray ray = QUrl::toPercentEncoding(val,exclude);
+        QString final(ray);
+        final.replace("%20","+");
+
+        return final;
+}
+
 
 #endif

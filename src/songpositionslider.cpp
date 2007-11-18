@@ -64,6 +64,8 @@ void SongPositionSlider::setDuration(const Xmms::PropDict& info) {
 	}
  	else if(info.contains("url") && (info.get<std::string>("url")).find("file://") == std::string::npos){
  	curType = STREAM;
+	emit timeChanged(-1);
+	update();
 	}
 	else {
 	curType = UNKNOWN;
@@ -124,6 +126,8 @@ void SongPositionSlider::paintEvent(QPaintEvent * event) {
 	if(duration!=0) {
 	double percent = value()/(double)duration;
 	int pxlBlack = (int)(width()*percent);
+	if(curType != FILE)
+	pxlBlack = 0;
 
 	painter.fillRect(0,0,pxlBlack+2,20,QBrush(QColor("#696969")));
 	painter.fillRect(pxlBlack,0,width()-(pxlBlack+2),20,QBrush(QColor("#A1A1A1")));

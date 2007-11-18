@@ -7,6 +7,7 @@ FileBrowser::FileBrowser(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QW
 	conn = c;
 	model = new QDirModel;
 	model->setReadOnly(false);
+	model->setResolveSymlinks(true);
 
 	filterLine = new QLineEdit();
 	QCompleter* completer = new QCompleter(filterLine);
@@ -15,70 +16,152 @@ FileBrowser::FileBrowser(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QW
 	
 	splitter  = new QSplitter(this);
 
-	MyFileIconProvider * customFIP = new MyFileIconProvider();
-	model->setIconProvider(customFIP);	
-
 	fileTree = new QTreeView(splitter);
 	fileTree->setModel(model);
 	fileTree->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	fileTree->setDragEnabled(true);
 	fileTree->setAcceptDrops(true);	
+	for(int i =1;i<4;i++)
+	fileTree->setColumnHidden(i,1);
 
 	fileList = new QListView(splitter);
-	fileList->setViewMode(QListView::IconMode);
+// 	fileList->setViewMode(QListView::IconMode);
 	fileList->setModel(model);
-	fileList->setGridSize(QSize(64,64));
+// 	fileList->setGridSize(QSize(64,64));
 	fileList->setIconSize(QSize(32,32));
 	fileList->setMovement(QListView::Snap);
 	fileList->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	fileList->setDragEnabled(true);
 	fileList->setAcceptDrops(true);	
+
+	QStringList temp;
+	temp<<"Media Library"<<"Playlist"<<"Collection";
+	toWhat = new QComboBox();
+	toWhat->addItems(temp);
 	
+	QLabel * tempLabel = new QLabel(":");
+
+	whichPlaylist = new QComboBox();
+	whichPlaylist->setEnabled(false);
+	
+	QToolBar * lineBar = new QToolBar();
+	lineBar->addWidget(filterLine);
+	QToolBar * doStuff = new QToolBar();
+	doStuff->addAction("Add Selected Files to:",this, SLOT(addSelected()));
+	doStuff->addWidget(toWhat);
+	doStuff->addWidget(tempLabel);
+	doStuff->addWidget(whichPlaylist);
 
 	layout = new QGridLayout();
 	layout->setSpacing(1);
-	layout->addWidget(filterLine,0,0);
-	layout->addWidget(splitter,1,0);
-	for(int i=0;i<2;i++)
-	layout->setRowStretch(i,2);
+	layout->addWidget(lineBar,0,0);
+	layout->addWidget(doStuff,0,1);
+	layout->addWidget(splitter,1,0,2,2);
+	layout->setRowStretch(1,1);
+	layout->setRowStretch(0,1);
 	this->setLayout(layout);
+
+	deleteSC = new QShortcut(Qt::Key_Delete,this,SLOT(slotRemove()),SLOT(slotRemove()));
+
+	connect(toWhat,SIGNAL(currentIndexChanged(QString)),this,SLOT(destinationChanged(QString)));
+	connect(fileTree, SIGNAL(clicked(QModelIndex)),this,SLOT(setRoot(QModelIndex)));
+	connect(fileList, SIGNAL(doubleClicked(QModelIndex)),this,SLOT(setRoot(QModelIndex)));
+	connect(completer,SIGNAL(activated(QModelIndex)),this,SLOT(handleCompleter(QModelIndex)));
+	connect(filterLine,SIGNAL(returnPressed()),this,SLOT(handleCompleter()));
+}
+
+void FileBrowser::setRoot(QModelIndex index) {
+	if(index.isValid() && model->isDir(index)) {
+	fileList->setRootIndex(index);
+	fileTree->setCurrentIndex(index);
+	filterLine->setText(model->filePath(index));
+	}
+}
+
+void FileBrowser::slotRemove() {
+	if(QMessageBox::warning(this,"Delete","Are you sure that you want to\ndelete these files from the filesystem?",
+		QMessageBox::Yes | QMessageBox::No,QMessageBox::Yes) == QMessageBox::Yes) {
+		QModelIndexList list;
+		QItemSelectionModel * sel; 
+		if(fileList->hasFocus()) {
+		sel = fileList->selectionModel();
+		list = sel->selectedIndexes();
+		}
+		else if(fileTree->hasFocus()) {
+		sel = fileTree->selectionModel();
+		list = sel->selectedIndexes();
+		} else {return;}
 	
-// 	QStringList filters;
-// 	filters << "*mp3*" << "*m4a*";
-// 	dirModel->setNameFilters(filters);
-// 	dirModel->setFilter(QDir::AllDirs|QDir::Files|QDir::NoDotAndDotDot);
-// 	
-
-// 	QFileDialog * tmp = new QFileDialog();
-// 	tmp->show();
-	connect(fileList,SIGNAL(doubleClicked(QModelIndex)),this,SLOT(handleListDoubleClick(QModelIndex)));
-	connect(fileTree,SIGNAL(expanded(QModelIndex)),fileList,SLOT(setRootIndex(QModelIndex)));
-	connect(completer,SIGNAL(activated(QModelIndex)),this,SLOT(handleListDoubleClick(QModelIndex)));
-// 	connect(lineEdit,SIGNAL(returnPressed()),this, SLOT(setRootPath()));
-}
-
-void FileBrowser::handleListDoubleClick(QModelIndex index) {
-	QModelIndex dir = index.sibling(index.row(), 0);
-	if (!model->isDir(dir))
-	dir = dir.parent();
-		if (dir != fileList->rootIndex() && model->isDir(dir)) {
-                fileList->setRootIndex(dir);
-                fileTree->setCurrentIndex(index);
-                filterLine->setText(model->filePath(dir));
-            }
-}
-
-QIcon MyFileIconProvider::icon(IconType type) {
-	if(type == QFileIconProvider::Folder) {
-	std::cout<<type<<std::endl;
+	std::cout<<list.size()<<std::endl;
+		for(int i =0;i<list.size();i++) {
+			if(model->isDir(list.value(i))) {
+				if(model->rmdir(list.value(i)))
+				std::cout<<"YAY"<<std::endl;
+			}
+			else {
+				if(model->remove(list.value(i)))
+				std::cout<<"YAY"<<std::endl;
+			}
+		}
+	model->refresh();	
 	}
 }
 
-QIcon MyFileIconProvider::icon(QFileInfo info) {
-	if(info.isDir()) {
-	std::cout<<"DIR"<<std::endl;
+void FileBrowser::addSelected() {
+	QModelIndexList list;
+	QItemSelectionModel * sel; 
+	sel = fileList->selectionModel();
+	list = sel->selectedIndexes();
+	for(int i=0;i<list.size();i++) {
+		if(toWhat->currentText()=="Media Library") {
+		}
+		else if(toWhat->currentText()=="Playlist") {
+// 			QString url = conn->encodeUrl(model->filePath(list.value(i)));
+// 			std::cout<<url.toStdString()<<std::endl;
+			QString url = model->filePath(list.value(i));
+			if(!url.contains("file://"))
+			url.prepend("file://");
+			if(model->isDir(list.value(i))) {
+			conn->playlist.addRecursive(url.toStdString(),
+				whichPlaylist->currentText().toStdString())(Xmms::bind(&DataBackend::scrapResult, conn));
+			std::cout<<"Path "<<model->filePath(list.value(i)).toStdString()<<std::endl;
+			}
+			else {
+			conn->playlist.addUrl(url.toStdString(),
+				whichPlaylist->currentText().toStdString())(Xmms::bind(&DataBackend::scrapResult, conn));
+			std::cout<<model->filePath(list.value(i)).toStdString()<<std::endl;
+			}
+		}
+		else {
+		}
 	}
 }
 
+void FileBrowser::destinationChanged(QString what) {
+	if(what=="Media Library") {
+	whichPlaylist->clear();
+	whichPlaylist->setEnabled(false);
+	}
+	else if(what=="Playlist") {
+	whichPlaylist->clear();
+	whichPlaylist->addItems(((CollData*)(conn->getDataBackendObject(DataBackend::COLL)))->getPlaylists());
+	whichPlaylist->setEnabled(true);
+	QString cur = ((PlistData*)(conn->getDataBackendObject(DataBackend::PLIST)))->getCurrentName();
+	whichPlaylist->setCurrentIndex(whichPlaylist->findText(cur));
+	}
+	else {
+	whichPlaylist->clear();
+	whichPlaylist->addItems(((CollData*)(conn->getDataBackendObject(DataBackend::COLL)))->getCollections());
+	whichPlaylist->setEnabled(true);
+	}
+}
+
+void FileBrowser::handleCompleter() {
+	setRoot(model->index(filterLine->text()));
+}
+
+void FileBrowser::handleCompleter(QModelIndex index) {
+	setRoot(model->index(filterLine->text()));
+}
 #endif
 

@@ -465,7 +465,7 @@ void Playlist::dropEvent(QDropEvent *event)
 		{
 		QList<QUrl> list = event->mimeData()->urls();
 			for(int i=0;i<list.size();i++) {
-// 			//std::cout<<"add "<<list.value(i).toString().toStdString()<<std::endl;
+// 			std::cout<<"add "<<list.value(i).toString().toStdString()<<std::endl;
 			conn->playlist.addUrl(list.value(i).toString().toStdString())(Xmms::bind(&DataBackend::scrapResult,conn));
 			}
 		}
