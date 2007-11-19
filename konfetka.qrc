@@ -55,6 +55,10 @@
 	<file>images/repeat_all.png</file>
 	<file>images/shuffle.png</file>
 	<file>images/lock.png</file>
+	<file>images/upArrow.png</file>
+	<file>images/leftArrow.png</file>
+	<file>images/rightArrow.png</file>
+	<file>images/refresh.png</file>
 
 	<file alias="weirdline">data/weirdline</file>
 </qresource>

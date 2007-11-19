@@ -26,6 +26,7 @@
 #include <QWidgetAction>
 #include <QAction>
 #include <QToolBar>
+#include <QStack>
 
 // #include <QFileDialog>
 
@@ -42,6 +43,10 @@ class FileBrowser:public QWidget {
 	QSplitter * splitter;
 	QShortcut * deleteSC; 
 	
+	QModelIndex last;
+	QStack<QModelIndex> forward;
+	QStack<QModelIndex> backward;
+	
 	QComboBox * toWhat;
 	QComboBox * whichPlaylist;
 
@@ -49,12 +54,18 @@ class FileBrowser:public QWidget {
 	FileBrowser(DataBackend * c,QWidget * parent = 0, Qt::WindowFlags f = 0);
 
 	public slots:
-	void setRoot(QModelIndex);
+	void setRoot(QModelIndex index,bool keep = true);
 	void slotRemove();
 	void addSelected();
 	void destinationChanged(QString);
 	void handleCompleter();
 	void handleCompleter(QModelIndex);
+	void updatePlaylists(QStringList);
+	void refresh();
+	void goHome();
+	void goUp();
+	void goBack();
+	void goForward();
 };
 
 #endif

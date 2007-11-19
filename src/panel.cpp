@@ -125,8 +125,7 @@ void Panel::down_press()
 	emit(cycle(false));}
 
 void Panel::lock_press()
-	{if(locked) locked=false;
-	else locked=true;}
+	{locked = !locked; update();}
 
 void Panel::timer_ping()
 	{emit(requestMove(true,PSLIDE_DELTA,y,sideR,this));}
