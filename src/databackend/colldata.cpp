@@ -46,11 +46,11 @@ void CollData::respondToCollectionChangedBroadcast(const Xmms::Dict& change)
 			break;
 		default:
 			Xmms::Collection::Namespace foo=change.get<std::string>("namespace").c_str();
-			if(foo==Xmms::Collection::PLAYLISTS)
-				conn->collection.list(foo)
+			if(std::string(foo).find(Xmms::Collection::PLAYLISTS)!=std::string::npos)
+				conn->collection.list(Xmms::Collection::PLAYLISTS)
 					(Xmms::bind(&CollData::getPlaylistsFromServer,this));
 			else
-				conn->collection.list(foo)
+				conn->collection.list(Xmms::Collection::COLLECTIONS)
 					(Xmms::bind(&CollData::getCollectionsFromServer,this));
 		};
 	}
@@ -61,10 +61,9 @@ QStringList CollData::getCollections()
 QStringList CollData::getPlaylists()
 	{return playlistsOnly;}
 
-void CollData::createCollection(const Xmms::Coll::Coll& coll,std::string name,Xmms::Collection::Namespace ns) {
+void CollData::createCollection(const Xmms::Coll::Coll& coll,std::string name,Xmms::Collection::Namespace ns)
+	{
 	conn->collection.save(coll,name,ns)(Xmms::bind(&DataBackend::scrapResult, conn));
-}
+	}
 #endif
-
-
 

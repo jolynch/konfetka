@@ -25,29 +25,43 @@ class SinglePlaylist:public QAbstractItemModel
 		DataBackend * conn;
 		QStringList header;
 		QStringList humanReadableHeader;
+		std::string plistName;
 
 		void parseHumanReadableHeader();
-
 	public:
-		SinglePlaylist(DataBackend * c,QStringList hv_=QStringList());
+		SinglePlaylist(DataBackend * c,std::string name,QStringList hv_=QStringList());
 		bool isConnected();
 		void connectToggle();
 		void setHeader(QStringList newVal);
 
 		bool setInitialPlist(const Xmms::List< unsigned int > &list);
 
-		//QAbstractItemModel function implementations
+	//QAbstractItemModel function implementations
 		QModelIndex index ( int row, int column, const QModelIndex & parent = QModelIndex() ) const;
+//!		Qt::ItemFlags flags(const QModelIndex &index) const;
 		QModelIndex parent ( const QModelIndex & index ) const;
 		QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const;
 		int rowCount ( const QModelIndex & parent = QModelIndex() ) const;
 		int columnCount ( const QModelIndex & parent = QModelIndex() ) const;
-//		bool hasChildren ( const QModelIndex & parent = QModelIndex() ) const;
-		
+		QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
+		bool removeRows ( int row, int count, const QModelIndex & parent = QModelIndex() );
+//!		Qt::DropActions supportedDropActions() const;
+//!		bool dropMimeData(const QMimeData *data,Qt::DropAction action, int row, int column, const QModelIndex &parent);
+//!		QStringList mimeTypes() const;
+//!		QMimeData * mimeData(const QModelIndexList &indexes) const;
 
+	//Basic modification functions
+	//These only modify the model itself - they do not call xmms2.
+	private:
+		void addToModel(uint id,int pos=-1);
+		void moveInModel(int oldPos,int newPos);
+		void removeFromModel(int pos);
+		
+	//Response functions
 	public slots:
 		void infoChanged(int id);
-//		void respondToChanges(const Xmms::Dict& val);
+		void respondToChanges(const Xmms::Dict& val);
+
 	};
 
 class PlistData:public QObject
