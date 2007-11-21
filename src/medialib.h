@@ -56,6 +56,9 @@ class MediaLib:public QWidget {
 Q_OBJECT
 
 	private:
+	DataBackend * conn;
+	MlibData* mlib;
+	CollData* coll;	
 	bool adding,complexSearch;
 	DropTreeWidget * mediaList;
 	QPushButton * add;
@@ -67,8 +70,6 @@ Q_OBJECT
 	QGridLayout * layout;
 	QVBoxLayout * buttons;
 	QList<QUrl> urlList;
-// 	QDrag * drag;
-// 	QMimeData * mimeData;
 	QShortcut  * delItem;
 	QTimer doubleClickTimer;
 	QStack<uint> idStack;
@@ -83,12 +84,11 @@ Q_OBJECT
 	ItemType getItemType(QTreeWidgetItem*);	
 
 	public:
-	MediaLib(DataBackend * conn, QWidget * parent = 0, Qt::WindowFlags f = 0);
+	MediaLib(DataBackend * c, QWidget * parent = 0, Qt::WindowFlags f = 0);
 	~MediaLib();
 	
 	Xmms::Coll::Union* selectedAsColl();
 	bool addToPlaylistFromCollectionDrag(const Xmms::List <Xmms::Dict> &list);
-	DataBackend * xmms;
 	QDirModel * dirModel;
 	QTreeView * fileList;
 	bool fromKonfetka;
@@ -139,9 +139,10 @@ Q_OBJECT
 	private:
 	MediaLib * lib;
 	QString * path;
+	DataBackend * conn;
 
 	public:
-	DropTreeWidget(MediaLib*);
+	DropTreeWidget(MediaLib*,DataBackend* c);
 	~DropTreeWidget();
 	
 	//Drag Drop

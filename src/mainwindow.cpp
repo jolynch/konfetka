@@ -140,6 +140,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 
 
 	pc->registerPanel(new Panel(this,"FILESYSTEM",new FileBrowser(conn,this)),PanelController::RIGHTPANEL);
+	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),PanelController::LEFTPANEL);
 	}
 
 void MainWindow::trayTool() {

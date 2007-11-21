@@ -4,18 +4,21 @@
 #include <iostream>
 
 
-MediaLib::MediaLib(DataBackend * conn,  QWidget * parent, Qt::WindowFlags f):QWidget(parent, f)
+MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):QWidget(parent, f)
 	{
-	xmms = conn;
+	conn = c;
+	mlib = (MlibData*)(conn->getDataBackendObject(DataBackend::MLIB));
+	coll = (CollData*)(conn->getDataBackendObject(DataBackend::COLL));
+	
 	complexSearch = false;
-	xmms->medialib.broadcastEntryChanged()(Xmms::bind(&MediaLib::mlibChanged, this));
+	conn->medialib.broadcastEntryChanged()(Xmms::bind(&MediaLib::mlibChanged, this));
 	fromKonfetka = false;
 	layout = new QGridLayout();
 	delItem = new QShortcut(Qt::Key_Delete,this,SLOT(slotRemove()),SLOT(slotRemove()));
 
 	QStringList Hlabels;
 	Hlabels << "Your MediaLib";
-	mediaList = new DropTreeWidget(this);
+	mediaList = new DropTreeWidget(this,c);
 	mediaList->setHeaderLabels(Hlabels);
 	mediaList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	mediaList->setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -92,18 +95,18 @@ MediaLib::MediaLib(DataBackend * conn,  QWidget * parent, Qt::WindowFlags f):QWi
 	connect(&doubleClickTimer,SIGNAL(timeout()),this,SLOT(startDrag()));
 	
 	//New List thingy
-	connect(conn->getDataBackendObject(DataBackend::MLIB),SIGNAL(gotListFromServer(QString, QList<QString>)),
+	connect(mlib,SIGNAL(gotListFromServer(QString, QList<QString>)),
 					this,SLOT(gotNewList(QString, QList<QString>)));
-	connect(conn->getDataBackendObject(DataBackend::MLIB),SIGNAL(infoChanged(int)),
+	connect(mlib,SIGNAL(infoChanged(int)),
 					this,SLOT(infoChanged(int)));
-	connect(conn->getDataBackendObject(DataBackend::MLIB),SIGNAL(updatesDone()),
+	connect(mlib,SIGNAL(updatesDone()),
 					this,SLOT(checkIfRefreshIsNeeded()));
 	connect(mediaList,SIGNAL(itemExpanded(QTreeWidgetItem*)),this,SLOT(itemExpanded(QTreeWidgetItem*)));
 
 	connect(searchDialog,SIGNAL(newList(QList< QPair <Xmms::Coll::Coll*,Operator> >)),
 			this,SLOT(recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> >)));
 	visibleMedia = new Xmms::Coll::Universe();
-	((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
+	mlib->getListFromServer(visibleMedia,"artist");
 	adding=false;
 
 
@@ -131,7 +134,7 @@ void MediaLib::gotNewList(QString property, QList<QString> info) {
 
 void MediaLib::artistList(QList<QString> info) {
 // 	mediaList->clear();
-// 	((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->clearCache();
+// 	((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->clearCache();
 	while (mediaList->topLevelItemCount() > 0)
 	mediaList->takeTopLevelItem(0); 
 
@@ -146,7 +149,7 @@ void MediaLib::artistList(QList<QString> info) {
 	Xmms::Coll::Has artColl(*visibleMedia,"artist");
 	Xmms::Coll::Complement albumItems;
 	albumItems.setOperand(artColl);
-	xmms->collection.queryIds(albumItems)(Xmms::bind(&MediaLib::handleUnknown,this));
+	conn->collection.queryIds(albumItems)(Xmms::bind(&MediaLib::handleUnknown,this));
 }
 
 bool MediaLib::handleUnknown(const Xmms::List <uint> &list) {
@@ -179,7 +182,7 @@ void MediaLib::getAlbumList(QTreeWidgetItem* item) {
 		what.push_back("album");
 		what.push_back("title");
 
-		xmms->collection.queryInfos(albumItems,what)(boost::bind(&MediaLib::gotAlbums,this,item,_1));
+		conn->collection.queryInfos(albumItems,what)(boost::bind(&MediaLib::gotAlbums,this,item,_1));
 	}
 	else {	
 		Xmms::Coll::Has artColl(*visibleMedia,"artist");
@@ -190,7 +193,7 @@ void MediaLib::getAlbumList(QTreeWidgetItem* item) {
 		what.push_back("album");
 		what.push_back("title");
 
-		xmms->collection.queryInfos(albumItems,what)(boost::bind(&MediaLib::gotAlbums,this,item,_1));
+		conn->collection.queryInfos(albumItems,what)(boost::bind(&MediaLib::gotAlbums,this,item,_1));
 	}
 }
 
@@ -239,7 +242,7 @@ void MediaLib::getSongInfo(QTreeWidgetItem* item){
 		
 		if(item->text(0)!="Unknown") {
 		Xmms::Coll::Equals::Equals songItems(*albumItems,"album",item->text(0).toStdString(),true);
-		xmms->collection.queryIds(songItems)(boost::bind(&MediaLib::gotSongs,this,item,_1));
+		conn->collection.queryIds(songItems)(boost::bind(&MediaLib::gotSongs,this,item,_1));
 		}
 		else {
 		Xmms::Coll::Has artColl(*visibleMedia,"album");
@@ -248,7 +251,7 @@ void MediaLib::getSongInfo(QTreeWidgetItem* item){
 		Xmms::Coll::Intersection songItems;
 		songItems.addOperand(*albumItems);
 		songItems.addOperand(notColl);
-		xmms->collection.queryIds(songItems)(boost::bind(&MediaLib::gotSongs,this,item,_1));
+		conn->collection.queryIds(songItems)(boost::bind(&MediaLib::gotSongs,this,item,_1));
 		}
 }
 
@@ -258,7 +261,7 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 	QTreeWidgetItem * temp;
 	QVariant tmp; QString title = "";
 		for (list.first();list.isValid(); ++list) {
-			tmp = ((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getInfo(QString("title"),*list);
+			tmp = mlib->getInfo(QString("title"),*list);
 			if(tmp.toInt() == -1) {
 			title = "";
 			}
@@ -281,7 +284,7 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 
 void MediaLib::infoChanged(int id) {
 	if(idToSongItem.contains(id) && idToSongItem.value(id)!=NULL) {
-		QVariant tmp = ((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getInfo(QString("title"),id);
+		QVariant tmp = mlib->getInfo(QString("title"),id);
 		idToSongItem.value(id)->setText(0,tmp.toString());
 	}
 	else {
@@ -295,7 +298,7 @@ void MediaLib::slotRemove() {
 	what = mediaList->selectedItems();
 	Xmms::Coll::Union * media = selectedAsColl();
 	
-	xmms->collection.queryIds(*media)(Xmms::bind(&MediaLib::removeIds,this));
+	conn->collection.queryIds(*media)(Xmms::bind(&MediaLib::removeIds,this));
 	removeNodes(what);
 }
 
@@ -332,7 +335,7 @@ void MediaLib::removeNodes(QList<QTreeWidgetItem*> list) {
 bool MediaLib::removeIds(const Xmms::List <uint> &list) {
 	for (list.first();list.isValid(); ++list) {
 // 	std::cout<<"Would be removing "<<*list<<std::endl;
-	xmms->medialib.removeEntry(*list)(Xmms::bind(&DataBackend::scrapResult, xmms));
+	conn->medialib.removeEntry(*list)(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 	return true;
 }
@@ -350,7 +353,7 @@ bool MediaLib::mlibChanged(const unsigned int& id){
 }
 
 void MediaLib::refreshList() {
-	((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
+	mlib->getListFromServer(visibleMedia,"artist");
 }
 
 void MediaLib::toggleFileList() {
@@ -378,30 +381,29 @@ void MediaLib::newColl() {
 			QMessageBox::Yes | QMessageBox::No,QMessageBox::Yes);
 	if(val != QMessageBox::Yes) return;
 
-	((CollData*)(xmms->getDataBackendObject(DataBackend::COLL)))->
-	createCollection(*visibleMedia,name.toStdString(),xmms->collection.COLLECTIONS);
+	coll->createCollection(*visibleMedia,name.toStdString(),conn->collection.COLLECTIONS);
 
 }
 
 void MediaLib::searchMlib() {
 	std::string text = searchLine->text().toStdString();
-	Xmms::Coll::Universe mlib;
+	Xmms::Coll::Universe univ;
 	Xmms::Coll::Union allMatches;
-		Xmms::Coll::Match matchedArt(mlib,"artist","%"+text+"%");
+		Xmms::Coll::Match matchedArt(univ,"artist","%"+text+"%");
 		allMatches.addOperand(matchedArt);
-		Xmms::Coll::Match matchedAlb(mlib,"album","%"+text+"%");
+		Xmms::Coll::Match matchedAlb(univ,"album","%"+text+"%");
 		allMatches.addOperand(matchedAlb);
-		Xmms::Coll::Match matchedTit(mlib,"title","%"+text+"%");
+		Xmms::Coll::Match matchedTit(univ,"title","%"+text+"%");
 		allMatches.addOperand(matchedTit);
-		Xmms::Coll::Match matchedUrl(mlib,"url","%"+text+"%");
+		Xmms::Coll::Match matchedUrl(univ,"url","%"+text+"%");
 		allMatches.addOperand(matchedUrl);
-		Xmms::Coll::Match matchedGenre(mlib,"genre","%"+text+"%");
+		Xmms::Coll::Match matchedGenre(univ,"genre","%"+text+"%");
 		allMatches.addOperand(matchedGenre);
-		Xmms::Coll::Match matchedID(mlib,"id","%"+text+"%");
+		Xmms::Coll::Match matchedID(univ,"id","%"+text+"%");
 		allMatches.addOperand(matchedID);
 	delete visibleMedia;
 	visibleMedia = new Xmms::Coll::Union(allMatches);
-	((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
+	mlib->getListFromServer(visibleMedia,"artist");
 }
 	
 ItemType MediaLib::getItemType(QTreeWidgetItem* item) {
@@ -464,7 +466,7 @@ void MediaLib::addToMlibDrag(QTreeWidgetItem*,int) {
 	
 	std::list<std::string> tmp;
  	tmp.push_back("url");
-	xmms->collection.queryInfos(*media,tmp)(Xmms::bind(&MediaLib::addToPlaylistFromCollectionDrag,this));
+	conn->collection.queryInfos(*media,tmp)(Xmms::bind(&MediaLib::addToPlaylistFromCollectionDrag,this));
 }
 
 bool MediaLib::addToPlaylistFromCollectionDrag(const Xmms::List <Xmms::Dict> &list) {
@@ -511,7 +513,7 @@ void MediaLib::checkIfRefreshIsNeeded() {
 	uint id;
 		while(!idStack.isEmpty()) {
 // 		id = idStack.pop();
-// 		QTreeWidgetItem * itm = ((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getItem(id);
+// 		QTreeWidgetItem * itm = ((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getItem(id);
 // 		bool needToUpdate = false;
 // 		QString artist = itm->info("artist").toString();
 // 		QString album = itm->info("album").toString();
@@ -535,13 +537,13 @@ void MediaLib::checkIfRefreshIsNeeded() {
 // 				}
 // 			}
 // 		if(needToUpdate) {
-// 		((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
+// 		((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
 // 		while(!idStack.isEmpty())
 		idStack.pop();
 // 		return;
 // 		}
 	}
-	((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
+	mlib->getListFromServer(visibleMedia,"artist");
 }
 
 void MediaLib::toggleComplexSearch() {
@@ -563,7 +565,7 @@ void MediaLib::toggleComplexSearch() {
 		if(visibleMedia!=NULL)
 		delete visibleMedia;
 		visibleMedia = new Xmms::Coll::Universe();
-		((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
+		mlib->getListFromServer(visibleMedia,"artist");
 	}
 
 	QMenu * menu = new QMenu();
@@ -601,14 +603,15 @@ void MediaLib::recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> > newLi
 
 	delete visibleMedia;
 	visibleMedia = val;
-	((MlibData*)(xmms->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
+	mlib->getListFromServer(visibleMedia,"artist");
 }
 
-DropTreeWidget::DropTreeWidget(MediaLib* newLib):QTreeWidget() {
+DropTreeWidget::DropTreeWidget(MediaLib* newLib,DataBackend* c):QTreeWidget() {
 	setDragDropMode(QAbstractItemView::DropOnly);
 	setAcceptDrops(true);
 	lib = newLib;
 	path = new QString();
+	conn = c;
 }
 
 //pathImport does not _work_ completely ... so I wrote my own :-)
@@ -630,7 +633,7 @@ void DropTreeWidget::recurAdd(QString file,bool isDir) {
 	file.prepend("file://");
 // 	//std::cout<<file.toStdString()<<std::endl;
 	lib->fromKonfetka = true;
-	lib->xmms->medialib.addEntry(file.toStdString())(Xmms::bind(&DataBackend::scrapResult, lib->xmms));
+	conn->medialib.addEntry(file.toStdString())(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
 }
@@ -686,7 +689,7 @@ void DropTreeWidget::dropEvent(QDropEvent *event){
 // 		//std::cout<<path->toStdString()<<std::endl;
 		lib->fromKonfetka = true;
 		lib->total=1;
-		lib->xmms->medialib.addEntry(path->toStdString())(Xmms::bind(&DataBackend::scrapResult, lib->xmms));
+		conn->medialib.addEntry(path->toStdString())(Xmms::bind(&DataBackend::scrapResult, conn));
 		}
 		else {
 		numSongs(*path);
@@ -702,7 +705,7 @@ void DropTreeWidget::dropEvent(QDropEvent *event){
 		recurAdd(list.value(i).filePath(),list.value(i).isDir());
 		}
 	
-		//lib->xmms->medialib.pathImport(path->toStdString())(Xmms::bind(&MediaLib::doneWithTask, lib));
+		//conn->medialib.pathImport(path->toStdString())(Xmms::bind(&MediaLib::doneWithTask, lib));
 		}
 }
 
@@ -716,7 +719,7 @@ ComplexSearchDialog::ComplexSearchDialog(DataBackend* conn) {
 	tagLabel = new QLabel("Attribute:");
 	tag = new QComboBox();
 	temp.clear();
-	temp = 	((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getStandardTags();
+	temp = ((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getStandardTags();
 	tag->addItems(temp);
 
 	operLabel = new QLabel("Operator:");
@@ -799,36 +802,36 @@ void ComplexSearchDialog::clearItems() {
 }
 
 Xmms::Coll::Coll* ComplexSearchDialog::newColl(QString attr,QString oper,QString val,bool notFlag) {
-	Xmms::Coll::Universe mlib;
+	Xmms::Coll::Universe univ;
 	Xmms::Coll::Coll* resultColl;
 		
 		if(oper == "=") {
-		resultColl = new Xmms::Coll::Equals(mlib,attr.toStdString(),val.toStdString(),true);
+		resultColl = new Xmms::Coll::Equals(univ,attr.toStdString(),val.toStdString(),true);
 		}
 		else if(oper == "matches") {
 		std::string tmp = val.toStdString();
 		tmp = "%"  + tmp + "%";
-		resultColl = new Xmms::Coll::Match(mlib,attr.toStdString(),tmp,false);
+		resultColl = new Xmms::Coll::Match(univ,attr.toStdString(),tmp,false);
 		}
 		else if(oper == "has tag") {
-		resultColl = new Xmms::Coll::Has(mlib,attr.toStdString());
+		resultColl = new Xmms::Coll::Has(univ,attr.toStdString());
 		}
 		else if(oper == "<") {
-		resultColl = new Xmms::Coll::Smaller(mlib,attr.toStdString(),val.toStdString());
+		resultColl = new Xmms::Coll::Smaller(univ,attr.toStdString(),val.toStdString());
 		}
 		else if(oper ==">") {
-		resultColl = new Xmms::Coll::Greater(mlib,attr.toStdString(),val.toStdString());
+		resultColl = new Xmms::Coll::Greater(univ,attr.toStdString(),val.toStdString());
 		}
 		else if(oper =="<=") {
-		Xmms::Coll::Smaller tmp1(mlib,attr.toStdString(),val.toStdString());
-		Xmms::Coll::Equals tmp2(mlib,attr.toStdString(),val.toStdString());
+		Xmms::Coll::Smaller tmp1(univ,attr.toStdString(),val.toStdString());
+		Xmms::Coll::Equals tmp2(univ,attr.toStdString(),val.toStdString());
 		Xmms::Coll::Union * un = new Xmms::Coll::Union();
 		un->addOperand(tmp1); un->addOperand(tmp2);
 		resultColl = un;
 		}
 		else if(oper == ">=") {
-		Xmms::Coll::Greater tmp1(mlib,attr.toStdString(),val.toStdString());
-		Xmms::Coll::Equals tmp2(mlib,attr.toStdString(),val.toStdString());
+		Xmms::Coll::Greater tmp1(univ,attr.toStdString(),val.toStdString());
+		Xmms::Coll::Equals tmp2(univ,attr.toStdString(),val.toStdString());
 		Xmms::Coll::Union * un = new Xmms::Coll::Union();
 		un->addOperand(tmp1); un->addOperand(tmp2);
 		resultColl = un;

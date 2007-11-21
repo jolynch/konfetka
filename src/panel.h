@@ -25,13 +25,12 @@
 #define PBG_HEIGHT 188
 #define PSLIDE_DELTA 100
 #define PT_INTERVAL 20
+#define PTEXT_SIZE 8
 ///END CONSTANTS
 
 class Panel:public QWidget//public QLabel
 	{	Q_OBJECT
 	private:
-		///DIFFERENT TEXT SIZES
-		int PTEXT_SIZE;
 		///END
 		int y, x; //xR=x+PBG_WIDTH
 		bool sideR; //false=left, true=right

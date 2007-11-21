@@ -11,6 +11,7 @@
 #include "panelcontroller.h"
 #include "panel.h"
 #include "playlistpanel.h"
+#include "collectionbrowser.h"
 
 #include "newplaylistpanel.h"
 

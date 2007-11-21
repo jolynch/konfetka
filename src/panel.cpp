@@ -1,3 +1,4 @@
+
 #ifndef PANEL_CPP
 #define PANEL_CPP
 #include "panel.h"
@@ -212,20 +213,15 @@ void Panel::paintEvent ( QPaintEvent * event )
 		}
 	painter.setPen(Qt::NoPen);
 	QBrush b(gradient);
+		if(locked) 
+		b = QBrush(QColor(161,161,161,225));
 	painter.setBrush(b);
 	//Draw the path
 	painter.fillPath(path,b);
 	painter.setPen(Qt::black);
-	PTEXT_SIZE = (PBG_HEIGHT-PBG_WIDTH) / (text.length()*2);
 	painter.setFont(QFont("Monospace",PTEXT_SIZE,QFont::Bold));
 	painter.drawText(QRectF((PBG_WIDTH-PTEXT_SIZE)/2.0,0.0,PTEXT_SIZE,PBG_HEIGHT),
 			Qt::AlignCenter|Qt::TextWrapAnywhere,text);
-		if(locked) {
-		std::cout<<"LOCKING"<<std::endl;
-		QImage temp(":images/lock");
-		temp = temp.scaled(PBG_WIDTH/2,3*PBG_WIDTH/4,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-		painter.drawImage(QRect(PBG_WIDTH/4,PBG_HEIGHT-(temp.height()+PBG_WIDTH/4),PBG_WIDTH/2,3*PBG_WIDTH/4),temp);
-		}
 	painter.restore();
 	}
 
