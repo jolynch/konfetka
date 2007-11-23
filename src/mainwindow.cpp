@@ -130,17 +130,18 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	PanelController *pc=new PanelController(width());
 	//pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn,this)),PanelController::LEFTPANEL);
 	pc->registerPanel(new Panel(this,"NEW PLIST",new PlaylistPanel_(conn)),PanelController::LEFTPANEL);
+	pc->registerPanel(new Panel(this,"NEW PLIST",new PlaylistPanel_(conn)),PanelController::RIGHTPANEL);
 	Panel * mlibPanel=new Panel(this,"MEDIALIB",medialibView);
 	PanelPtrList * mlibincompatlist=new PanelPtrList();
 	mlibincompatlist->append(mlibPanel);
 	pc->registerPanel(mlibPanel,PanelController::DOUBLE_SIDED_PANEL,mlibincompatlist);
 	//pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn,this)),PanelController::RIGHTPANEL);
 
-	conn->emitInitialQSettings();
-
 
 	pc->registerPanel(new Panel(this,"FILESYSTEM",new FileBrowser(conn,this)),PanelController::RIGHTPANEL);
 	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),PanelController::LEFTPANEL);
+	conn->emitInitialQSettings();
+
 	}
 
 void MainWindow::trayTool() {
