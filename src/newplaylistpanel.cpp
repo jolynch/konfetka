@@ -2,29 +2,6 @@
 #define PLAYLISTPANEL__CPP
 #include "newplaylistpanel.h"
 
-Playlist_::Playlist_():QTableView(){}
-
-/*void Playlist_::dragEnterEvent(QDragEnterEvent *event)
-	{
-	event->accept();
-	setState(DraggingState);
-	}
-
-void Playlist_::dropEvent(QDropEvent * event)
-	{
-	QModelIndex index = indexAt(event->pos());
-	model()->dropMimeData(event->mimeData(),event->proposedAction(),-1,-1,index);
-	}
-
-void Playlist_::dragMoveEvent ( QDragMoveEvent * event)
-	{
-	Qt::DropAction dropAction = (model()->supportedDropActions() & event->proposedAction())
-					? event->proposedAction() : Qt::IgnoreAction;
-	event->setDropAction(dropAction);
-	event->accept();
-	startAutoScroll();
-	}
-*/
 PlaylistPanel_::PlaylistPanel_(DataBackend * c):QWidget()
 	{
 	editing=false;

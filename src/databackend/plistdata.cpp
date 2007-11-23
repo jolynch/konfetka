@@ -169,7 +169,6 @@ std::cout<<"removed "<<pos<<std::endl;
 
 Qt::ItemFlags SinglePlaylist::flags(const QModelIndex &index) const
 	{
-	//if(!index.isValid()) return NULL;
 	return Qt::ItemIsSelectable|Qt::ItemIsDragEnabled|Qt::ItemIsDropEnabled|Qt::ItemIsEnabled;
 	}
 
@@ -203,18 +202,30 @@ std::cout<<"called dropMimeData: "<<parent.row()<<" "<<parent.column()<<std::end
 		}
 	else if (data->hasUrls())
 		{
+//std::cout<<"has urls"<<std::endl;
 		QList<QUrl> urls=data->urls();
 		for(int i=0; i<urls.size(); i++)
 			{
 			std::string tmp=urls[i].toString().toUtf8().data();
+//std::cout<<tmp<<std::endl;
 			QString dirCheck=urls[i].toString();
-			dirCheck.remove(0,7);
-			if(QDir::isAbsolutePath(dirCheck))
+			if(dirCheck.startsWith("file://"))
+				dirCheck.remove(0,7);
+			if(QDir(dirCheck).exists())
+				{
+//std::cout<<"adding rec"<<std::endl;
 				conn->playlist.addRecursive(tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+				}
 			else if(!parent.isValid())
+				{
+//std::cout<<"adding url"<<std::endl;
 				conn->playlist.addUrl(tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+				}
 			else
+				{
+//std::cout<<"inserting"<<std::endl;
 				conn->playlist.insertUrl(parent.row()+i,tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+				}
 			}
 		return true;
 		}
@@ -247,9 +258,6 @@ std::cout<<"called mimeData"<<std::endl;
 	mimeData->setData("application/x-xmms2mlibidlist", encodedData);
 	return mimeData;
 	}
-
-
-
 
 /************************************!*********************************/
 
