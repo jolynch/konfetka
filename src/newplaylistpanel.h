@@ -9,9 +9,23 @@
 #include <QWidget>
 #include <QGridLayout>
 #include <QTreeView>
+#include <QTableView>
 #include <QString>
 #include <QComboBox>
 #include <QPushButton>
+#include <QDropEvent>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+
+class Playlist_:public QTableView
+	{	Q_OBJECT
+	public:
+		Playlist_();
+	public slots:
+//		void dragEnterEvent(QDragEnterEvent *event);
+//		void dropEvent(QDropEvent *event);
+//		void dragMoveEvent(QDragMoveEvent * event);
+	};
 
 class PlaylistPanel_:public QWidget, LayoutPanel
 	{	Q_OBJECT

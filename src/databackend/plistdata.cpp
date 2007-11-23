@@ -53,7 +53,11 @@ QVariant SinglePlaylist::data ( const QModelIndex & index, int role) const
 	{
 	if(role!=Qt::DisplayRole) return QVariant();
 	MlibData * mlib=(MlibData *)(conn->getDataBackendObject(DataBackend::MLIB));
-	return mlib->getInfo(header[index.column()],index.internalId());
+	QVariant tmp=mlib->getInfo(header[index.column()],index.internalId());
+	if(tmp.toInt()!=-1)
+		return tmp;
+	else
+		return QString(" ");
 	}
 
 int SinglePlaylist::rowCount ( const QModelIndex & parent) const
@@ -72,8 +76,11 @@ QVariant SinglePlaylist::headerData ( int section, Qt::Orientation orientation, 
 	return humanReadableHeader[section];
 	}
 
+
+
 bool SinglePlaylist::removeRows ( int row, int count, const QModelIndex & parent)
 	{
+std::cout<<"removeRows called"<<std::endl;
 	if(parent.isValid()) return false;
 	if(row+count-1>ids.size()) return false;
 	for(int i=0; i<count; i++)
@@ -143,6 +150,7 @@ void SinglePlaylist::respondToChanges(const Xmms::Dict& val)
 			addToModel(id);
 			break;
 		case XMMS_PLAYLIST_CHANGED_INSERT:
+std::cout<<"insert "<<pos<<std::endl;
 			addToModel(id,pos);
 			break;
 		case XMMS_PLAYLIST_CHANGED_MOVE:
@@ -150,6 +158,7 @@ void SinglePlaylist::respondToChanges(const Xmms::Dict& val)
 			moveInModel(pos,npos);
 			break;
 		case XMMS_PLAYLIST_CHANGED_REMOVE:
+std::cout<<"removed "<<pos<<std::endl;
 			removeFromModel(pos);
 			break;
 		default:
@@ -157,6 +166,90 @@ void SinglePlaylist::respondToChanges(const Xmms::Dict& val)
 			break;
 		}
 	}
+
+Qt::ItemFlags SinglePlaylist::flags(const QModelIndex &index) const
+	{
+	//if(!index.isValid()) return NULL;
+	return Qt::ItemIsSelectable|Qt::ItemIsDragEnabled|Qt::ItemIsDropEnabled|Qt::ItemIsEnabled;
+	}
+
+Qt::DropActions SinglePlaylist::supportedDropActions() const
+	{
+	return Qt::MoveAction|Qt::CopyAction;
+	}
+
+bool SinglePlaylist::dropMimeData(const QMimeData *data,Qt::DropAction action, int row, int column, const QModelIndex &parent)
+	{
+std::cout<<"called dropMimeData: "<<parent.row()<<" "<<parent.column()<<std::endl;
+	if (action == Qt::IgnoreAction)
+		return true;
+	if (data->hasFormat("application/x-xmms2mlibidlist"))
+		{
+		QByteArray encodedData = data->data("application/x-xmms2mlibidlist");
+		QDataStream stream(&encodedData, QIODevice::ReadOnly);
+		QList<uint> newItems;
+		int rows = 0;
+		while (!stream.atEnd())
+			{
+			uint tmp;
+			stream >> tmp;
+			if(!parent.isValid())
+				conn->playlist.addId(tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+			else
+				conn->playlist.insertId(parent.row()+rows,tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+			++rows;
+			}
+		return true;
+		}
+	else if (data->hasUrls())
+		{
+		QList<QUrl> urls=data->urls();
+		for(int i=0; i<urls.size(); i++)
+			{
+			std::string tmp=urls[i].toString().toUtf8().data();
+			QString dirCheck=urls[i].toString();
+			dirCheck.remove(0,7);
+			if(QDir::isAbsolutePath(dirCheck))
+				conn->playlist.addRecursive(tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+			else if(!parent.isValid())
+				conn->playlist.addUrl(tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+			else
+				conn->playlist.insertUrl(parent.row()+i,tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+			}
+		return true;
+		}
+	else return false;
+	}
+
+QStringList SinglePlaylist::mimeTypes() const
+	{
+	QStringList types;
+	types << "text/uri-list" << "application/x-xmms2mlibid" << "application/x-xmms2mlibidlist";
+	return types;
+	}
+
+QMimeData * SinglePlaylist::mimeData(const QModelIndexList &indexes) const
+	{
+std::cout<<"called mimeData"<<std::endl;
+	QMimeData *mimeData = new QMimeData();
+	QByteArray encodedData;
+	
+	QDataStream stream(&encodedData, QIODevice::WriteOnly);
+	
+	foreach (QModelIndex index, indexes)
+		{
+		if (index.isValid()&&index.column()==0)
+			{
+			stream << ids[index.row()];
+			}
+		}
+	
+	mimeData->setData("application/x-xmms2mlibidlist", encodedData);
+	return mimeData;
+	}
+
+
+
 
 /************************************!*********************************/
 
@@ -190,12 +283,14 @@ void PlistData::refreshPlaylist(SinglePlaylist * plist, std::string name)
 
 void PlistData::connectToServer(SinglePlaylist * plist)
 	{
+	if(plist->isConnected()) return;
 	plist->connectToggle();
 	connect(conn,SIGNAL(playlistChanged(const Xmms::Dict&)),plist,SLOT(respondToChanges(const Xmms::Dict&)));
 	}
 
 void PlistData::disconnectFromServer(SinglePlaylist * plist)
 	{
+	if(!plist->isConnected()) return;
 	disconnect(plist,SLOT(respondToChanges(const Xmms::Dict&)));
 	plist->connectToggle();
 	}

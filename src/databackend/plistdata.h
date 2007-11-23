@@ -14,6 +14,9 @@
 #include <QStringList>
 #include <QModelIndex>
 #include <QVariant>
+#include <QMimeData>
+#include <QUrl>
+#include <QDir>
 #include <string>
 
 
@@ -38,17 +41,17 @@ class SinglePlaylist:public QAbstractItemModel
 
 	//QAbstractItemModel function implementations
 		QModelIndex index ( int row, int column, const QModelIndex & parent = QModelIndex() ) const;
-//!		Qt::ItemFlags flags(const QModelIndex &index) const;
+		Qt::ItemFlags flags(const QModelIndex &index) const;
 		QModelIndex parent ( const QModelIndex & index ) const;
 		QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const;
 		int rowCount ( const QModelIndex & parent = QModelIndex() ) const;
 		int columnCount ( const QModelIndex & parent = QModelIndex() ) const;
 		QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
 		bool removeRows ( int row, int count, const QModelIndex & parent = QModelIndex() );
-//!		Qt::DropActions supportedDropActions() const;
-//!		bool dropMimeData(const QMimeData *data,Qt::DropAction action, int row, int column, const QModelIndex &parent);
-//!		QStringList mimeTypes() const;
-//!		QMimeData * mimeData(const QModelIndexList &indexes) const;
+		Qt::DropActions supportedDropActions() const;
+		bool dropMimeData(const QMimeData *data,Qt::DropAction action, int row, int column, const QModelIndex &parent);
+		QStringList mimeTypes() const;
+		QMimeData * mimeData(const QModelIndexList &indexes) const;
 
 	//Basic modification functions
 	//These only modify the model itself - they do not call xmms2.
@@ -61,7 +64,6 @@ class SinglePlaylist:public QAbstractItemModel
 	public slots:
 		void infoChanged(int id);
 		void respondToChanges(const Xmms::Dict& val);
-
 	};
 
 class PlistData:public QObject

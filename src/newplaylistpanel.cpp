@@ -2,6 +2,29 @@
 #define PLAYLISTPANEL__CPP
 #include "newplaylistpanel.h"
 
+Playlist_::Playlist_():QTableView(){}
+
+/*void Playlist_::dragEnterEvent(QDragEnterEvent *event)
+	{
+	event->accept();
+	setState(DraggingState);
+	}
+
+void Playlist_::dropEvent(QDropEvent * event)
+	{
+	QModelIndex index = indexAt(event->pos());
+	model()->dropMimeData(event->mimeData(),event->proposedAction(),-1,-1,index);
+	}
+
+void Playlist_::dragMoveEvent ( QDragMoveEvent * event)
+	{
+	Qt::DropAction dropAction = (model()->supportedDropActions() & event->proposedAction())
+					? event->proposedAction() : Qt::IgnoreAction;
+	event->setDropAction(dropAction);
+	event->accept();
+	startAutoScroll();
+	}
+*/
 PlaylistPanel_::PlaylistPanel_(DataBackend * c):QWidget()
 	{
 	editing=false;
@@ -15,17 +38,22 @@ PlaylistPanel_::PlaylistPanel_(DataBackend * c):QWidget()
 		connect(conn,SIGNAL(playlistNameChanged(const std::string&)),this,SLOT(setCurrentName(const std::string &)));
 		connect(plistBackend,SIGNAL(playlistReady(std::string,SinglePlaylist *)),
 						this,SLOT(playlistReady(std::string,SinglePlaylist *)));
-	
 		playlistView=new QTreeView();
 		playlistView->setAlternatingRowColors(true);
 		playlistView->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding));
+		playlistView->setSelectionBehavior(QAbstractItemView::SelectRows);
+		playlistView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+		playlistView->setDragEnabled(true);
+		playlistView->setAcceptDrops(true);
+		playlistView->setDropIndicatorShown(true);
+		playlistView->setDragDropMode(QAbstractItemView::DragDrop);
 		connect(playlistView,SIGNAL(doubleClicked(const QModelIndex &)),this,SLOT(doubleClicked(const QModelIndex &)));
 		centralLayout->addWidget(playlistView,1,0,1,2);
 		playlistSwitcher=new QComboBox();
 		playlistSwitcher->addItems(((CollData *)conn->getDataBackendObject(DataBackend::COLL))->getPlaylists());
 		playlistSwitcher->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Fixed));
+		connect(playlistSwitcher,SIGNAL(currentIndexChanged(const QString &)),this,SLOT(playlistSelected(QString)));
 		centralLayout->addWidget(playlistSwitcher,0,1);
-		conn->playlist.currentActive() (Xmms::bind(&DataBackend::getCurrentPlaylist,conn));
 		connect(((CollData *)conn->getDataBackendObject(DataBackend::COLL)),SIGNAL(playlistsChanged(QStringList)),
 						this,SLOT(playlistsChanged(QStringList)));
 		playlistModeSwitcher=new QPushButton("Playing:");
@@ -68,6 +96,7 @@ void PlaylistPanel_::playlistModeSwitched()
 		{
 		playlistModeSwitcher->setText("Playing:");
 		editing=false;
+		conn->playlist.load(currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 		}
 	else
 		{
@@ -85,14 +114,15 @@ void PlaylistPanel_::playlistsChanged(QStringList newList)
 	int tmp=playlistSwitcher->findText(currentPlaylistName.c_str());
 	if(tmp==-1) tmp=0;
 	playlistSwitcher->setCurrentIndex(tmp);
+	conn->playlist.currentActive() (Xmms::bind(&DataBackend::getCurrentPlaylist,conn));
 	}
 
 void PlaylistPanel_::setCurrentName(std::string name)
 	{
 	if(editing||locked) return;
-	currentPlaylistName=name.c_str();
-	currentPlaylist=plistBackend->getPlist(name);
-	if(currentPlaylist!=NULL) playlistView->setModel(currentPlaylist);
+	editing=true;
+	playlistSwitcher->setCurrentIndex(playlistSwitcher->findText(name.c_str()));
+	editing=false;
 	}
 
 void PlaylistPanel_::playlistReady(std::string name,SinglePlaylist * plist)
