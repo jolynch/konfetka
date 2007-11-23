@@ -48,6 +48,7 @@ class SinglePlaylist:public QAbstractItemModel
 		int columnCount ( const QModelIndex & parent = QModelIndex() ) const;
 		QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
 		bool removeRows ( int row, int count, const QModelIndex & parent = QModelIndex() );
+		bool insertRows ( int row, int count, const QModelIndex & parent = QModelIndex() );
 		Qt::DropActions supportedDropActions() const;
 		bool dropMimeData(const QMimeData *data,Qt::DropAction action, int row, int column, const QModelIndex &parent);
 		QStringList mimeTypes() const;

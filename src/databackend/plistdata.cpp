@@ -82,10 +82,16 @@ bool SinglePlaylist::removeRows ( int row, int count, const QModelIndex & parent
 	{
 std::cout<<"removeRows called"<<std::endl;
 	if(parent.isValid()) return false;
-	if(row+count-1>ids.size()) return false;
+	if(row+count>ids.size()) return false;
 	for(int i=0; i<count; i++)
-		conn->playlist.removeEntry(row,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+		conn->playlist.removeEntry(row+1,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 	return true;
+	}
+
+bool SinglePlaylist::insertRows ( int row, int count, const QModelIndex & parent)
+	{
+std::cout<<"insertRows called"<<std::endl;
+	return false;
 	}
 
 bool SinglePlaylist::setInitialPlist(const Xmms::List< unsigned int > &list)
