@@ -9,6 +9,7 @@
 #include "../databackend.h"
 #include <QObject>
 #include <QAbstractItemModel>
+#include <QItemDelegate>
 #include <QString>
 #include <QHash>
 #include <QStringList>
@@ -17,7 +18,31 @@
 #include <QMimeData>
 #include <QUrl>
 #include <QDir>
+#include <QSize>
+#include <QFont>
+#include <QColor>
+#include <QPainter>
+#include <QStyleOptionViewItem>
 #include <string>
+
+class PlaylistDelegate:public QItemDelegate
+	{	Q_OBJECT
+	private:
+		DataBackend * conn;
+		QAbstractItemModel * model;
+		Xmms::Playback::Status status;
+		uint pos;
+		bool editing;
+	public:
+		PlaylistDelegate(QAbstractItemModel * m,DataBackend * c);
+		QSize sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const;
+		void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const;
+		void setEditing(bool val);
+		bool isEditing();
+	public slots:
+		void posChanged(uint p);
+		void statusChanged(Xmms::Playback::Status s);
+	};
 
 
 class SinglePlaylist:public QAbstractItemModel
@@ -29,14 +54,14 @@ class SinglePlaylist:public QAbstractItemModel
 		QStringList header;
 		QStringList humanReadableHeader;
 		std::string plistName;
+		PlaylistDelegate * delegate;
 
 		void parseHumanReadableHeader();
 	public:
 		SinglePlaylist(DataBackend * c,std::string name,QStringList hv_=QStringList());
-		bool isConnected();
-		void connectToggle();
 		void setHeader(QStringList newVal);
 
+		PlaylistDelegate * getDelegate();
 		bool setInitialPlist(const Xmms::List< unsigned int > &list);
 
 	//QAbstractItemModel function implementations
@@ -48,7 +73,6 @@ class SinglePlaylist:public QAbstractItemModel
 		int columnCount ( const QModelIndex & parent = QModelIndex() ) const;
 		QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
 		bool removeRows ( int row, int count, const QModelIndex & parent = QModelIndex() );
-		bool insertRows ( int row, int count, const QModelIndex & parent = QModelIndex() );
 		Qt::DropActions supportedDropActions() const;
 		bool dropMimeData(const QMimeData *data,Qt::DropAction action, int row, int column, const QModelIndex &parent);
 		QStringList mimeTypes() const;
@@ -77,9 +101,6 @@ class PlistData:public QObject
 
 		void createPlaylist(std::string name);
 		void refreshPlaylist(SinglePlaylist * plist,std::string name="");
-
-		void connectToServer(SinglePlaylist * plist);
-		void disconnectFromServer(SinglePlaylist * plist);
 	public:
 		PlistData(DataBackend * c,QObject * parent=0);
 		SinglePlaylist * getPlist (std::string plist="");
@@ -88,6 +109,7 @@ class PlistData:public QObject
 		void setCurrentName(const std::string & name);
 		void collectionChanged(QString name, Xmms::Collection::Namespace ns);
 		void qsettingsValChanged(QString name,QVariant newVal);
+		void playlistsChanged(QStringList newList);
 	signals:
 		void playlistReady(std::string,SinglePlaylist *);
 	};

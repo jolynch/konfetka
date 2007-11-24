@@ -1,6 +1,56 @@
 #ifndef PLAYLISTPANEL__CPP
 #define PLAYLISTPANEL__CPP
 #include "newplaylistpanel.h"
+Playlist_::Playlist_(DataBackend * c):QTableView()
+	{
+	conn=c;
+	QHeaderView * vh=verticalHeader();
+	vh->hide();
+	vh->setResizeMode(QHeaderView::Fixed);
+	vh->setDefaultSectionSize(20);
+	setVerticalHeader(vh);
+	QHeaderView * hh=horizontalHeader();
+	setHorizontalHeader(hh);
+	this->setWordWrap(false);
+	this->setDragDropOverwriteMode(false);
+	this->setAutoScroll(true);
+	this->setAlternatingRowColors(false);
+	this->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding));
+	this->setSelectionBehavior(QAbstractItemView::SelectRows);
+	this->setSelectionMode(QAbstractItemView::ExtendedSelection);
+	this->setDragEnabled(true);
+	this->setAcceptDrops(true);
+	this->setDropIndicatorShown(true);
+	this->setDragDropMode(QAbstractItemView::DragDrop);
+	connect(this,SIGNAL(doubleClicked(const QModelIndex &)),this,SLOT(doubleClicked(const QModelIndex &)));
+	}
+
+void Playlist_::setModelAndDelegate(SinglePlaylist * model)
+	{
+	this->setModel(model);
+	this->setItemDelegate(model->getDelegate());
+	}
+
+void Playlist_::doubleClicked(const QModelIndex & index)
+	{
+	conn->playlist.setNext(index.row())(Xmms::bind(&DataBackend::scrapResultI, conn));
+	conn->playback.tickle()(Xmms::bind(&DataBackend::scrapResult, conn));
+	}
+
+QList <uint> Playlist_::getSortedSelectedRows()
+	{
+	QList <uint> out;
+	QModelIndexList indexes=selectedIndexes();
+	foreach (QModelIndex index, indexes)
+		{
+		if(!out.contains(index.row()))
+			out.append(index.row());
+		}
+	qSort(out);
+	return out;
+	}
+
+/*************************/
 
 PlaylistPanel_::PlaylistPanel_(DataBackend * c):QWidget()
 	{
@@ -15,16 +65,7 @@ PlaylistPanel_::PlaylistPanel_(DataBackend * c):QWidget()
 		connect(conn,SIGNAL(playlistNameChanged(const std::string&)),this,SLOT(setCurrentName(const std::string &)));
 		connect(plistBackend,SIGNAL(playlistReady(std::string,SinglePlaylist *)),
 						this,SLOT(playlistReady(std::string,SinglePlaylist *)));
-		playlistView=new QTreeView();
-		playlistView->setAlternatingRowColors(true);
-		playlistView->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding));
-		playlistView->setSelectionBehavior(QAbstractItemView::SelectRows);
-		playlistView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-		playlistView->setDragEnabled(true);
-		playlistView->setAcceptDrops(true);
-		playlistView->setDropIndicatorShown(true);
-		playlistView->setDragDropMode(QAbstractItemView::DragDrop);
-		connect(playlistView,SIGNAL(doubleClicked(const QModelIndex &)),this,SLOT(doubleClicked(const QModelIndex &)));
+		playlistView=new Playlist_(conn);
 		centralLayout->addWidget(playlistView,1,0,1,2);
 		playlistSwitcher=new QComboBox();
 		playlistSwitcher->addItems(((CollData *)conn->getDataBackendObject(DataBackend::COLL))->getPlaylists());
@@ -39,6 +80,7 @@ PlaylistPanel_::PlaylistPanel_(DataBackend * c):QWidget()
 
 		this->setLayout(centralLayout);
 
+	del = new QShortcut(QKeySequence(Qt::Key_Delete),this,SLOT(deleteSelected()),SLOT(deleteSelected()));
 	this->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding));
 	}
 
@@ -47,18 +89,12 @@ void PlaylistPanel_::setLayoutSide(bool right_side)
 	
 	}
 
-void PlaylistPanel_::doubleClicked(const QModelIndex & index)
-	{
-	conn->playlist.setNext(index.row())(Xmms::bind(&DataBackend::scrapResultI, conn));
-	conn->playback.tickle()(Xmms::bind(&DataBackend::scrapResult, conn));
-	}
-
 void PlaylistPanel_::playlistSelected(QString name)
 	{
 	if(locked) return;
 	currentPlaylistName=name.toStdString();
 	currentPlaylist=plistBackend->getPlist(currentPlaylistName);
-	if(currentPlaylist!=NULL) playlistView->setModel(currentPlaylist);
+	if(currentPlaylist!=NULL) playlistView->setModelAndDelegate(currentPlaylist);
 	if(!editing)
 		{
 		locked=true;
@@ -73,12 +109,14 @@ void PlaylistPanel_::playlistModeSwitched()
 		{
 		playlistModeSwitcher->setText("Playing:");
 		editing=false;
+		((PlaylistDelegate *)playlistView->itemDelegate())->setEditing(editing);
 		conn->playlist.load(currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 		}
 	else
 		{
 		playlistModeSwitcher->setText("Editing:");
 		editing=true;
+		((PlaylistDelegate *)playlistView->itemDelegate())->setEditing(editing);
 		}
 	}
 
@@ -107,8 +145,15 @@ void PlaylistPanel_::playlistReady(std::string name,SinglePlaylist * plist)
 	if(name==currentPlaylistName)
 		{
 		currentPlaylist=plist;
-		playlistView->setModel(currentPlaylist);
+		playlistView->setModelAndDelegate(currentPlaylist);
 		}
+	}
+
+void PlaylistPanel_::deleteSelected()
+	{
+	QList <uint> selected=playlistView->getSortedSelectedRows();
+	for(int i=selected.size()-1; i>-1; i--)
+		conn->playlist.removeEntry(selected[i],currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
 #endif

@@ -2,12 +2,58 @@
 #define PLISTDATA_CPP
 #include "plistdata.h"
 
+PlaylistDelegate::PlaylistDelegate(QAbstractItemModel * m,DataBackend * c)
+	{
+	conn=c;
+	model=m;
+	editing=false;
+	connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),this,SLOT(statusChanged(Xmms::Playback::Status)));
+	connect(conn,SIGNAL(currentPos(const unsigned int)),this,SLOT(posChanged(uint)));
+	conn->playlist.currentPos()(Xmms::bind(&DataBackend::curPos,conn));
+	conn->playback.getStatus()(Xmms::bind(&DataBackend::getstatus, conn));
+	}
+
+QSize PlaylistDelegate::sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const
+	{
+	return QSize(20,50);
+	}
+
+void PlaylistDelegate::paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const
+	{
+	if(!index.isValid()) return;
+	painter->setPen(Qt::black);
+	QStyleOptionViewItem o (option);
+	QFont f (o.font);
+	if(((MlibData *)conn->getDataBackendObject(DataBackend::MLIB))->getInfo(QString("status"),index.internalId()).toInt()==3)
+		painter->setPen(Qt::gray);
+	if((!editing)&&(status==Xmms::Playback::PLAYING)&&(index.row()==pos))
+		f.setBold (true);
+	o.font = f;
+	QItemDelegate::paint (painter, o, index);
+	painter->setPen(Qt::black);
+	}
+
+void PlaylistDelegate::setEditing(bool val)
+	{
+	editing=val;
+	}
+bool PlaylistDelegate::isEditing() {return editing;}
+
+void PlaylistDelegate::posChanged(uint p)
+	{pos=p;}
+
+void PlaylistDelegate::statusChanged(Xmms::Playback::Status s)
+	{status=s;}
+
+/*****************************************/
+
 SinglePlaylist::SinglePlaylist(DataBackend * c,std::string name,QStringList hv_)
 	{
 	conn=c; humanReadableHeader=hv_;
 	parseHumanReadableHeader();
 	connected=false;
 	plistName=name;
+	delegate=new PlaylistDelegate(this,conn);
 	connect(((MlibData *)conn->getDataBackendObject(DataBackend::MLIB)),SIGNAL(infoChanged(int)),this,SLOT(infoChanged(int)));
 	}
 
@@ -25,11 +71,8 @@ void SinglePlaylist::parseHumanReadableHeader()
 	this->reset();
 	}
 
-void SinglePlaylist::connectToggle()
-	{connected=!connected;}
-
-bool SinglePlaylist::isConnected()
-	{return connected;}
+PlaylistDelegate * SinglePlaylist::getDelegate()
+	{return delegate;}
 
 void SinglePlaylist::setHeader(QStringList newVal)
 	{
@@ -76,8 +119,6 @@ QVariant SinglePlaylist::headerData ( int section, Qt::Orientation orientation, 
 	return humanReadableHeader[section];
 	}
 
-
-
 bool SinglePlaylist::removeRows ( int row, int count, const QModelIndex & parent)
 	{
 std::cout<<"removeRows called"<<std::endl;
@@ -86,12 +127,6 @@ std::cout<<"removeRows called"<<std::endl;
 	for(int i=0; i<count; i++)
 		conn->playlist.removeEntry(row+1,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 	return true;
-	}
-
-bool SinglePlaylist::insertRows ( int row, int count, const QModelIndex & parent)
-	{
-std::cout<<"insertRows called"<<std::endl;
-	return false;
 	}
 
 bool SinglePlaylist::setInitialPlist(const Xmms::List< unsigned int > &list)
@@ -146,6 +181,7 @@ void SinglePlaylist::moveInModel(int oldPos,int newPos)
 
 void SinglePlaylist::respondToChanges(const Xmms::Dict& val)
 	{
+	if(val.get<std::string> ("name")!=plistName) return;
 	int pos = 0, npos = 0;
 	uint32_t id = 0;
 	if (val.contains ("position")) pos = val.get<int32_t> ("position");
@@ -209,6 +245,7 @@ std::cout<<"called dropMimeData: "<<parent.row()<<" "<<parent.column()<<std::end
 	else if (data->hasUrls())
 		{
 //std::cout<<"has urls"<<std::endl;
+std::cout<<plistName<<std::endl;
 		QList<QUrl> urls=data->urls();
 		for(int i=0; i<urls.size(); i++)
 			{
@@ -273,6 +310,8 @@ PlistData::PlistData(DataBackend * c,QObject * parent):QObject(parent)
 	currentPlist="";
 	connect(((CollData *)conn->getDataBackendObject(DataBackend::COLL)),SIGNAL(updated(QString,Xmms::Collection::Namespace)),
 		this,SLOT(collectionChanged(QString,Xmms::Collection::Namespace)));
+	connect(((CollData *)conn->getDataBackendObject(DataBackend::COLL)),SIGNAL(playlistsChanged(QStringList)),
+		this,SLOT(playlistsChanged(QStringList)));
 	connect(conn,SIGNAL(playlistNameChanged(const std::string&)),this,SLOT(setCurrentName(const std::string &)));
 	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(qsettingsValChanged(QString,QVariant)));
 	conn->playlist.currentActive() (Xmms::bind(&DataBackend::getCurrentPlaylist,conn));
@@ -285,30 +324,16 @@ std::cout<<"creating playlist: "<<name<<std::endl;
 	SinglePlaylist * newPlist=new SinglePlaylist(conn,name,headerVals);
 	plists.insert(name.c_str(), newPlist);
 	refreshPlaylist(newPlist,name);
+	connect(conn,SIGNAL(playlistChanged(const Xmms::Dict&)),newPlist,SLOT(respondToChanges(const Xmms::Dict&)));
 	}
 
 void PlistData::refreshPlaylist(SinglePlaylist * plist, std::string name)
 	{
-	if(plist==NULL||plist->isConnected()) return;
+	if(plist==NULL) return;
 	conn->playlist.listEntries(name) (Xmms::bind (&SinglePlaylist::setInitialPlist, plist));
 	if(name!="")
 		emit playlistReady(name,plist);
 	}
-
-void PlistData::connectToServer(SinglePlaylist * plist)
-	{
-	if(plist->isConnected()) return;
-	plist->connectToggle();
-	connect(conn,SIGNAL(playlistChanged(const Xmms::Dict&)),plist,SLOT(respondToChanges(const Xmms::Dict&)));
-	}
-
-void PlistData::disconnectFromServer(SinglePlaylist * plist)
-	{
-	if(!plist->isConnected()) return;
-	disconnect(plist,SLOT(respondToChanges(const Xmms::Dict&)));
-	plist->connectToggle();
-	}
-
 
 SinglePlaylist * PlistData::getPlist (std::string plist)
 	{
@@ -336,7 +361,6 @@ void PlistData::setCurrentName(const std::string & name)
 	{
 std::cout<<"current playlist: "<<name<<std::endl;
 	refreshPlaylist(getPlist(name));
-	connectToServer(getPlist(name));
 	currentPlist=name;
 	}
 
@@ -347,6 +371,8 @@ void PlistData::collectionChanged(QString name, Xmms::Collection::Namespace ns)
 		return;
 	if(plists.contains(name))
 		refreshPlaylist(plists[name],name.toStdString());
+	else
+		createPlaylist(name.toStdString());
 	}
 
 void PlistData::qsettingsValChanged(QString name,QVariant newVal)
@@ -360,5 +386,15 @@ void PlistData::qsettingsValChanged(QString name,QVariant newVal)
 			plists[keys[i]]->setHeader(val);
 		}
 	}
+
+void PlistData::playlistsChanged(QStringList newList)
+	{
+	for(int i=0; i<newList.size(); i++)
+		{
+		if(!plists.contains(newList[i]))
+			createPlaylist(newList[i].toStdString());
+		}
+	}
+
 #endif
 

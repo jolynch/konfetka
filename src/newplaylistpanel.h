@@ -16,6 +16,24 @@
 #include <QDropEvent>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
+#include <QHeaderView>
+#include <QModelIndex>
+#include <QList>
+#include <QModelIndexList>
+#include <QtAlgorithms>
+#include <QShortcut>
+
+class Playlist_:public QTableView
+	{	Q_OBJECT
+	private:
+		DataBackend * conn;
+	public:
+		Playlist_(DataBackend * c);
+		void setModelAndDelegate(SinglePlaylist * model);
+		QList <uint> getSortedSelectedRows(); //Sorted from lowest to highest
+	private slots:
+		void doubleClicked(const QModelIndex & index);
+	};
 
 class PlaylistPanel_:public QWidget, LayoutPanel
 	{	Q_OBJECT
@@ -26,18 +44,19 @@ class PlaylistPanel_:public QWidget, LayoutPanel
 		SinglePlaylist * currentPlaylist;
 
 		QGridLayout * centralLayout;
-		QTreeView * playlistView;
+		Playlist_ * playlistView;
 		QComboBox * playlistSwitcher;
 		QPushButton * playlistModeSwitcher;
 
 		PlistData * plistBackend;
+		QShortcut * del;
 	public:
 		PlaylistPanel_(DataBackend * c);
 		void setLayoutSide(bool right_side);
 	private slots:
-		void doubleClicked(const QModelIndex & index);
 		void playlistSelected(QString name);
 		void playlistModeSwitched();
+		void deleteSelected();
 	public slots:
 		void playlistsChanged(QStringList playlists);
 		void setCurrentName(std::string name);

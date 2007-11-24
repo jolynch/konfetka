@@ -28,10 +28,10 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 	//random=new QLabel("who | grep -i blonde | date && (cd $HOME; unzip; touch; strip; finger; mount; fsck; yes; unmount; make clean); sleep");
 	//random=new QLabel("Instead of office chair package contained bobcat. Would not buy again.");
 	srand ( time(NULL) );
-	if(system("fortune > /dev/null")==0)
+	/*if(system("fortune > /dev/null")==0)
 		if(rand()%2==0) random=getRandom(true);
 		else random=getRandom(false);
-	else
+	else*/
 		random=getRandom(false);
 	random->setAlignment(Qt::AlignCenter);
 	random->setWordWrap(true);
