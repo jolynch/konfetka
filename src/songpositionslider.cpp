@@ -15,9 +15,11 @@ SongPositionSlider::SongPositionSlider(DataBackend * c,Qt::Orientation o, QWidge
 	allowUpdates =  true;
 	MAGFACTOR = 1000;
 	GRACE_DISTANCE = 10;
+	CUEGRACE_DISTANCE = 2;
 	connect(conn,SIGNAL(currentPlaytime(int)),this,SLOT(setInitTime(int)));
 	connect(conn,SIGNAL(newSong(Xmms::PropDict)),this,SLOT(setDuration(Xmms::PropDict)));
 	connect(this,SIGNAL(valueChanged(int)),this,SIGNAL(timeChanged(int)));
+	connect(this,SIGNAL(valueChanged(int)),this,SLOT(update()));
 	connect(conn,SIGNAL(songPositionChanged(uint)), this, SLOT(handlePlaytimeSignal(uint)));
 }
 
@@ -56,6 +58,7 @@ void SongPositionSlider::setTimeFromSlider() {
 
 //Sets the duration of the slider, this !!NEEDS!! to be called elsewhere
 void SongPositionSlider::setDuration(const Xmms::PropDict& info) {
+	markers.clear();
 	if(info.contains("duration")){
 	duration = (info.get<int>("duration")) /MAGFACTOR;
 	setRange(0,duration);
@@ -70,6 +73,15 @@ void SongPositionSlider::setDuration(const Xmms::PropDict& info) {
 	else {
 	curType = UNKNOWN;
 	qDebug()<<"Could not retrieve duration of song from Server and is not a stream  [ERROR]";
+	}
+
+	currentID = info.get<int>("id");
+	if(info.contains("cuepoints")) {
+	QString temp = QString((info.get<std::string>("cuepoints")).c_str());
+	QStringList tmp = temp.split(",");
+		for(int i =0;i<tmp.size();i++) {
+		markers.insert(tmp.value(i).toInt());
+		}
 	}
 }
 
@@ -91,14 +103,37 @@ void SongPositionSlider::mousePressEvent(QMouseEvent * event) {
 
 // Allows one click seek
 void SongPositionSlider::mouseReleaseEvent(QMouseEvent * event) {
-	if(allowUpdates) {
-	time = -1;
-	setValue(QStyle::sliderValueFromPosition(0,duration,event->x(),width(),0));
-	setTimeFromSlider();
-// 	std::cout<<"release"<<std::endl;
-	released = true;
+	
+	if(event->button()==Qt::LeftButton) {
+		if(allowUpdates) {
+		time = -1;
+		setValue(QStyle::sliderValueFromPosition(0,duration,event->x(),width(),0));
+		setTimeFromSlider();
+	// 	std::cout<<"release"<<std::endl;
+		released = true;
+		}
+		allowUpdates = true;
 	}
-	allowUpdates = true;
+	else if(event->button()==Qt::RightButton) {
+		double percent = ((double)duration) / width();
+		time = (int)((double)(event->x())*percent);
+		bool temp = true;
+	
+		QMenu * menu = new QMenu();
+		menu->setTitle("Cue Points");
+			for(int i=time-CUEGRACE_DISTANCE;i<time+CUEGRACE_DISTANCE;i++) {
+			if(markers.contains(i))
+			temp = false;
+			}
+		if(temp)
+		menu->addAction("Add Cue Point",this,SLOT(setMarker()));
+		else
+		menu->addAction("Remove Cue Point",this,SLOT(delMarker()));
+		menu->popup(event->globalPos());
+	}
+	else
+	event->ignore();
+	update();
 }
 
 //Ensures that when your mosue leaves the slider, it stops sliding ...
@@ -131,7 +166,57 @@ void SongPositionSlider::paintEvent(QPaintEvent * event) {
 
 	painter.fillRect(0,0,pxlBlack+2,20,QBrush(QColor("#696969")));
 	painter.fillRect(pxlBlack,0,width()-(pxlBlack+2),20,QBrush(QColor("#A1A1A1")));
+	
+	QList<int> markerList = markers.values();
+	int curMarker=0;
+	QColor side;
+	QColor center;
+	QLinearGradient tmp;
+		for(int i=0;i<markerList.size();i++) {
+		percent = markerList.value(i)/(double)duration;
+		curMarker = (int)(width()*percent);
+			if(curMarker<pxlBlack) {
+			center = QColor("#696969");
+			side = QColor("#A1A1A1");
+			}
+			else {
+			side = QColor("#696969");
+			center = QColor("#A1A1A1");
+			}
+		tmp = QLinearGradient(QPointF(curMarker,10),QPointF(curMarker+5,10));
+		tmp.setColorAt(0,side);
+		tmp.setColorAt(.5,center);
+		tmp.setColorAt(1,side);
+// 		QColor(113,164,187,220)
+		painter.fillRect(curMarker,0,5,20,QBrush(tmp));
+		}
 	}
+}
+
+void SongPositionSlider::setMarker(){
+	QString tmp = QString::number(time);	
+	markers.insert(time);
+	sendToServer();
+	update();
+}
+
+void SongPositionSlider::delMarker() {
+	for(int i=time-CUEGRACE_DISTANCE;i<time+CUEGRACE_DISTANCE;i++) {
+		if(markers.contains(i))
+		markers.remove(i);
+	}
+	sendToServer();
+	update();
+}
+
+void SongPositionSlider::sendToServer() {
+	QStringList temp;
+	QList<int> tmp = markers.values();
+	for(int i=0;i<tmp.size();i++) {
+	temp.append(QString::number(tmp.value(i)));
+	}
+	QString val = temp.join(",");
+	conn->medialib.entryPropertySet(currentID,"cuepoints",val.toStdString(),"konfetka");
 }
 
 #endif

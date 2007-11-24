@@ -44,6 +44,21 @@ MlibData::MlibData(DataBackend * conn,QObject * parent):QObject(parent) {
 	conn->medialib.broadcastEntryChanged()(Xmms::bind(&MlibData::mlibChanged, this));
 	connect(&changeTimer,SIGNAL(timeout()),this,SIGNAL(updatesDone()));
 	connect(&changeTimer,SIGNAL(timeout()),&changeTimer,SLOT(stop()));
+	connect(&waitTimer,SIGNAL(timeout()),this,SLOT(fetchSomeMore()));
+}
+
+void MlibData::fetchSomeMore() {
+	for(int i=0;i<20 && !waitingIds.isEmpty();i++) {
+		conn->medialib.getInfo(waitingIds.dequeue())(Xmms::bind(&MlibData::getMediaInfo,this));	
+	}
+	if(waitingIds.isEmpty()) {
+// 	std::cout<<"stoping timer"<<std::endl;
+	waitTimer.stop();
+	}
+	else {
+// 	std::cout<<"going for another round"<<std::endl;
+	waitTimer.start(250);
+	}
 }
 
 bool MlibData::mlibChanged(const unsigned int& id) {
@@ -72,8 +87,17 @@ QVariant MlibData::getInfo(std::string property, uint id) {
 	return getInfo(QString(property.c_str()),id);
 }
 
+bool MlibData::hasInfo(uint id) {
+	return cache.contains(id);
+}
+
 void MlibData::getInfoFromServer(uint id) {
-	conn->medialib.getInfo(id)(Xmms::bind(&MlibData::getMediaInfo,this));
+	if(!waitingIds.contains(id)) {
+// 		std::cout<<"enqueueing more songs "<<id<<std::endl;
+		waitingIds.enqueue(id);
+		if(!waitTimer.isActive())
+		waitTimer.start(250);
+	}
 }
 
 void MlibData::clearCache() {

@@ -16,6 +16,7 @@
 #include <QStringList>
 #include <QScrollBar>
 #include <QSettings>
+#include <QHeaderView>
 
 class CollectionBrowser:public QWidget, public LayoutPanel {
 	Q_OBJECT
@@ -42,6 +43,7 @@ class CollectionBrowser:public QWidget, public LayoutPanel {
 	void setLayoutSide(bool);
 	bool recievedNewColl(const Xmms::Coll::Coll&);
 	bool updateCollDisplay(const Xmms::List <uint> &list);
+	void resizeEvent(QResizeEvent* event);
 
 	public slots:
 	void updateCollList(QStringList);

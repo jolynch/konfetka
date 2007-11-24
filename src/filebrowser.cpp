@@ -96,6 +96,7 @@ void FileBrowser::setRoot(QModelIndex index, bool keep) {
 }
 
 void FileBrowser::slotRemove() {
+	if(!this->hasFocus()) return;
 	if(QMessageBox::warning(this,"Delete","Are you sure that you want to\ndelete these files from the filesystem?",
 		QMessageBox::Yes | QMessageBox::No,QMessageBox::Yes) == QMessageBox::Yes) {
 		QModelIndexList list;

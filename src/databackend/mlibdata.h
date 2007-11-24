@@ -20,6 +20,8 @@
 #include <QTime>
 #include <QTimer>
 #include <QUrl>
+#include <QQueue>
+#include <QTimer>
 #include <string>
 
 class MediaInfo{
@@ -42,6 +44,8 @@ class MlibData:public QObject {
 	///WHATEVER IS NEEDED
 	private:
 	DataBackend * conn;
+	QQueue<uint> waitingIds;
+	QTimer waitTimer;
 	QHash<uint,MediaInfo*> cache;
 	QStringList standardTags;
 	QTimer changeTimer;
@@ -50,6 +54,7 @@ class MlibData:public QObject {
 	MlibData(DataBackend *,QObject * parent = 0);
 	QVariant getInfo(std::string property, uint id);
 	QVariant getInfo(QString property, uint id);
+	bool hasInfo(uint id);
 	QStringList getStandardTags();
 
 	void clearCache();
@@ -59,6 +64,8 @@ class MlibData:public QObject {
 	bool getMediaInfo(const Xmms::PropDict& info);
 	bool mlibChanged(const unsigned int& id);
 	bool getAllMediaInfoForId(int,std::string,Xmms::Dict::Variant,std::string);
+	public slots:
+	void fetchSomeMore();
 	
 	signals:
 	void infoChanged(int id);

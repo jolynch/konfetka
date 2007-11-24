@@ -17,6 +17,8 @@ CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::Windo
 	labels = s.value("konfetka/collectionbrowserlabels").toStringList();
 	conn->changeAndSaveQSettings("konfetka/collectionbrowserlabels",labels);
 	collDisplay->setHeaderLabels(labels);
+	collDisplay->setSortingEnabled(true);	
+
 	collList = new QListWidget(splitter);
 
 	layout1 = new QGridLayout();
@@ -71,6 +73,12 @@ void CollectionBrowser::setLayoutSide(bool side) {
 	this->setLayout(layout2);
 }
 
+void CollectionBrowser::resizeEvent(QResizeEvent* event) {
+	for(int i=0;i<collDisplay->columnCount();i++) {
+		collDisplay->setColumnWidth(i,(collDisplay->width())/(collDisplay->columnCount()));
+	}
+}
+
 void CollectionBrowser::updateCollList(QStringList list) {
 	collList->clear();
 	collList->addItems(list);
@@ -108,8 +116,17 @@ void CollectionBrowser::updateInfo(int id) {
 }
 
 void CollectionBrowser::getNextFew(int val) {
-	for(int i = val;i<(val+collDisplay->verticalScrollBar()->pageStep()) && i < (collDisplay->topLevelItemCount());i++)
-	mlib->getInfo(QString("url"),idToItem.key(collDisplay->topLevelItem(i)));
+	int id;
+	QScrollBar* ptr = collDisplay->verticalScrollBar();
+	std::cout<<"VALUE: "<<val<<" PAGESTP: "<<ptr->pageStep()<<" MIN: "<<ptr->minimum()<<" MAX: "<<ptr->maximum();
+	std::cout<<" TLIC: "<<collDisplay->topLevelItemCount()<<std::endl;
+		for(int i = val;i<(val+collDisplay->verticalScrollBar()->pageStep()) && i < (collDisplay->topLevelItemCount());i++) {
+		id = idToItem.key(collDisplay->topLevelItem(i));		
+			if(mlib->hasInfo(id))
+			addIdToView(id,true);
+			else
+			mlib->getInfo(QString("url"),id);
+		}
 }
 
 void CollectionBrowser::addItemToPlist(QTreeWidgetItem* item,int col) {
