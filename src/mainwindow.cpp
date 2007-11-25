@@ -129,8 +129,8 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	minibar->hide();
 	PanelController *pc=new PanelController(width());
 	//pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn,this)),PanelController::LEFTPANEL);
-	pc->registerPanel(new Panel(this,"NEW PLIST",new PlaylistPanel_(conn)),PanelController::LEFTPANEL);
-	pc->registerPanel(new Panel(this,"NEW PLIST",new PlaylistPanel_(conn)),PanelController::RIGHTPANEL);
+	pc->registerPanel(new Panel(this,"NEW PLIST",new PlaylistPanel_(conn)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"NEW PLIST",new PlaylistPanel_(conn)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
 	Panel * mlibPanel=new Panel(this,"MEDIALIB",medialibView);
 	PanelPtrList * mlibincompatlist=new PanelPtrList();
 	mlibincompatlist->append(mlibPanel);
@@ -361,9 +361,6 @@ void MainWindow::clickResponse(QSystemTrayIcon::ActivationReason reason)
 
 
 //! ADDED TO MAKE RAND PLAY WORK, also makes other things more convenient
-Playlist* MainWindow::thePlaylist() {
-return playlistpanel->returnPlaylist();
-}
 MediaLib* MainWindow::theMediaLib() {
 return medialibView;
 }

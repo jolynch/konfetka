@@ -1,8 +1,8 @@
-
 #ifndef PANEL_CPP
 #define PANEL_CPP
 #include "panel.h"
 #include <iostream>
+
 Panel::Panel(QWidget * parent, QString text_, QWidget * attached_):QWidget(parent)
 	{
 	x=-1; y=-1;
@@ -33,6 +33,9 @@ Panel::Panel(QWidget * parent, QString text_, QWidget * attached_):QWidget(paren
 	this->hide();
 	clicked=false;
 	}
+
+LayoutPanel * Panel::getLayoutPanel()
+	{return ((LayoutPanel *)attached);}
 
 bool Panel::isLocked(){return locked;}
 

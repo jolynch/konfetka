@@ -1,9 +1,12 @@
 #ifndef LAYOUTPANEL
 #define LAYOUTPANEL
-class LayoutPanel
-	{
+#include <iostream>
+#include <QWidget>
+class LayoutPanel:public QWidget
+	{	Q_OBJECT
 	public:
-		virtual void setLayoutSide(bool right_side)=0; //true=right, false=left
+		LayoutPanel(QWidget * p=0, Qt::WindowFlags f=0):QWidget(p,f){}
+		virtual void setLayoutSide(bool right_side) {std::cout<<"base"<<std::endl;} //true=right, false=left
 		virtual ~LayoutPanel() {}
 	};
 #endif

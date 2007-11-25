@@ -13,7 +13,8 @@
 #include "databackend.h"
 #include "databackend/mlibdata.h"
 #include "databackend/colldata.h"
-#include "collectioneditor.h"
+#include <QMenu>
+#include <QComboBox>
 #include <QTreeWidget>
 #include <QGridLayout>
 #include <QTreeView>

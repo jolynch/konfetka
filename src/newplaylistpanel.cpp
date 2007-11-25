@@ -52,7 +52,7 @@ QList <uint> Playlist_::getSortedSelectedRows()
 
 /*************************/
 
-PlaylistPanel_::PlaylistPanel_(DataBackend * c):QWidget()
+PlaylistPanel_::PlaylistPanel_(DataBackend * c):LayoutPanel()
 	{
 	editing=false;
 	locked=false;
@@ -86,7 +86,7 @@ PlaylistPanel_::PlaylistPanel_(DataBackend * c):QWidget()
 
 void PlaylistPanel_::setLayoutSide(bool right_side)
 	{
-	
+std::cout<<"ping layoutside: "<<right_side<<std::endl;
 	}
 
 void PlaylistPanel_::playlistSelected(QString name)

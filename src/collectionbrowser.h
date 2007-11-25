@@ -18,7 +18,7 @@
 #include <QSettings>
 #include <QHeaderView>
 
-class CollectionBrowser:public QWidget, public LayoutPanel {
+class CollectionBrowser:public LayoutPanel {
 	Q_OBJECT
 	private:
 	bool side;

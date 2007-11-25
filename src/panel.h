@@ -1,5 +1,6 @@
 #ifndef PANEL_H
 #define PANEL_H
+#include "layoutpanel.h"
 #include <QWidget>
 #include <QLabel>
 #include <QString>
@@ -45,6 +46,7 @@ class Panel:public QWidget//public QLabel
 		QString text;
 	public:
 		Panel(QWidget * parent, QString text_, QWidget * attached_);
+		LayoutPanel * getLayoutPanel();
 		void setSide(bool right_side);
 		bool isActive();
 		bool isLocked();

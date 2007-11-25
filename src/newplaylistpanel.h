@@ -35,7 +35,7 @@ class Playlist_:public QTableView
 		void doubleClicked(const QModelIndex & index);
 	};
 
-class PlaylistPanel_:public QWidget, LayoutPanel
+class PlaylistPanel_:public LayoutPanel
 	{	Q_OBJECT
 	private:
 		bool editing, locked;

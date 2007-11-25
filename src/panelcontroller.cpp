@@ -26,7 +26,8 @@ void PanelController::registerPanel(Panel * p, PanelControllerOption options, Pa
 	if((options&LEFTPANEL)!=BLANK)
 		{
 		p->setSide(false);
-		if((options&LAYOUT_PANEL)!=BLANK) ((LayoutPanel *)p)->setLayoutSide(false);
+		if(((options&LAYOUT_PANEL)!=BLANK)!=0)
+			p->getLayoutPanel()->setLayoutSide(false);
 		if(left==NULL) {left=p; left->show();}
 		left_list.append(p);
 		connect(p,SIGNAL(cycle(bool)),this,SLOT(leftCycle(bool)));
@@ -34,7 +35,7 @@ void PanelController::registerPanel(Panel * p, PanelControllerOption options, Pa
 	if((options&RIGHTPANEL)!=BLANK)
 		{
 		p->setSide(true);
-		if((options&LAYOUT_PANEL)!=BLANK) ((LayoutPanel *)p)->setLayoutSide(true);
+		if((options&LAYOUT_PANEL)!=BLANK) p->getLayoutPanel()->setLayoutSide(true);
 		if(right==NULL) {right=p; right->show();}
 		right_list.append(p);
 		connect(p,SIGNAL(cycle(bool)),this,SLOT(rightCycle(bool)));
@@ -70,7 +71,7 @@ void PanelController::leftCycle(bool up)
 	left->hide();
 	left=left_list[idx];
 	left->setSide(false);
-	if((flags[left]&LAYOUT_PANEL)!=BLANK) ((LayoutPanel *)left)->setLayoutSide(true);
+	if((flags[left]&LAYOUT_PANEL)!=BLANK) left->getLayoutPanel()->setLayoutSide(false);
 	if((flags[left]&0x010000)!=BLANK)
 		{connect(left,SIGNAL(cycle(bool)),this,SLOT(leftCycle(bool)));
 		left->setSide_DOUBLESIDEPANEL(false);}
@@ -94,7 +95,7 @@ void PanelController::rightCycle(bool up)
 	right->hide();
 	right=right_list[idx];
 	right->setSide(true);
-	if((flags[right]&LAYOUT_PANEL)!=BLANK) ((LayoutPanel *)right)->setLayoutSide(true);
+	if((flags[right]&LAYOUT_PANEL)!=BLANK) right->getLayoutPanel()->setLayoutSide(true);
 	if((flags[right]&0x010000)!=BLANK)
 		{connect(right,SIGNAL(cycle(bool)),this,SLOT(rightCycle(bool)));
 		right->setSide_DOUBLESIDEPANEL(true);}

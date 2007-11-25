@@ -7,17 +7,13 @@
 
 #include "mainbar.h"
 #include "rearpanel.h"
-//#include "handle.h"
 #include "panelcontroller.h"
 #include "panel.h"
-#include "playlistpanel.h"
 #include "collectionbrowser.h"
 
 #include "newplaylistpanel.h"
 
 #include "medialib.h"
-#include "playlist.h"
-#include "collectioneditor.h"
 #include "minimode.h"
 #include "filebrowser.h"
 #include <QApplication>
@@ -57,7 +53,6 @@ class MainWindow:public QWidget
 		//Panel * medialib;
 		MediaLib * medialibView;
 		QGridLayout * layout;
-		PlaylistPanel * playlistpanel;
 		QTimer * animator;
 		QSystemTrayIcon * icon;
 		QWidgetAction * volumeLabel;
@@ -67,7 +62,6 @@ class MainWindow:public QWidget
 	public:
 		MainWindow(QApplication * a, QWidget * parent = 0, Qt::WindowFlags f = 0);
 		//!Added by Joe to make it easier to get to the playlist and medialib.
-		Playlist* thePlaylist();
 		MediaLib* theMediaLib(); //! end
 	public slots:
 		void slotStayOnTop(bool);

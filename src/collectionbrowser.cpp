@@ -2,7 +2,7 @@
 #define COLLECTIONBROWSER_CPP
 #include "collectionbrowser.h"
 
-CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QWidget(parent,f)  {
+CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::WindowFlags f):LayoutPanel(parent,f){
 	conn = c;
 	mlib = (MlibData*)(conn->getDataBackendObject(DataBackend::MLIB));
 	coll = (CollData*)(conn->getDataBackendObject(DataBackend::COLL));

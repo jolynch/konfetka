@@ -219,27 +219,51 @@ Qt::DropActions SinglePlaylist::supportedDropActions() const
 	return Qt::MoveAction|Qt::CopyAction;
 	}
 
+
+QList<uint> SinglePlaylist::getIdsFromPositions(QList <uint> pos)
+	{
+	QList <uint> out;
+	for(int i=0; i<pos.size(); i++)
+		out.append(ids[pos[i]]);
+	return out;
+	}
+
+PlaylistDragInfo * SinglePlaylist::getDragInfoFromMimeData(const QMimeData *data)
+	{
+	if(data->hasFormat("application/x-plistdraginfo"))
+		{
+		PlaylistDragInfo * out = new struct PlaylistDragInfo();
+		QByteArray encodedData = data->data("application/x-plistdraginfo");
+		QDataStream stream(&encodedData, QIODevice::ReadOnly);
+		QString name;
+		QList<uint> posList;
+		stream>>name;
+		out->name=name;
+		while (!stream.atEnd())
+			{
+			uint tmp;
+			stream>>tmp;
+			posList.append(tmp);
+			}
+		qSort(posList);
+		out->positions=posList;
+		return out;
+		}
+	else
+		return NULL;
+	}
+
 bool SinglePlaylist::dropMimeData(const QMimeData *data,Qt::DropAction action, int row, int column, const QModelIndex &parent)
 	{
 std::cout<<"called dropMimeData: "<<parent.row()<<" "<<parent.column()<<std::endl;
 	if (action == Qt::IgnoreAction)
 		return true;
-	if (data->hasFormat("application/x-xmms2mlibidlist"))
+	PlaylistDragInfo * info=getDragInfoFromMimeData(data);
+	if (info!=NULL)
 		{
-		QByteArray encodedData = data->data("application/x-xmms2mlibidlist");
-		QDataStream stream(&encodedData, QIODevice::ReadOnly);
-		QList<uint> newItems;
-		int rows = 0;
-		while (!stream.atEnd())
-			{
-			uint tmp;
-			stream >> tmp;
-			if(!parent.isValid())
-				conn->playlist.addId(tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
-			else
-				conn->playlist.insertId(parent.row()+rows,tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
-			++rows;
-			}
+		if(info->name.toStdString()==plistName&&action==Qt::MoveAction)
+			for(int i=0; i<info->positions.size(); i++)
+				
 		return true;
 		}
 	else if (data->hasUrls())
@@ -278,7 +302,7 @@ std::cout<<plistName<<std::endl;
 QStringList SinglePlaylist::mimeTypes() const
 	{
 	QStringList types;
-	types << "text/uri-list" << "application/x-xmms2mlibid" << "application/x-xmms2mlibidlist";
+	types << "text/uri-list" << "application/x-plistdraginfo" << "application/x-collname";
 	return types;
 	}
 
@@ -287,18 +311,12 @@ QMimeData * SinglePlaylist::mimeData(const QModelIndexList &indexes) const
 std::cout<<"called mimeData"<<std::endl;
 	QMimeData *mimeData = new QMimeData();
 	QByteArray encodedData;
-	
 	QDataStream stream(&encodedData, QIODevice::WriteOnly);
-	
+	stream<<QString(plistName.c_str());
 	foreach (QModelIndex index, indexes)
-		{
 		if (index.isValid()&&index.column()==0)
-			{
-			stream << ids[index.row()];
-			}
-		}
-	
-	mimeData->setData("application/x-xmms2mlibidlist", encodedData);
+			stream << index.row();
+	mimeData->setData("application/x-plistdraginfo", encodedData);
 	return mimeData;
 	}
 

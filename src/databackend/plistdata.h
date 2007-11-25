@@ -23,7 +23,14 @@
 #include <QColor>
 #include <QPainter>
 #include <QStyleOptionViewItem>
+#include <QtAlgorithms>
 #include <string>
+
+struct PlaylistDragInfo
+	{
+	QString name;
+	QList <uint> positions;
+	};
 
 class PlaylistDelegate:public QItemDelegate
 	{	Q_OBJECT
@@ -58,11 +65,15 @@ class SinglePlaylist:public QAbstractItemModel
 
 		void parseHumanReadableHeader();
 	public:
+	static PlaylistDragInfo * getDragInfoFromMimeData(const QMimeData *data);
+
 		SinglePlaylist(DataBackend * c,std::string name,QStringList hv_=QStringList());
 		void setHeader(QStringList newVal);
 
 		PlaylistDelegate * getDelegate();
 		bool setInitialPlist(const Xmms::List< unsigned int > &list);
+
+		QList<uint> getIdsFromPositions(QList <uint> pos);
 
 	//QAbstractItemModel function implementations
 		QModelIndex index ( int row, int column, const QModelIndex & parent = QModelIndex() ) const;
