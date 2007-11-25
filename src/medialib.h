@@ -13,8 +13,7 @@
 #include "databackend.h"
 #include "databackend/mlibdata.h"
 #include "databackend/colldata.h"
-#include <QMenu>
-#include <QComboBox>
+#include "layoutpanel.h"
 #include <QTreeWidget>
 #include <QGridLayout>
 #include <QTreeView>
@@ -44,6 +43,8 @@
 #include <QInputDialog>
 #include <QCheckBox>
 #include <QDialogButtonBox>
+#include <QComboBox>
+#include <QMenu>
 
 //#include <QVariant>
 
@@ -51,9 +52,10 @@ class DropTreeWidget;
 class ComplexSearchDialog;
 
 typedef uint ItemType;
+typedef uint SourceType;
 enum Operator {opor, opand}; 
 
-class MediaLib:public QWidget {	
+class MediaLib:public LayoutPanel{	
 Q_OBJECT
 
 	private:
@@ -82,6 +84,8 @@ Q_OBJECT
 	static const ItemType ARTIST = 0x001;
 	static const ItemType ALBUM = 0x010;
 	static const ItemType SONG = 0x011;
+	static const SourceType SELECTED = 0x01;
+	static const SourceType VISIBLE = 0x10;
 	ItemType getItemType(QTreeWidgetItem*);	
 
 	public:
@@ -90,9 +94,7 @@ Q_OBJECT
 	
 	Xmms::Coll::Union* selectedAsColl();
 	bool addToPlaylistFromCollectionDrag(const Xmms::List <Xmms::Dict> &list);
-	QDirModel * dirModel;
-	QTreeView * fileList;
-	bool fromKonfetka;
+	void setLayoutSide(bool right_side);
 	int numDone,total;
 
 	//NEW LISTS
@@ -106,7 +108,9 @@ Q_OBJECT
 	//refer to cpp
 // 	bool getArtists(const Xmms::List <Xmms::Dict> &list);
 	void toggleFileList();
-	void newColl();
+	void useSelected();
+	void useVisible();
+	void newColl(SourceType type);
 	void searchMlib();
 	
 	void addToMlibDrag(QTreeWidgetItem*,int);
@@ -118,8 +122,6 @@ Q_OBJECT
 	void removeNodes(QList<QTreeWidgetItem*>);
 	bool removeIds(const Xmms::List <uint> &list);
 	
-	bool mlibChanged(const unsigned int& id);
-
 	//NEW LISTS
 	void gotNewList(QString property, QList<QString> info);
 	void artistList(QList<QString> info);
@@ -141,6 +143,7 @@ Q_OBJECT
 	MediaLib * lib;
 	QString * path;
 	DataBackend * conn;
+	QDirModel * dirModel;
 
 	public:
 	DropTreeWidget(MediaLib*,DataBackend* c);
@@ -164,6 +167,7 @@ class ComplexSearchDialog:public QDialog {
 	DataBackend* conn;
 	Xmms::Coll::Coll* searchMedia;
 	QList< QPair <Xmms::Coll::Coll*,Operator> > complexSearchItems;
+	QShortcut * delItem;
 	QTreeWidget * itemList;
 	QLabel * tagLabel;
 	QComboBox * tag;
@@ -185,6 +189,7 @@ class ComplexSearchDialog:public QDialog {
 	public slots:
 	void accept();
 	void addOperand();
+	void removeOperand();
 	void clearItems();
 	
 	signals:

@@ -26,14 +26,22 @@
 
 class MediaInfo{
 	private:
-	QHash<QString,QVariant> songInfo;
-	QHash<QString,QString> infoSource;
+	QHash<QString,QVariant> songInfo; //Hash storing property->value [Ex artist->311]
+	QHash<QString,QString> infoSource; //Hash storing property->source [Ex artist->mad
+	
 	public:
+	//constructors
 	MediaInfo();
 	MediaInfo(QHash<QString,QVariant>);
-	QVariant info(QString);
+	//getters
+	QVariant info(QString property);
+	QString source(QString property);
+	//convenience function, makes it easy for other things to tell if a song is valid (status!=3)
+	bool isValid(); 
+	//setters
 	void setInfo(QString,QVariant);
 	void setSource(QString,QString);
+	//convenience getter/setter for all properties
 	QHash<QString,QVariant> allInfo();
 	void setAllInfo(QHash<QString,QVariant>);
 };
@@ -51,7 +59,7 @@ class MlibData:public QObject {
 	QTimer changeTimer;
 	
 	public:
-	MlibData(DataBackend *,QObject * parent = 0);
+	MlibData(DataBackend *c,QObject * parent = 0);
 	QVariant getInfo(std::string property, uint id);
 	QVariant getInfo(QString property, uint id);
 	bool hasInfo(uint id);

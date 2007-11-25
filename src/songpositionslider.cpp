@@ -176,12 +176,12 @@ void SongPositionSlider::paintEvent(QPaintEvent * event) {
 		percent = markerList.value(i)/(double)duration;
 		curMarker = (int)(width()*percent);
 			if(curMarker<pxlBlack) {
-			center = QColor("#696969");
-			side = QColor("#A1A1A1");
+			center = QColor("#6EA0B4");
+			side = QColor("#696969");
 			}
 			else {
-			side = QColor("#696969");
-			center = QColor("#A1A1A1");
+			side = QColor("#A1A1A1");
+			center = QColor("#507882");
 			}
 		tmp = QLinearGradient(QPointF(curMarker,10),QPointF(curMarker+5,10));
 		tmp.setColorAt(0,side);

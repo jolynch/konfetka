@@ -17,6 +17,11 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QHeaderView>
+#include <QTimer>
+#include <QMimeData>
+#include <QDrag>
+#include <QUrl>
+
 
 class CollectionBrowser:public LayoutPanel {
 	Q_OBJECT
@@ -27,14 +32,21 @@ class CollectionBrowser:public LayoutPanel {
 	CollData * coll;
 	DataBackend * conn;
 	Xmms::Collection::Namespace collNamespace;
+	Xmms::Collection::Namespace plistNamespace;
 	QHash<uint,QTreeWidgetItem*> idToItem;
 	QStringList labels;
 	QGridLayout * layout1;
-	QGridLayout * layout2;
 
 	QTreeWidget * collDisplay;
 	QListWidget * collList;
+	QListWidget * plistList;
+	
 	QSplitter * splitter;
+	QSplitter * listSplitter;
+	//Dragging
+	QTimer waitTimer;
+	QMimeData * mimeData;
+	QDrag * drag;
 	
 	void addIdToView(int id,bool isPriority);
 
@@ -47,11 +59,14 @@ class CollectionBrowser:public LayoutPanel {
 
 	public slots:
 	void updateCollList(QStringList);
+	void updatePlistList(QStringList);
 	void getCollectionFromItem(QListWidgetItem*);
 	void updateInfo(int id);
 	void getNextFew(int value);
 	void addItemToPlist(QTreeWidgetItem*,int);
 	void greyItem(QTreeWidgetItem*);
+	void startDragTree(QTreeWidgetItem*,int);
+	void startDragList(QListWidgetItem*);
 };
 
 

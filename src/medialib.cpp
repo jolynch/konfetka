@@ -4,15 +4,13 @@
 #include <iostream>
 
 
-MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):QWidget(parent, f)
+MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):LayoutPanel(parent, f)
 	{
 	conn = c;
 	mlib = (MlibData*)(conn->getDataBackendObject(DataBackend::MLIB));
 	coll = (CollData*)(conn->getDataBackendObject(DataBackend::COLL));
 	
 	complexSearch = false;
-	conn->medialib.broadcastEntryChanged()(Xmms::bind(&MediaLib::mlibChanged, this));
-	fromKonfetka = false;
 	layout = new QGridLayout();
 	delItem = new QShortcut(Qt::Key_Delete,this,SLOT(slotRemove()),SLOT(slotRemove()));
 
@@ -37,10 +35,14 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):QWidge
 	update->setToolTip("Update Your MediaLib");
 	update->setFixedSize(32,32);
 
+	QMenu * makeCollMenu = new QMenu();
+	makeCollMenu->addAction("Use Visible Items",this,SLOT(useVisible()));
+	makeCollMenu->addAction("Use Selected Items",this,SLOT(useSelected()));
 	makeColl = new QPushButton();
 	makeColl->setIcon(QIcon(":images/playlist"));
-	makeColl->setToolTip("Make Collection from Selected Items");	
+	makeColl->setToolTip("Do Stuff With Your Media");	
 	makeColl->setFixedSize(32,32);
+	makeColl->setMenu(makeCollMenu);
 
 	searchLine = new QLineEdit();
 	searchLabel = new QLabel("Search");
@@ -51,33 +53,22 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):QWidge
 	complexSearchButton->setMenu(menu);
 // 	complexSearchButton->setFixedSize(42,25);
 
-	fileList = new QTreeView();
-	dirModel = new QDirModel();
-	fileList-> setDragDropMode(QAbstractItemView::DragDrop);
-
 	QStringList filters;
 	filters << "*mp3*" << "*m4a*";
-	dirModel->setNameFilters(filters);
-	dirModel->setFilter(QDir::AllDirs|QDir::Files|QDir::NoDotAndDotDot);
-	fileList->setModel(dirModel);
 	for(int i =1;i<4;i++)
-	fileList->setColumnHidden(i,1);
 
 	buttons = new QVBoxLayout();	
-	layout->addWidget(searchLine,0,0,1,2);
+	layout->addWidget(searchLine,0,0,1,1);
 	layout->addWidget(mediaList,1,0,1,1);
-	layout->addWidget(fileList,1,1,1,1);
-	layout->addWidget(complexSearchButton,0,2,1,1,Qt::AlignHCenter);
+	layout->addWidget(complexSearchButton,0,1,1,1,Qt::AlignHCenter);
 	buttons->addWidget(add,Qt::AlignHCenter);
 	buttons->addWidget(update,Qt::AlignHCenter);
 	buttons->addWidget(makeColl,Qt::AlignHCenter);
-	layout->addLayout(buttons,1,2,1,1,Qt::AlignHCenter | Qt::AlignTop);
+	layout->addLayout(buttons,1,1,1,1,Qt::AlignHCenter | Qt::AlignTop);
 	layout->setSpacing(5);
-
+	layout->setRowStretch(1,1);
 
 	setLayout(layout);
-
-	fileList->hide();
 
 	searchDialog = new ComplexSearchDialog(conn);
 
@@ -89,8 +80,6 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):QWidge
 	connect(mediaList,SIGNAL(itemPressed(QTreeWidgetItem *,int)),this,SLOT(addToMlibDrag(QTreeWidgetItem*,int))); 
 	connect(mediaList,SIGNAL(itemDoubleClicked(QTreeWidgetItem *,int)),this,SLOT(addToMlibDoubleClick(QTreeWidgetItem*,int)));
 	connect(mediaList,SIGNAL(itemClicked(QTreeWidgetItem *,int)),this,SLOT(stopTimerAndClearList()));
-
-	connect(makeColl,SIGNAL(clicked()),this,SLOT(newColl()));	
 
 	connect(&doubleClickTimer,SIGNAL(timeout()),this,SLOT(startDrag()));
 	
@@ -120,8 +109,54 @@ MediaLib::~MediaLib() {
 	delete makeColl;
 	delete searchLine;
 	delete searchLabel;
-	delete fileList;
-	delete dirModel;
+}
+
+void MediaLib::useSelected() {
+	QStringList options;
+	bool ok;
+	options<<"Collection"<<"Party Shuffle"<<"Queue";
+	QString val = QInputDialog::getItem(this, "Do Stuff","Create a ",options, 0, false, &ok);
+	if(!ok) return;
+	if(val =="Collection")
+	newColl(SELECTED);
+}
+
+void MediaLib::useVisible() {
+	QStringList options;
+	bool ok;
+	options<<"Collection"<<"Party Shuffle"<<"Queue";
+	QString val = QInputDialog::getItem(this, "Do Stuff","Create a ",options, 0, false, &ok);
+	if(!ok) return;
+	if(val =="Collection")
+	newColl(VISIBLE);
+}
+
+
+void MediaLib::newColl(SourceType type) {
+	bool ok = true;
+	QString name = "";
+		while(name=="" && ok) {
+		name = QInputDialog::getText(this,"Name?",
+							"What name would you like the collection to be saved as",
+							QLineEdit::Normal,"", &ok);
+		}
+		if(!ok) return;
+
+	QString tmp;
+	if(type == SELECTED)
+	tmp = "selected";
+	else
+	tmp = "visible";
+
+	int val = QMessageBox::information(this,"Save To Collection",
+			"Are you sure that you want to save\nthe "+tmp+" items to the collection: "+name,
+			QMessageBox::Yes | QMessageBox::No,QMessageBox::Yes);
+	if(val != QMessageBox::Yes) return;
+	
+	if(type == VISIBLE)
+	coll->createCollection(*visibleMedia,name.toStdString(),conn->collection.COLLECTIONS);
+	else
+	coll->createCollection(*selectedAsColl(),name.toStdString(),conn->collection.COLLECTIONS);
 }
 
 
@@ -340,49 +375,58 @@ bool MediaLib::removeIds(const Xmms::List <uint> &list) {
 	return true;
 }
 	
-
-bool MediaLib::mlibChanged(const unsigned int& id){
-	//Make sure that this song is in the list, but if this is an update ... dont
-	adding=true;
-		if(fromKonfetka) {
-		}
-		else { 	
-		numDone = 0; total = 1;
-		}
-	return 1;
-}
-
 void MediaLib::refreshList() {
 	mlib->getListFromServer(visibleMedia,"artist");
 }
 
-void MediaLib::toggleFileList() {
-	if(fileList->isVisible()) {
-	fileList->hide();
-	add->setToolTip("Show The File Chooser");
+
+void MediaLib::checkIfRefreshIsNeeded() {
+	uint id;
+// 	bool needToUpdate=false;
+// 	QTreeWidgetItem* artist;
+// 	QTreeWidgetItem* album;
+		while(!idStack.isEmpty()) {
+		id = idStack.pop();
+// 		if(!idToSongItem.contains(id) || idToSongItem.value(id)==NULL) continue;
+// 		QTreeWidgetItem * itm = idToSongItem.value(id);
+// 		album = itm->parent();
+// 		artist = album->parent();
+// 		
+// 		bool needToUpdate = false;
+// 		QString artist = itm->info("artist").toString();
+// 		QString album = itm->info("album").toString();
+// 		QTreeWidgetItem* artistNode = NULL;
+// 		QList<QTreeWidgetItem*> listArtist = mediaList->findItems(artist,Qt::MatchExactly);
+// 			for(int i=0;i<listArtist.size();i++) {
+// 				if(listArtist.value(i)->parent()==NULL) {
+// 					artistNode = listArtist.value(i);
+// 					if(listArtist.value(i)->isExpanded())
+// 					needToUpdate = true;
+// 					break;
+// 				}
+// 			}
+// 			if(artistNode == NULL)
+// 			needToUpdate = true;
+// 		QList<QTreeWidgetItem*> listAlbum = mediaList->findItems(album,Qt::MatchExactly);
+// 			for(int i=0;i<listAlbum.size();i++) {
+// 				if(listAlbum.value(i)->parent()==NULL && listAlbum.value(i)->isExpanded()) {
+// 					needToUpdate = true;
+// 					break;
+// 				}
+// 			}
+// 		if(needToUpdate) {
+// 		((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
+// 		while(!idStack.isEmpty())
+// 		idStack.pop();
+// 		return;
+// 		}
 	}
-	else {
-	fileList->show();
-	add->setToolTip("Hide The File Chooser");
-	}
+	mlib->getListFromServer(visibleMedia,"artist");
 }
 
-void MediaLib::newColl() {
-	bool ok = true;
-	QString name = "";
-		while(name=="" && ok) {
-		name = QInputDialog::getText(this,"Name?",
-							"What name would you like the collection to be saved as",
-							QLineEdit::Normal,"", &ok);
-		}
-		if(!ok) return;
-	int val = QMessageBox::information(this,"Save To Collection",
-			"Are you sure that you want to save\nthe visible items to the collection: "+name,
-			QMessageBox::Yes | QMessageBox::No,QMessageBox::Yes);
-	if(val != QMessageBox::Yes) return;
 
-	coll->createCollection(*visibleMedia,name.toStdString(),conn->collection.COLLECTIONS);
-
+void MediaLib::toggleFileList() {
+	add->setToolTip("Hide The File Chooser");
 }
 
 void MediaLib::searchMlib() {
@@ -459,9 +503,6 @@ Xmms::Coll::Union* MediaLib::selectedAsColl() {
 
 void MediaLib::addToMlibDrag(QTreeWidgetItem*,int) {
 	urlList.clear();
-	QList<QTreeWidgetItem *> what;
-// 	QList<MediaItem*> relevant;
-	what =mediaList->selectedItems();
 	Xmms::Coll::Union * media = selectedAsColl();
 	
 	std::list<std::string> tmp;
@@ -489,6 +530,8 @@ void MediaLib::addToMlibDoubleClick(QTreeWidgetItem * item,int) {
 //		//std::cout<<urlList.value(i).toString().toStdString()<<std::endl;
 //		}
 	urlList.clear();
+// 	Xmms::Coll::Union * media = selectedAsColl();
+	
 	doubleClickTimer.stop();
 }
 
@@ -507,43 +550,6 @@ void MediaLib::startDrag() {
 void MediaLib::stopTimerAndClearList() {
 	doubleClickTimer.stop();
 	urlList.clear();
-}
-
-void MediaLib::checkIfRefreshIsNeeded() {
-	uint id;
-		while(!idStack.isEmpty()) {
-// 		id = idStack.pop();
-// 		QTreeWidgetItem * itm = ((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getItem(id);
-// 		bool needToUpdate = false;
-// 		QString artist = itm->info("artist").toString();
-// 		QString album = itm->info("album").toString();
-// 		QTreeWidgetItem* artistNode = NULL;
-// 		QList<QTreeWidgetItem*> listArtist = mediaList->findItems(artist,Qt::MatchExactly);
-// 			for(int i=0;i<listArtist.size();i++) {
-// 				if(listArtist.value(i)->parent()==NULL) {
-// 					artistNode = listArtist.value(i);
-// 					if(listArtist.value(i)->isExpanded())
-// 					needToUpdate = true;
-// 					break;
-// 				}
-// 			}
-// 			if(artistNode == NULL)
-// 			needToUpdate = true;
-// 		QList<QTreeWidgetItem*> listAlbum = mediaList->findItems(album,Qt::MatchExactly);
-// 			for(int i=0;i<listAlbum.size();i++) {
-// 				if(listAlbum.value(i)->parent()==NULL && listAlbum.value(i)->isExpanded()) {
-// 					needToUpdate = true;
-// 					break;
-// 				}
-// 			}
-// 		if(needToUpdate) {
-// 		((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
-// 		while(!idStack.isEmpty())
-		idStack.pop();
-// 		return;
-// 		}
-	}
-	mlib->getListFromServer(visibleMedia,"artist");
 }
 
 void MediaLib::toggleComplexSearch() {
@@ -606,12 +612,21 @@ void MediaLib::recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> > newLi
 	mlib->getListFromServer(visibleMedia,"artist");
 }
 
+void MediaLib::setLayoutSide(bool right_side) { //true=right, false=left
+}
+
 DropTreeWidget::DropTreeWidget(MediaLib* newLib,DataBackend* c):QTreeWidget() {
 	setDragDropMode(QAbstractItemView::DropOnly);
 	setAcceptDrops(true);
 	lib = newLib;
 	path = new QString();
 	conn = c;
+	QStringList filters;
+	filters << "*mp3*" << "*m4a*";
+	dirModel = new QDirModel();
+	dirModel->setNameFilters(filters);
+	dirModel->setFilter(QDir::AllDirs|QDir::Files|QDir::NoDotAndDotDot);
+	
 }
 
 //pathImport does not _work_ completely ... so I wrote my own :-)
@@ -632,7 +647,6 @@ void DropTreeWidget::recurAdd(QString file,bool isDir) {
 	if(!file.startsWith("file://"))
 	file.prepend("file://");
 // 	//std::cout<<file.toStdString()<<std::endl;
-	lib->fromKonfetka = true;
 	conn->medialib.addEntry(file.toStdString())(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
@@ -671,8 +685,6 @@ void DropTreeWidget::dragMoveEvent ( QDragMoveEvent * event) {
 //Time to actually do some shite
 void DropTreeWidget::dropEvent(QDropEvent *event){
 // //std::cout<<"dragging"<<std::endl;
-	lib->total = 0;
-	lib->numDone=0;
 	path->clear();
 	QList<QUrl> list = event->mimeData()->urls();
 	
@@ -682,13 +694,11 @@ void DropTreeWidget::dropEvent(QDropEvent *event){
 	path->remove(0,7);
 	}
 
-	QModelIndex indice(this->lib->dirModel->index(*path));
-		if(!this->lib->dirModel->isDir(indice)) {
+	QModelIndex indice(dirModel->index(*path));
+		if(!dirModel->isDir(indice)) {
 			if(!path->startsWith("file://"))
 			path->prepend("file://");
 // 		//std::cout<<path->toStdString()<<std::endl;
-		lib->fromKonfetka = true;
-		lib->total=1;
 		conn->medialib.addEntry(path->toStdString())(Xmms::bind(&DataBackend::scrapResult, conn));
 		}
 		else {
@@ -744,6 +754,9 @@ ComplexSearchDialog::ComplexSearchDialog(DataBackend* conn) {
 	buttons = new QDialogButtonBox(QDialogButtonBox::Ok
                                       | QDialogButtonBox::Cancel);
 	buttons->setCenterButtons(1);
+	
+	delItem = new QShortcut(Qt::Key_Delete,this,SLOT(removeOperand()),SLOT(removeOperand()));
+
 	connect(buttons,SIGNAL(accepted()),this,SLOT(accept()));
 	connect(buttons,SIGNAL(rejected()),this,SLOT(reject()));
 	connect(add,SIGNAL(clicked()),this,SLOT(addOperand()));
@@ -794,6 +807,21 @@ void ComplexSearchDialog::addOperand() {
 		value->text(),notCheck->checkState()==Qt::Checked),temp));
 	}
 
+}
+
+void ComplexSearchDialog::removeOperand() {
+	std::cout<< complexSearchItems.size()<<std::endl;
+	QList<QTreeWidgetItem*> toDel = itemList->selectedItems();
+	QList< QPair <Xmms::Coll::Coll*,Operator> > removeVals;
+	int i;
+		for(i=0;i<toDel.size();i++) {
+		removeVals.append(complexSearchItems.value(itemList->indexOfTopLevelItem(toDel.value(i))));
+		delete itemList->takeTopLevelItem(itemList->indexOfTopLevelItem(toDel.value(i)));
+		}
+		for(i=0;i<removeVals.size();i++) {
+		complexSearchItems.removeAll(removeVals.value(i));
+		}
+	std::cout<< complexSearchItems.size()<<std::endl;
 }
 
 void ComplexSearchDialog::clearItems() {

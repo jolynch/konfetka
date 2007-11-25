@@ -2,6 +2,7 @@
 #define MLIBDATA_CPP
 #include "mlibdata.h"
 
+//An easy way to store a song's information, uses up some memory, but that's why it is a cache.
 MediaInfo::MediaInfo() {
 }
 
@@ -9,9 +10,9 @@ MediaInfo::MediaInfo(QHash<QString,QVariant> hash) {
 	songInfo = hash;
 }
 
-QVariant MediaInfo::info(QString val) {
-	if(songInfo.contains(val)) {
-	return songInfo.value(val);
+QVariant MediaInfo::info(QString property) {
+	if(songInfo.contains(property)) {
+	return songInfo.value(property);
 	}
 	else
 	return QVariant("Unknown");
@@ -19,6 +20,18 @@ QVariant MediaInfo::info(QString val) {
 
 void MediaInfo::setInfo(QString property,QVariant value) {
 	songInfo.insert(property,value);
+}
+
+QString MediaInfo::source(QString property) {
+	if(infoSource.contains(property)) {
+	return infoSource.value(property);
+	}
+	else
+	return "Unknown";	
+}
+
+bool MediaInfo::isValid() {
+	return(infoSource.contains("status") && infoSource.value("status").toInt()!=3);
 }
 
 void MediaInfo::setSource(QString property, QString source) {
@@ -34,8 +47,8 @@ void MediaInfo::setAllInfo(QHash<QString,QVariant> hash) {
 	songInfo = hash;
 }
 
-MlibData::MlibData(DataBackend * conn,QObject * parent):QObject(parent) {
-	this->conn = conn;
+MlibData::MlibData(DataBackend * c,QObject * parent):QObject(parent) {
+	conn = c;
 	standardTags<<"artist"<<"album"<<"url"<<"encodedurl"<< "title"<<"genre"<<"duration"<<"timesplayed"<<"rating"<<"laststarted"<<"id";
 	QSettings s;
 	if(s.contains("standardTags"))
@@ -75,8 +88,11 @@ QStringList MlibData::getStandardTags() {
 }
 
 QVariant MlibData::getInfo(QString property, uint id) {
-	if(cache.contains(id))
+	if(cache.contains(id)) {
+		if(property=="title" && cache.value(id)->info(property).toString()=="Unknown")
+		return cache.value(id)->info("filename");
 	return (cache.value(id))->info(property);
+	}
 	else {
 	getInfoFromServer(id);
 	return QVariant(-1);
@@ -141,6 +157,11 @@ bool MlibData::getAllMediaInfoForId(int id,std::string key,Xmms::Dict::Variant v
 			std::string tmpStr = boost::get<std::string>(val);
 			tmpStr = xmmsc_result_decode_url(NULL,tmpStr.c_str());
 			newValue = QVariant(tmpStr.c_str());
+			
+			//xmms2 doesn't keep the filename, but this is usefull for unknown titles
+			QString filename(tmpStr.c_str());
+			filename = filename.mid(filename.lastIndexOf("/")+1);
+			(cache.value(id))->setInfo(QString("filename"),QVariant(filename));
 			}
 			else {
 			newValue = QVariant(QString::fromUtf8(boost::get<std::string>(val).c_str()));
