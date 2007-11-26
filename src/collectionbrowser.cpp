@@ -201,7 +201,21 @@ void CollectionBrowser::startDragTree(QTreeWidgetItem* item,int col) {
 }
 
 void CollectionBrowser::startDragList(QListWidgetItem* item) {
-	std::cout<<item->text().toStdString()<<std::endl;
+	mimeData = new QMimeData();
+	QString ns;
+		if(collList->row(item) > 0)
+		ns = "COLLECTIONS";
+		else if(plistList->row(item) > 0)
+		ns = "PLAYLISTS";
+		else
+		return;
+	QString collName = item->text();
+	std::cout<<ns.toStdString()<<" "<<collName.toStdString()<<std::endl;
+	QByteArray encodedData;
+	QDataStream stream(&encodedData, QIODevice::WriteOnly);
+	stream << collName << ns;
+	mimeData->setData("application/x-collname", encodedData);
+	waitTimer.start(qApp->doubleClickInterval());
 }
 
 void CollectionBrowser::startDrag() {
