@@ -67,6 +67,7 @@ class CollectionBrowser:public LayoutPanel {
 	void greyItem(QTreeWidgetItem*);
 	void startDragTree(QTreeWidgetItem*,int);
 	void startDragList(QListWidgetItem*);
+	void startDrag();
 };
 
 

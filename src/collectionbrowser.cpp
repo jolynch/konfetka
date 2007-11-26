@@ -19,6 +19,7 @@ CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::Windo
 	conn->changeAndSaveQSettings("konfetka/collectionbrowserlabels",labels);
 	collDisplay->setHeaderLabels(labels);
 	collDisplay->setDragEnabled(true);
+	collDisplay->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	splitter->setStretchFactor(0,1);
 
 	listSplitter = new QSplitter(Qt::Vertical,splitter);
@@ -41,6 +42,11 @@ CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::Windo
 	//Drag-Drop
 	connect(collDisplay,SIGNAL(itemPressed(QTreeWidgetItem*,int)),this,SLOT(startDragTree(QTreeWidgetItem*,int)));
 	connect(collList,SIGNAL(itemPressed(QListWidgetItem*)),this,SLOT(startDragList(QListWidgetItem*)));
+	connect(plistList,SIGNAL(itemPressed(QListWidgetItem*)),this,SLOT(startDragList(QListWidgetItem*)));
+	connect(&waitTimer,SIGNAL(timeout()),this,SLOT(startDrag()));
+	connect(collDisplay,SIGNAL(itemClicked(QTreeWidgetItem*,int)),&waitTimer,SLOT(stop()));
+	connect(collList,SIGNAL(itemClicked(QListWidgetItem*)),&waitTimer,SLOT(stop()));
+	connect(plistList,SIGNAL(itemClicked(QListWidgetItem*)),&waitTimer,SLOT(stop())); 
 	//End Drag-Drop
 
 	updateCollList(coll->getCollections());
@@ -177,24 +183,32 @@ void CollectionBrowser::startDragTree(QTreeWidgetItem* item,int col) {
 	std::cout<<item->text(0).toStdString()<<std::endl;
 	QList<QTreeWidgetItem*> sel = collDisplay->selectedItems(); 
 	QList<QUrl> resultList;
-		if(mimeData!=NULL)
-		delete mimeData;
 	mimeData = new QMimeData();
-/*
-	foreach (QTreeWidgetItem* item, sel) {
-                  QString text = data(index, Qt::DisplayRole).toString();
-             stream << text;
-         }
+	foreach(QTreeWidgetItem* item,sel) {
+		QString path = mlib->getInfo(QString("url"),idToItem.key(item)).toString();
+		resultList.append(QUrl(path));
 	}
+	mimeData->setUrls(resultList);
+	waitTimer.start(qApp->doubleClickInterval());
+	/*foreach (QTreeWidgetItem* item, sel) {
+		QString text = data(index, Qt::DisplayRole).toString
+	stream << text;
+         }
+	}*/
 
-	mimeData->setData("application/x-collname",
-	*/
+// 	mimeData->setData("application/x-collname",
+	
 }
 
 void CollectionBrowser::startDragList(QListWidgetItem* item) {
 	std::cout<<item->text().toStdString()<<std::endl;
-		if(mimeData!=NULL)
-		delete mimeData;
+}
+
+void CollectionBrowser::startDrag() {
+	drag = new QDrag(this);
+	drag->setMimeData(mimeData);
+	waitTimer.stop();
+	drag->exec(Qt::CopyAction | Qt::MoveAction);
 }
 
 #endif
