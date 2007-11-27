@@ -86,12 +86,12 @@ QString CollData::collAsQString(const Xmms::Coll::Coll& coll) {
 			}
 			case Xmms::Coll::INTERSECTION: {
 			Xmms::Coll::OperandIterator temp = coll.getOperandIterator();
-				for(temp.first();temp.valid();temp.next()) {
+				for(temp.first();temp.valid();temp.valid()) {
 				tmpStr = collAsQString((**temp));
 				result += tmpStr;
 				temp.next();
 					if(temp.valid())
-					result+= " OR ";
+					result+= " AND ";
 				}
 			break;
 			}
