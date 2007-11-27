@@ -21,7 +21,8 @@
 #include <QMimeData>
 #include <QDrag>
 #include <QUrl>
-
+#include <QMouseEvent>
+#include <QLineEdit>
 
 class CollectionBrowser:public LayoutPanel {
 	Q_OBJECT
@@ -43,6 +44,7 @@ class CollectionBrowser:public LayoutPanel {
 	
 	QSplitter * splitter;
 	QSplitter * listSplitter;
+	QLineEdit * dispColl;
 	//Dragging
 	QTimer waitTimer;
 	QMimeData * mimeData;
@@ -56,6 +58,7 @@ class CollectionBrowser:public LayoutPanel {
 	bool recievedNewColl(const Xmms::Coll::Coll&);
 	bool updateCollDisplay(const Xmms::List <uint> &list);
 	void resizeEvent(QResizeEvent* event);
+	void mousePressEvent ( QMouseEvent * event );
 
 	public slots:
 	void updateCollList(QStringList);

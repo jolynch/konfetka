@@ -609,6 +609,7 @@ void MediaLib::recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> > newLi
 
 	delete visibleMedia;
 	visibleMedia = val;
+	searchLine->setText(coll->collAsQString(*val));
 	mlib->getListFromServer(visibleMedia,"artist");
 }
 
@@ -674,7 +675,10 @@ DropTreeWidget::~DropTreeWidget() {
 }
 
 void DropTreeWidget::dragEnterEvent(QDragEnterEvent *event) {
+	if(event->mimeData()->hasUrls())
 	event->acceptProposedAction();
+	else
+	event->ignore();
 }
 
 //Nothing to do here

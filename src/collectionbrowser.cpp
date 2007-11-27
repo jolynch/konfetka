@@ -6,10 +6,10 @@ CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::Windo
 	conn = c;
 	mlib = (MlibData*)(conn->getDataBackendObject(DataBackend::MLIB));
 	coll = (CollData*)(conn->getDataBackendObject(DataBackend::COLL));
-	collNamespace = conn->collection.COLLECTIONS;
-	plistNamespace = conn->collection.PLAYLISTS;
+	collNamespace = Xmms::Collection::COLLECTIONS;
+	plistNamespace = Xmms::Collection::PLAYLISTS;
 	numFetched = 0;
-
+	
 	splitter = new QSplitter(this);
 	collDisplay = new QTreeWidget(splitter);
 	QSettings s;
@@ -28,9 +28,12 @@ CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::Windo
 	plistList = new QListWidget(listSplitter);
 	plistList->setDragEnabled(true);
 
+	dispColl = new QLineEdit();
+
 	layout1 = new QGridLayout();
-	layout1->addWidget(splitter,0,0);
-	layout1->setRowStretch(0,1);
+	layout1->addWidget(dispColl,0,0);
+	layout1->addWidget(splitter,1,0);
+	layout1->setRowStretch(1,1);
 
 	this->setLayout(layout1); 
 
@@ -112,7 +115,6 @@ void CollectionBrowser::updateCollList(QStringList list) {
 
 void CollectionBrowser::updatePlistList(QStringList list) {
 	plistList->clear();
-	collList->clear();
 	QListWidgetItem * plistLabel = new QListWidgetItem("Playlists:",plistList);
 	plistLabel->setFlags(Qt::ItemIsEnabled);
 	QFont curFont = plistLabel->font();
@@ -126,11 +128,21 @@ void CollectionBrowser::getCollectionFromItem(QListWidgetItem * item) {
 // 	std::cout<<item->text().toStdString()<<std::endl;
 	if(collList->row(item) >=0)
 	conn->collection.get(item->text().toStdString(),collNamespace)(Xmms::bind(&CollectionBrowser::recievedNewColl,this));
-	else
+	else if(plistList->row(item)>=0)
 	conn->collection.get(item->text().toStdString(),plistNamespace)(Xmms::bind(&CollectionBrowser::recievedNewColl,this));
+	else return;
 }
 
 bool CollectionBrowser::recievedNewColl(const Xmms::Coll::Coll& newColl) {
+	dispColl->setText(coll->collAsQString(newColl));
+// 	std::cout<<collTypes[newColl.getType()].toStdString()<<std::endl;
+// 	if(newColl.getType()<3 && newColl.getType()>0) {
+// 	Xmms::Coll::OperandIterator temp = newColl.getOperandIterator();
+// 		for(temp.first();temp.valid();temp.next()) {
+// 		std::cout<<collTypes[(*temp)->getType()].toStdString()<<std::endl;
+// 		std::cout<<(*temp)->getAttribute("field")<<" "<<(*temp)->getAttribute("value")<<std::endl;
+// 		}	
+// 	}
 	conn->collection.queryIds(newColl)(Xmms::bind(&CollectionBrowser::updateCollDisplay,this));
 	return true;
 }
@@ -201,21 +213,7 @@ void CollectionBrowser::startDragTree(QTreeWidgetItem* item,int col) {
 }
 
 void CollectionBrowser::startDragList(QListWidgetItem* item) {
-	mimeData = new QMimeData();
-	QString ns;
-		if(collList->row(item) > 0)
-		ns = "COLLECTIONS";
-		else if(plistList->row(item) > 0)
-		ns = "PLAYLISTS";
-		else
-		return;
-	QString collName = item->text();
-	std::cout<<ns.toStdString()<<" "<<collName.toStdString()<<std::endl;
-	QByteArray encodedData;
-	QDataStream stream(&encodedData, QIODevice::WriteOnly);
-	stream << collName << ns;
-	mimeData->setData("application/x-collname", encodedData);
-	waitTimer.start(qApp->doubleClickInterval());
+	std::cout<<item->text().toStdString()<<std::endl;
 }
 
 void CollectionBrowser::startDrag() {
@@ -223,6 +221,11 @@ void CollectionBrowser::startDrag() {
 	drag->setMimeData(mimeData);
 	waitTimer.stop();
 	drag->exec(Qt::CopyAction | Qt::MoveAction);
+}
+
+void CollectionBrowser::mousePressEvent(QMouseEvent * event) {
+	std::cout<<"PRESSED"<<std::endl;
+	event->ignore();
 }
 
 #endif

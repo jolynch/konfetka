@@ -65,5 +65,77 @@ void CollData::createCollection(const Xmms::Coll::Coll& coll,std::string name,Xm
 	{
 	conn->collection.save(coll,name,ns)(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
+
+QString CollData::collAsQString(const Xmms::Coll::Coll& coll) {
+	QString result;
+	QString tmpStr;
+		switch(coll.getType()) {
+			case Xmms::Coll::REFERENCE:
+			result = "Reference";
+			break;
+			case Xmms::Coll::UNION: {
+			Xmms::Coll::OperandIterator temp = coll.getOperandIterator();
+				for(temp.first();temp.valid();temp.valid()) {
+				tmpStr = collAsQString((**temp));
+				result += tmpStr;
+				temp.next();
+					if(temp.valid())
+					result+= " OR ";
+				}
+			break;
+			}
+			case Xmms::Coll::INTERSECTION: {
+			Xmms::Coll::OperandIterator temp = coll.getOperandIterator();
+				for(temp.first();temp.valid();temp.next()) {
+				tmpStr = collAsQString((**temp));
+				result += tmpStr;
+				temp.next();
+					if(temp.valid())
+					result+= " OR ";
+				}
+			break;
+			}
+			case Xmms::Coll::COMPLEMENT: {
+			result = ("!["+collAsQString(*(coll.getOperand()))+"]");
+			break;
+			}
+			case Xmms::Coll::HAS: {
+			result = (" [HAS tag "+QString(coll.getAttribute("field").c_str())+"]");
+			break;
+			}
+			case Xmms::Coll::EQUALS: {
+			result = ("["+QString(coll.getAttribute("field").c_str())+" == "+QString(coll.getAttribute("value").c_str())+"]");
+			break;
+			}
+			case Xmms::Coll::MATCH: {
+			result = ("["+QString(coll.getAttribute("field").c_str())+" ~ "+QString(coll.getAttribute("value").c_str())+"]");
+			break;
+			}
+			case Xmms::Coll::SMALLER: {
+			result = ("["+QString(coll.getAttribute("field").c_str())+" < "+QString(coll.getAttribute("value").c_str())+"]");
+			break;
+			}
+			case Xmms::Coll::GREATER: {
+			result = ("["+QString(coll.getAttribute("field").c_str())+" > "+QString(coll.getAttribute("value").c_str())+"]");
+			break;
+			}
+			case Xmms::Coll::IDLIST: {
+			result = "Id list";
+			break;
+			}       
+			case Xmms::Coll::QUEUE: {
+			result = ("Queue");
+			break;
+			}   
+			case Xmms::Coll::PARTYSHUFFLE: {
+			result = ("Party Shuffle with input collection: "+collAsQString(*(coll.getOperand())));
+			break;
+			}
+			default:
+			result = "Unrecognized Structure";
+			break;	
+		}
+	return result;
+}
 #endif
 
