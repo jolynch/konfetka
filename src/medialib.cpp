@@ -49,7 +49,6 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	complexSearchButton = new QPushButton("Simple");
 	QMenu * menu = new QMenu();
 	menu->addAction(QIcon(":images/repeat_all"),"Toggle to Complex",this,SLOT(toggleComplexSearch()));
-	menu->addAction(QIcon(":images/plus"),"Add Another Search Term",this,SLOT(addAnotherSearchItem()));
 	complexSearchButton->setMenu(menu);
 // 	complexSearchButton->setFixedSize(42,25);
 
@@ -181,10 +180,10 @@ void MediaLib::artistList(QList<QString> info) {
 		waitItem->setText(0,"...");
 		}
 	mediaList->sortItems(0,Qt::AscendingOrder);
-	Xmms::Coll::Has artColl(*visibleMedia,"artist");
-	Xmms::Coll::Complement albumItems;
-	albumItems.setOperand(artColl);
-	conn->collection.queryIds(albumItems)(Xmms::bind(&MediaLib::handleUnknown,this));
+// 	Xmms::Coll::Has artColl(*visibleMedia,"artist");
+// 	Xmms::Coll::Complement albumItems;
+// 	albumItems.setOperand(artColl);
+// 	conn->collection.queryIds(albumItems)(Xmms::bind(&MediaLib::handleUnknown,this));
 }
 
 bool MediaLib::handleUnknown(const Xmms::List <uint> &list) {
@@ -559,7 +558,7 @@ void MediaLib::toggleComplexSearch() {
 	toggleTo = "Toggle to Simple";
 	complexSearchButton->setText("Complex");
 	searchLine->setEnabled(false);
-	searchLine->setText("Hello World");
+	searchLine->setText("Try Adding Some Search Terms ->");
 	addAnotherSearchItem();
 	}
 	else {
@@ -576,7 +575,8 @@ void MediaLib::toggleComplexSearch() {
 
 	QMenu * menu = new QMenu();
 	menu->addAction(QIcon(":images/repeat_all"),toggleTo,this,SLOT(toggleComplexSearch()));
-	menu->addAction(QIcon(":images/plus"),"Add Another Search Term",this,SLOT(addAnotherSearchItem()));
+	if(toggleTo=="Toggle to Simple")
+	menu->addAction(QIcon(":images/plus"),"Edit Current Complex Query",this,SLOT(addAnotherSearchItem()));
 	complexSearchButton->setMenu(menu);
 }
 
@@ -607,10 +607,12 @@ void MediaLib::recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> > newLi
 		}
 	}
 
-	delete visibleMedia;
-	visibleMedia = val;
-	searchLine->setText(coll->collAsQString(*val));
-	mlib->getListFromServer(visibleMedia,"artist");
+	if(val!=NULL) {
+		delete visibleMedia;
+		visibleMedia = val;
+		searchLine->setText(coll->collAsQString(*val));
+		mlib->getListFromServer(visibleMedia,"artist");
+	}
 }
 
 void MediaLib::setLayoutSide(bool right_side) { //true=right, false=left
@@ -675,7 +677,7 @@ DropTreeWidget::~DropTreeWidget() {
 }
 
 void DropTreeWidget::dragEnterEvent(QDragEnterEvent *event) {
-	if(event->mimeData()->hasUrls())
+	if(event->mimeData()->hasUrls() || event->mimeData()->hasFormat("application/x-collname"))
 	event->acceptProposedAction();
 	else
 	event->ignore();
@@ -689,38 +691,52 @@ void DropTreeWidget::dragMoveEvent ( QDragMoveEvent * event) {
 //Time to actually do some shite
 void DropTreeWidget::dropEvent(QDropEvent *event){
 // //std::cout<<"dragging"<<std::endl;
-	path->clear();
-	QList<QUrl> list = event->mimeData()->urls();
-	
-	path->append(list.value(0).toString());
-	
-	if(path->startsWith("file://")) {
-	path->remove(0,7);
-	}
-
-	QModelIndex indice(dirModel->index(*path));
-		if(!dirModel->isDir(indice)) {
-			if(!path->startsWith("file://"))
-			path->prepend("file://");
-// 		//std::cout<<path->toStdString()<<std::endl;
-		conn->medialib.addEntry(path->toStdString())(Xmms::bind(&DataBackend::scrapResult, conn));
-		}
-		else {
-		numSongs(*path);
-		QDir dir(*path);
-		QStringList filters;
-		filters << "*mp3*" << "*m4a*";
-		dir.setNameFilters(filters);
-		dir.setFilter(QDir::AllDirs|QDir::Files|QDir::NoDotAndDotDot);
-		QFileInfoList list(dir.entryInfoList());
+	if(event->mimeData()->hasUrls()) {
+		path->clear();
+		QList<QUrl> list = event->mimeData()->urls();
 		
-
-		for(int i=0;i<list.size();i++) {
-		recurAdd(list.value(i).filePath(),list.value(i).isDir());
+		path->append(list.value(0).toString());
+		
+		if(path->startsWith("file://")) {
+		path->remove(0,7);
 		}
 	
-		//conn->medialib.pathImport(path->toStdString())(Xmms::bind(&MediaLib::doneWithTask, lib));
+		QModelIndex indice(dirModel->index(*path));
+			if(!dirModel->isDir(indice)) {
+				if(!path->startsWith("file://"))
+				path->prepend("file://");
+	// 		//std::cout<<path->toStdString()<<std::endl;
+			conn->medialib.addEntry(path->toStdString())(Xmms::bind(&DataBackend::scrapResult, conn));
+			}
+			else {
+			numSongs(*path);
+			QDir dir(*path);
+			QStringList filters;
+			filters << "*mp3*" << "*m4a*";
+			dir.setNameFilters(filters);
+			dir.setFilter(QDir::AllDirs|QDir::Files|QDir::NoDotAndDotDot);
+			QFileInfoList list(dir.entryInfoList());
+			
+	
+			for(int i=0;i<list.size();i++) {
+			recurAdd(list.value(i).filePath(),list.value(i).isDir());
+			}
+		
+			//conn->medialib.pathImport(path->toStdString())(Xmms::bind(&MediaLib::doneWithTask, lib));
+			}
+	}
+	else {
+	QByteArray encodedData = event->mimeData()->data("application/x-collname");
+	QDataStream stream(&encodedData, QIODevice::ReadOnly);
+	QString title;
+	QString ns;
+	stream >> title;
+	stream >> ns;	
+		if(ns=="COLLECTIONS") {
+		std::cout<<"TODO: let people edit these..."<<std::endl;
 		}
+	}
+	
 }
 
 ComplexSearchDialog::ComplexSearchDialog(DataBackend* conn) {
@@ -739,7 +755,7 @@ ComplexSearchDialog::ComplexSearchDialog(DataBackend* conn) {
 	operLabel = new QLabel("Operator:");
 	oper = new QComboBox();
 	temp.clear();
-	temp<<"="<<"matches"<<"has tag"<<"<"<<">"<<"<="<<">=";
+	temp<<"matches"<<"="<<"has tag"<<"<"<<">"<<"<="<<">=";
 	oper->addItems(temp);
 	
 	valueLabel = new QLabel("Value:");

@@ -100,7 +100,7 @@ QString CollData::collAsQString(const Xmms::Coll::Coll& coll) {
 			break;
 			}
 			case Xmms::Coll::HAS: {
-			result = (" [HAS tag "+QString(coll.getAttribute("field").c_str())+"]");
+			result = ("[HAS tag "+QString(coll.getAttribute("field").c_str())+"]");
 			break;
 			}
 			case Xmms::Coll::EQUALS: {
