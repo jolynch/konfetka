@@ -142,7 +142,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
 	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
 	conn->emitInitialQSettings();
-
+	conn->emitInitialXmms2Settings();
 	}
 
 void MainWindow::trayTool() {

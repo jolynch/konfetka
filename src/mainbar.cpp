@@ -115,9 +115,6 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 
 	this->setLayout(layout);
 
-	conn->playback.getPlaytime()(Xmms::bind(&DataBackend::getCurPlaytime, conn));
-	conn->playback.volumeGet()(Xmms::bind(&DataBackend::volumeResponse, conn));
-
 	QObject::connect(backButton, SIGNAL(clicked()), this, SLOT(slotBack()));
 
 	QObject::connect(volumeButton, SIGNAL(clicked()),this, SLOT(slotMute()));
@@ -149,7 +146,6 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 	QObject::connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),
 				this,SLOT(newStatus(Xmms::Playback::Status)));
 	connect(this,SIGNAL(changeSongRel(int)),conn,SIGNAL(changeSong(int)));
-	conn->playback.currentID()(Xmms::bind(&DataBackend::newSongResponse, conn));	
 }
 	
 

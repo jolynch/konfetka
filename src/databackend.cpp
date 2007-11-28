@@ -13,6 +13,10 @@ DataBackend::DataBackend(QObject * parent, std::string name):XMMS2Interface(pare
 	mlibData=new MlibData(this);
 	collData=new CollData(this);
 	plistData=new PlistData(this);
+
+	currId=0;
+	QObject::connect(((XMMS2Interface *)this),SIGNAL(currentId(int)),this,SLOT(currentIdChanged(int)));
+	QObject::connect(((MlibData *)mlibData),SIGNAL(infoChanged(int)),this,SLOT(infoChanged(int)));
 	}
 
 QObject * DataBackend::getDataBackendObject(DataBackendType type)
@@ -41,4 +45,17 @@ void DataBackend::changeAndSaveQSettings(QString name, QVariant newValue)
 	s.setValue(name,newValue);
 	emit qsettingsValueChanged(name, newValue);
 	}
+
+void DataBackend::currentIdChanged(int newId)
+	{
+	if(newId!=currId)
+		currId=newId;
+	}
+
+void DataBackend::infoChanged(int id)
+	{
+	if(id==currId)
+		this->playback.currentID()(Xmms::bind(&XMMS2Interface::newSongResponse, this));
+	}
+
 #endif

@@ -29,7 +29,7 @@ bool SongPositionSlider::handlePlaytimeSignal(uint newTime) {
 	setValue(newTime);
 	
 	if(getNegativeTime()-2<0 && !songEmitted) {
-	conn->emitSongAboutToChange();
+	//conn->emitSongAboutToChange();
 	songEmitted = true;
 	}	
 

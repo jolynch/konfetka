@@ -261,10 +261,20 @@ std::cout<<"called dropMimeData: "<<parent.row()<<" "<<parent.column()<<std::end
 	PlaylistDragInfo * info=getDragInfoFromMimeData(data);
 	if (info!=NULL)
 		{
-		if(info->name.toStdString()==plistName&&action==Qt::MoveAction)
+		/*if(info->name.toStdString()==plistName)
+			if(action==Qt::CopyAction)
+				for(int i=0; i<info->positions.size(); i++)
+		else
+			{
+			QList <uint> ids_=(((PlistData *)conn->getDataBackendObject(DataBackend::PLIST)))
+							->getPlist(info->name.toStdString())->getIdsFromPositions(info->positions);
 			for(int i=0; i<info->positions.size(); i++)
-				
-		return true;
+				{
+				if(parent.row()==-1)
+					conn->playlist.add(
+				}
+			}
+		*/return true;
 		}
 	else if (data->hasUrls())
 		{
@@ -332,7 +342,6 @@ PlistData::PlistData(DataBackend * c,QObject * parent):QObject(parent)
 		this,SLOT(playlistsChanged(QStringList)));
 	connect(conn,SIGNAL(playlistNameChanged(const std::string&)),this,SLOT(setCurrentName(const std::string &)));
 	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(qsettingsValChanged(QString,QVariant)));
-	conn->playlist.currentActive() (Xmms::bind(&DataBackend::getCurrentPlaylist,conn));
 	}
 
 void PlistData::createPlaylist(std::string name)

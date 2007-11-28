@@ -18,17 +18,13 @@
 #include <QUrl>
 #include <string>
 class SongPositionSlider;
-class Playlist;
 
 class XMMS2Interface:public QObject, public Xmms::Client
 	{	Q_OBJECT
 	private:
 		bool quitting;
-//What the hell is this stuff? ~A.F       <- LESSON #1 of programming, if you don't know what something is, DONT COMMENT IT OUT (hint
-//search for plist in the .cpp file, it may be uneccesary but clean the cpp before you clean the h
 		QHash < uint32_t, QPair <QString, QString> > plist;
 		QEventLoop * loop;
-		Playlist * mainPlaylist;
 	public:
 		XMMS2Interface(QObject * parent, const std::string &name);
 		~XMMS2Interface();
@@ -42,19 +38,15 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		bool configResponse(const Xmms::Dict& val);
 		bool volumeResponse(const Xmms::Dict& val);
 		bool plistChangeResponse(const Xmms::Dict& val);
-		QString val(QString key, unsigned int id);
-		bool getDat(const Xmms::PropDict& i);
 		bool curPos(const unsigned int& val);
 		bool getCurrentPlaylist(const std::string& name);
 		bool handleCollChange(const Xmms::Dict& change);
 		bool handlePlaytimeSignal(uint);
-		void emitSongAboutToChange();
-		//there can only be one master playlist taking movement directions.
-		Playlist* getMainPlaylist();
-		void setMainPlaylist(Playlist*);
 		void next();
 		void previous();
 		QString encodeUrl(QString);
+
+		void emitInitialXmms2Settings();
 // 	public slots:
 // 		void changeSongInPlaylist(int);
 	signals:

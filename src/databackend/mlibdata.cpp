@@ -75,10 +75,12 @@ void MlibData::fetchSomeMore() {
 }
 
 bool MlibData::mlibChanged(const unsigned int& id) {
+	if(cache.contains(id)) {
 		if(changeTimer.isActive())
 		changeTimer.stop();
 		changeTimer.start(1000);
 	getInfoFromServer(id);
+	}
 // 	std::cout<<"GETING ID FROM SERVER"<<std::endl;
 	return true;
 }

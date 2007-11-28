@@ -66,8 +66,6 @@ InfoEditor::InfoEditor(DataBackend * c,QWidget* parent,Qt::WindowFlags f):QWidge
 	QObject::connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),
 				this,SLOT(newStatus(Xmms::Playback::Status)));
 	QObject::connect(conn,SIGNAL(currentId(int)),this,SLOT(newId(int)));
-	conn->playback.currentID()(Xmms::bind(&DataBackend::newSongResponse, conn));
-	conn->playback.getStatus()(Xmms::bind(&DataBackend::getstatus, conn));
 	}
 
 void InfoEditor::slotDone()

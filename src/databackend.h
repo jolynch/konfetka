@@ -42,6 +42,18 @@ class DataBackend:public XMMS2Interface//, public QObject
 
 	signals:
 	void qsettingsValueChanged(QString /*name*/, QVariant /*newValue*/);
+
+
+
+	//The following is for emitting the currentId signal anytime info is changed.
+	private:
+	int currId;
+
+	private slots:
+	void currentIdChanged(int newId);
+
+	public slots:
+	void infoChanged(int id);
 	};
 
 #endif

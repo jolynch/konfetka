@@ -91,8 +91,6 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 				albumArt,SLOT(fetchXML(Xmms::PropDict)));
 	QObject::connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),
 				this,SLOT(updateStatus(Xmms::Playback::Status)));
-	conn->playback.currentID()(Xmms::bind(&DataBackend::newSongResponse, conn));
-	conn->playback.getStatus()(Xmms::bind(&DataBackend::getstatus, conn));
 	}
 
 QLabel * RearPanel::getRandom(bool fortune)
@@ -170,6 +168,7 @@ void RearPanel::updateStatus(Xmms::Playback::Status status)
 	finalString->append(infoString.c_str());
 	songInfo->setText(*finalString);
 	}
+
 void RearPanel::updateSong(Xmms::PropDict info)
 	{
 	{

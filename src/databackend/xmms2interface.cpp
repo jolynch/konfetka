@@ -5,7 +5,6 @@
 XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObject(parent), Xmms::Client (name)
 	{
 	quitting=false;
-	mainPlaylist = NULL;
 	char * path;
 	path = getenv("XMMS_PATH");
 	try
@@ -55,7 +54,6 @@ XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObjec
 			((Xmms::Client*)this)->connect(path);
 			else
 			((Xmms::Client*)this)->connect();
-		
 			}
 
 		}
@@ -68,22 +66,23 @@ XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObjec
 	this->playlist.broadcastChanged()(Xmms::bind(&XMMS2Interface::plistChangeResponse, this));
 	this->playlist.broadcastCurrentPos()(Xmms::bind(&XMMS2Interface::curPos, this));
 	this->playlist.broadcastLoaded()(Xmms::bind(&XMMS2Interface::getCurrentPlaylist, this));
-	this->collection.broadcastCollectionChanged()
-								(Xmms::bind(&XMMS2Interface::handleCollChange, this));
+	this->collection.broadcastCollectionChanged()(Xmms::bind(&XMMS2Interface::handleCollChange, this));
 	this->playback.signalPlaytime()(Xmms::bind (&XMMS2Interface::handlePlaytimeSignal, this));
 
+	}
+
+void XMMS2Interface::emitInitialXmms2Settings()
+	{
+	this->playlist.currentActive() (Xmms::bind(&XMMS2Interface::getCurrentPlaylist,this));
+	this->playback.currentID()(Xmms::bind(&XMMS2Interface::newSongResponse, this));
+	this->playback.getStatus()(Xmms::bind(&XMMS2Interface::getstatus, this));
+	this->playback.getPlaytime()(Xmms::bind(&XMMS2Interface::getCurPlaytime, this));
+	this->playback.volumeGet()(Xmms::bind(&XMMS2Interface::volumeResponse, this));
 	}
 
 XMMS2Interface::~XMMS2Interface()
 	{quitting=true;}
 
-Playlist* XMMS2Interface::getMainPlaylist() {
-	return mainPlaylist;
-}
-
-void XMMS2Interface::setMainPlaylist(Playlist* plist) {
-	mainPlaylist = plist;
-}
 
 bool XMMS2Interface::scrapResult()
 	{return true;}
@@ -150,47 +149,6 @@ bool XMMS2Interface::curPos(const unsigned int& val)
 	return true;
 	}
 
-bool XMMS2Interface::getDat(const Xmms::PropDict& i)
-	{
-	int32_t id = i.get<int32_t> ("id");
-	QPair<QString, QString> info;
-	try {info.first=QString(i.get<std::string>("artist").c_str());}
-	catch(Xmms::no_such_key_error& err )
-		{try{
-			QString foo=QString(i.get<std::string>("url").c_str());
-			if(foo.startsWith("file://"))
-				{
-				foo.remove(0,foo.lastIndexOf("/")+1);
-				info.first=foo;
-				}
-			if(foo.startsWith("http://")||foo.startsWith("ftp://"))
-				info.first=QString("<Internet stream>");
-			}
-		catch(Xmms::no_such_key_error& err )
-			{info.first=QString(" ");}}
-	try {info.second=QString(i.get<std::string>("title").c_str());}
-	catch(Xmms::no_such_key_error& err )
-		{info.second=QString(" ");}
-	try{i.get<std::string>("url");}
-	catch(Xmms::no_such_key_error& err )
-		{std::cout<<"no"<<std::endl;}
-	plist.insert (id, info);
-	return true;
-	}
-
-QString XMMS2Interface::val(QString key, unsigned int id)
-	{
-	if (!plist.contains (id))
-		{
-		this->medialib.getInfo(id)(Xmms::bind(&XMMS2Interface::getDat,this));
-		plist[id] = QPair<QString, QString>();
-		}
-	if(key=="artist")
-		return plist[id].first;
-	else
-		return plist[id].second;
-	}
-
 bool XMMS2Interface::getCurrentPlaylist(const std::string& name)
 	{
 	if(quitting) return false;
@@ -205,10 +163,6 @@ bool XMMS2Interface::handleCollChange(const Xmms::Dict& change)
 	return true;
 	}
 XMMS2Interface::Client::~Client() {}
-
-void XMMS2Interface::emitSongAboutToChange() {
-	emit aboutToChangeSong();
-}
 
 bool XMMS2Interface::handlePlaytimeSignal(uint newTime) {
 	emit songPositionChanged(newTime);
