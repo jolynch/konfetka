@@ -25,10 +25,10 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	mediaList->setDropIndicatorShown(true);
 	mediaList->setObjectName ("mediaList");
 
-	add = new QPushButton();
-	add->setIcon(QIcon(":images/file_system"));
-	add->setToolTip("Show The File Chooser");
-	add->setFixedSize(32,32);
+	loadUniverse= new QPushButton();
+	loadUniverse->setIcon(QIcon(":images/xmms2Logo"));
+	loadUniverse->setToolTip("Load Universe");
+	loadUniverse->setFixedSize(32,32);
 
 	update = new QPushButton();
 	update->setIcon(QIcon(":images/repeat_all"));
@@ -60,7 +60,7 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	layout->addWidget(searchLine,0,0,1,1);
 	layout->addWidget(mediaList,1,0,1,1);
 	layout->addWidget(complexSearchButton,0,1,1,1,Qt::AlignHCenter);
-	buttons->addWidget(add,Qt::AlignHCenter);
+	buttons->addWidget(loadUniverse,Qt::AlignHCenter);
 	buttons->addWidget(update,Qt::AlignHCenter);
 	buttons->addWidget(makeColl,Qt::AlignHCenter);
 	layout->addLayout(buttons,1,1,1,1,Qt::AlignHCenter | Qt::AlignTop);
@@ -69,10 +69,10 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 
 	setLayout(layout);
 
-	searchDialog = new ComplexSearchDialog(conn);
+	searchDialog = new ComplexSearchDialog(conn,NULL);
 
 
-	connect(add,SIGNAL(clicked()),this,SLOT(toggleFileList()));
+	connect(loadUniverse,SIGNAL(clicked()),this,SLOT(loadUniv()));
 	connect(update,SIGNAL(clicked()),this,SLOT(refreshList()));
 	connect(searchLine,SIGNAL(returnPressed()),this,SLOT(searchMlib()));
 	
@@ -94,6 +94,7 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	connect(searchDialog,SIGNAL(newList(QList< QPair <Xmms::Coll::Coll*,Operator> >)),
 			this,SLOT(recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> >)));
 	visibleMedia = new Xmms::Coll::Universe();
+	lastVisibleMedia = visibleMedia;
 	mlib->getListFromServer(visibleMedia,"artist");
 	adding=false;
 
@@ -103,7 +104,7 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 
 MediaLib::~MediaLib() {
 	delete mediaList;
-	delete add;
+	delete loadUniverse;
 	delete update;
 	delete makeColl;
 	delete searchLine;
@@ -424,27 +425,30 @@ void MediaLib::checkIfRefreshIsNeeded() {
 }
 
 
-void MediaLib::toggleFileList() {
-	add->setToolTip("Hide The File Chooser");
+void MediaLib::loadUniv() {
+	Xmms::Coll::Coll* temp = new Xmms::Coll::Universe();
+	loadUpCollection(temp);
 }
 
 void MediaLib::searchMlib() {
 	std::string text = searchLine->text().toStdString();
-	Xmms::Coll::Universe univ;
 	Xmms::Coll::Union allMatches;
-		Xmms::Coll::Match matchedArt(univ,"artist","%"+text+"%");
+		Xmms::Coll::Match matchedArt(*visibleMedia,"artist","%"+text+"%");
 		allMatches.addOperand(matchedArt);
-		Xmms::Coll::Match matchedAlb(univ,"album","%"+text+"%");
+		Xmms::Coll::Match matchedAlb(*visibleMedia,"album","%"+text+"%");
 		allMatches.addOperand(matchedAlb);
-		Xmms::Coll::Match matchedTit(univ,"title","%"+text+"%");
+		Xmms::Coll::Match matchedTit(*visibleMedia,"title","%"+text+"%");
 		allMatches.addOperand(matchedTit);
-		Xmms::Coll::Match matchedUrl(univ,"url","%"+text+"%");
+		Xmms::Coll::Match matchedUrl(*visibleMedia,"url","%"+text+"%");
 		allMatches.addOperand(matchedUrl);
-		Xmms::Coll::Match matchedGenre(univ,"genre","%"+text+"%");
+		Xmms::Coll::Match matchedGenre(*visibleMedia,"genre","%"+text+"%");
 		allMatches.addOperand(matchedGenre);
-		Xmms::Coll::Match matchedID(univ,"id","%"+text+"%");
+		Xmms::Coll::Match matchedID(*visibleMedia,"id","%"+text+"%");
 		allMatches.addOperand(matchedID);
-	delete visibleMedia;
+		
+	if(text=="")
+	visibleMedia = lastVisibleMedia;
+	else
 	visibleMedia = new Xmms::Coll::Union(allMatches);
 	mlib->getListFromServer(visibleMedia,"artist");
 }
@@ -567,9 +571,7 @@ void MediaLib::toggleComplexSearch() {
 	searchLine->clear();
 	searchLine->setEnabled(true);
 	searchDialog->clearItems();
-		if(visibleMedia!=NULL)
-		delete visibleMedia;
-		visibleMedia = new Xmms::Coll::Universe();
+		visibleMedia = lastVisibleMedia;
 		mlib->getListFromServer(visibleMedia,"artist");
 	}
 
@@ -589,6 +591,7 @@ void MediaLib::recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> > newLi
 	Xmms::Coll::Coll* val = NULL;
 	
 	for(int i =0; i < newList.size();i++) {
+		std::cout<<"AHG"<<std::endl;
 		QPair <Xmms::Coll::Coll*,Operator> temp = newList.value(i);
 		
 		if(temp.second == opor) {
@@ -608,8 +611,10 @@ void MediaLib::recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> > newLi
 	}
 
 	if(val!=NULL) {
-		delete visibleMedia;
+// 			if(lastVisibleMedia==NULL)
+// 			delete lastVisibleMedia;
 		visibleMedia = val;
+		std::cout<<"DONE"<<std::endl;
 		searchLine->setText(coll->collAsQString(*val));
 		mlib->getListFromServer(visibleMedia,"artist");
 	}
@@ -734,14 +739,31 @@ void DropTreeWidget::dropEvent(QDropEvent *event){
 	stream >> ns;	
 		if(ns=="COLLECTIONS") {
 		std::cout<<"TODO: let people edit these..."<<std::endl;
+// 		conn->collection.get(title.toStdString(),Xmms::Collection::COLLECTIONS)(Xmms::bind(&MediaLib::loadUpCollection,lib));
+		Xmms::Coll::Reference* temp = new Xmms::Coll::Reference(title.toStdString(),Xmms::Collection::COLLECTIONS);
+		lib->loadUpCollection(temp);
 		}
 	}
 	
 }
 
-ComplexSearchDialog::ComplexSearchDialog(DataBackend* conn) {
-	QStringList temp;
+void MediaLib::loadUpCollection(Xmms::Coll::Coll* tmpColl) {
+	lastVisibleMedia = tmpColl;
+	visibleMedia = tmpColl;
+	delete searchDialog;
+	searchDialog = new ComplexSearchDialog(conn,visibleMedia);
+	connect(searchDialog,SIGNAL(newList(QList< QPair <Xmms::Coll::Coll*,Operator> >)),
+			this,SLOT(recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> >)));
+	mlib->getListFromServer(visibleMedia,"artist");
+}
+
+ComplexSearchDialog::ComplexSearchDialog(DataBackend* conn, Xmms::Coll::Coll* initSearchMedia) {
 	this->conn = conn;
+		if(initSearchMedia!=NULL)
+		searchMedia = initSearchMedia;
+		else
+		searchMedia = new Xmms::Coll::Universe();
+	QStringList temp;
 	itemList = new QTreeWidget();
 	temp<<"Attribute"<<"Operator"<<"Value"<<"Appendage Type"<<"Not?";
 	itemList->setHeaderLabels(temp);
@@ -850,36 +872,35 @@ void ComplexSearchDialog::clearItems() {
 }
 
 Xmms::Coll::Coll* ComplexSearchDialog::newColl(QString attr,QString oper,QString val,bool notFlag) {
-	Xmms::Coll::Universe univ;
 	Xmms::Coll::Coll* resultColl;
 		
 		if(oper == "=") {
-		resultColl = new Xmms::Coll::Equals(univ,attr.toStdString(),val.toStdString(),true);
+		resultColl = new Xmms::Coll::Equals(*searchMedia,attr.toStdString(),val.toStdString(),true);
 		}
 		else if(oper == "matches") {
 		std::string tmp = val.toStdString();
 		tmp = "%"  + tmp + "%";
-		resultColl = new Xmms::Coll::Match(univ,attr.toStdString(),tmp,false);
+		resultColl = new Xmms::Coll::Match(*searchMedia,attr.toStdString(),tmp,false);
 		}
 		else if(oper == "has tag") {
-		resultColl = new Xmms::Coll::Has(univ,attr.toStdString());
+		resultColl = new Xmms::Coll::Has(*searchMedia,attr.toStdString());
 		}
 		else if(oper == "<") {
-		resultColl = new Xmms::Coll::Smaller(univ,attr.toStdString(),val.toStdString());
+		resultColl = new Xmms::Coll::Smaller(*searchMedia,attr.toStdString(),val.toStdString());
 		}
 		else if(oper ==">") {
-		resultColl = new Xmms::Coll::Greater(univ,attr.toStdString(),val.toStdString());
+		resultColl = new Xmms::Coll::Greater(*searchMedia,attr.toStdString(),val.toStdString());
 		}
 		else if(oper =="<=") {
-		Xmms::Coll::Smaller tmp1(univ,attr.toStdString(),val.toStdString());
-		Xmms::Coll::Equals tmp2(univ,attr.toStdString(),val.toStdString());
+		Xmms::Coll::Smaller tmp1(*searchMedia,attr.toStdString(),val.toStdString());
+		Xmms::Coll::Equals tmp2(*searchMedia,attr.toStdString(),val.toStdString());
 		Xmms::Coll::Union * un = new Xmms::Coll::Union();
 		un->addOperand(tmp1); un->addOperand(tmp2);
 		resultColl = un;
 		}
 		else if(oper == ">=") {
-		Xmms::Coll::Greater tmp1(univ,attr.toStdString(),val.toStdString());
-		Xmms::Coll::Equals tmp2(univ,attr.toStdString(),val.toStdString());
+		Xmms::Coll::Greater tmp1(*searchMedia,attr.toStdString(),val.toStdString());
+		Xmms::Coll::Equals tmp2(*searchMedia,attr.toStdString(),val.toStdString());
 		Xmms::Coll::Union * un = new Xmms::Coll::Union();
 		un->addOperand(tmp1); un->addOperand(tmp2);
 		resultColl = un;
@@ -891,7 +912,6 @@ Xmms::Coll::Coll* ComplexSearchDialog::newColl(QString attr,QString oper,QString
 		comp->setOperand(*resultColl);
 		return comp;
 		}
-
 	return resultColl;
 }
 

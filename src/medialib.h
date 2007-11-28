@@ -64,7 +64,7 @@ Q_OBJECT
 	CollData* coll;	
 	bool adding,complexSearch;
 	DropTreeWidget * mediaList;
-	QPushButton * add;
+	QPushButton * loadUniverse;
 	QPushButton * update;
 	QPushButton * makeColl;
 	QPushButton * complexSearchButton;
@@ -81,6 +81,7 @@ Q_OBJECT
 	//NEW LISTS
 	QHash<uint,QTreeWidgetItem*> idToSongItem;
 	Xmms::Coll::Coll * visibleMedia;
+	Xmms::Coll::Coll * lastVisibleMedia;
 	static const ItemType ARTIST = 0x001;
 	static const ItemType ALBUM = 0x010;
 	static const ItemType SONG = 0x011;
@@ -95,6 +96,7 @@ Q_OBJECT
 	Xmms::Coll::Union* selectedAsColl();
 	bool addToPlaylistFromCollectionDrag(const Xmms::List <Xmms::Dict> &list);
 	void setLayoutSide(bool right_side);
+	void loadUpCollection(Xmms::Coll::Coll*);
 	int numDone,total;
 
 	//NEW LISTS
@@ -107,7 +109,7 @@ Q_OBJECT
 	void checkIfRefreshIsNeeded();
 	//refer to cpp
 // 	bool getArtists(const Xmms::List <Xmms::Dict> &list);
-	void toggleFileList();
+	void loadUniv();
 	void useSelected();
 	void useVisible();
 	void newColl(SourceType type);
@@ -183,7 +185,7 @@ class ComplexSearchDialog:public QDialog {
 	QGridLayout * layout;
 
 	public:
-	ComplexSearchDialog(DataBackend*);
+	ComplexSearchDialog(DataBackend*, Xmms::Coll::Coll*);
 	Xmms::Coll::Coll* newColl(QString attr,QString oper,QString val,bool notFlag);	
 
 	public slots:

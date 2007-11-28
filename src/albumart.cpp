@@ -25,6 +25,7 @@ AlbumArt::AlbumArt()
 	currentArtLabel->setAlignment ( Qt::AlignCenter );
 	
 	http = new QHttp();
+	xmlFile = NULL;
 
 	fromThis = 0;
 	artHashStorePath=Xmms::getUserConfDir().c_str();
@@ -66,6 +67,7 @@ AlbumArt::~AlbumArt()
 	//delete currentArtIcon;
 	currentArtLabel->deleteLater();
 	delete http;
+	if(xmlFile != NULL)
 	delete xmlFile;
 	delete imageFile;
 	delete albumPic;
