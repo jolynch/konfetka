@@ -61,8 +61,6 @@ InfoEditor::InfoEditor(DataBackend * c,QWidget* parent,Qt::WindowFlags f):QWidge
 	layout->addWidget(reset,8,5);
 	this->setLayout(layout);
 	QObject::connect(reset,SIGNAL(clicked()),this,SLOT(slotReset()));
-	QObject::connect(conn,SIGNAL(newSong(Xmms::PropDict)),
-				this,SLOT(newInfo(Xmms::PropDict)));
 	QObject::connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),
 				this,SLOT(newStatus(Xmms::Playback::Status)));
 	QObject::connect(conn,SIGNAL(currentId(int)),this,SLOT(newId(int)));
@@ -98,45 +96,19 @@ void InfoEditor::slotReset()
 void InfoEditor::newId(int id)
 	{
 	curId=id;
-	}
-
-void InfoEditor::newInfo(Xmms::PropDict info)
-	{
 	if(stopped) return;
-	std::string tmp;
-	try {tmp=info.get<std::string>("artist");}
-	catch(...)
-		{tmp="";}
-	artist_->setText(QString(tmp.c_str()));
-	try {tmp=info.get<std::string>("title");}
-	catch(...)
-		{tmp="";}
-	title_->setText(QString(tmp.c_str()));
-	try {tmp=info.get<std::string>("album");}
-	catch(...)
-		{tmp="";}
-	album_->setText(QString(tmp.c_str()));
-	try {tmp=info.get<std::string>("genre");}
-	catch(...)
-		{tmp="";}
-	genre_->setText(QString(tmp.c_str()));
-	try {tmp=info.get<std::string>("date");}
-	catch(...)
-		{tmp="";}
-	year_->setText(QString(tmp.c_str()));
-	try
-		{
-		std::stringstream ss;
-		ss<<info.get<int>("tracknr"); ss>>tmp;
-		}
-	catch(...)
-		{tmp="";}
-	track_->setText(QString(tmp.c_str()));
+	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
+	artist_->setText(mlib->getInfo(QString("artist"),id).toString());
+	title_->setText(mlib->getInfo(QString("title"),id).toString());
+	album_->setText(mlib->getInfo(QString("album"),id).toString());
+	genre_->setText(mlib->getInfo(QString("genre"),id).toString());
+	year_->setText(mlib->getInfo(QString("date"),id).toString());
+	track_->setText(QString::number(mlib->getInfo(QString("tracknr"),id).toInt()));
 	QString foo("");
 	foo.append("Filename: ");
 	try
 		{
-		QString bar(info.get<std::string>("url").c_str());
+		QString bar=mlib->getInfo(QString("url"),id).toString();
 		//std::cout<<bar.toStdString()<<std::endl;
 		bar = QString::fromUtf8 (xmmsc_result_decode_url (NULL, bar.toAscii()));
 		if(bar.startsWith("file://"))
@@ -152,10 +124,10 @@ void InfoEditor::newInfo(Xmms::PropDict info)
 	foo.clear();
 	std::stringstream ss;
 	foo.append("Bitrate: ");
-	tmp="";
+	std::string tmp="";
 	try
 		{
-		ss << (info.get<int>("bitrate"))/1000; ss >> tmp;
+		ss << (mlib->getInfo(QString("bitrate"),id).toInt())/1000; ss >> tmp;
 		foo.append(tmp.c_str());
 		foo.append(" kbit/s");
 		}
@@ -168,7 +140,7 @@ void InfoEditor::newInfo(Xmms::PropDict info)
 	foo.append("Channels: ");
 	try
 		{
-		ss << info.get<int>("channels"); ss >> tmp;
+		ss << mlib->getInfo(QString("channels"),id).toInt(); ss >> tmp;
 		foo.append(tmp.c_str());
 		}
 	catch(...){}
@@ -179,7 +151,7 @@ void InfoEditor::newInfo(Xmms::PropDict info)
 	foo.append("Times played: ");
 	try
 		{
-		ss << info.get<int>("timesplayed"); ss >> tmp;
+		ss << mlib->getInfo(QString("timesPlayed"),id).toInt(); ss >> tmp;
 		foo.append(tmp.c_str());
 		}
 	catch(...){}

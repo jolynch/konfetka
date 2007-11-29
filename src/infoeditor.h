@@ -7,6 +7,7 @@
 #ifndef INFOEDITOR_H
 #define INFOEDITOR_H
 #include "databackend.h"
+#include "databackend/mlibdata.h"
 #include <QWidget>
 #include <QFrame>
 #include <QLabel>
@@ -51,7 +52,6 @@ class InfoEditor:public QWidget
 		void slotReset();
 	public slots:
 		void newId(int id);
-		void newInfo(Xmms::PropDict info);
 		void newStatus(Xmms::Playback::Status status);
 	};
 

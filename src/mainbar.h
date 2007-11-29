@@ -6,6 +6,7 @@
 #define MAINBAR_H
 #include <iostream>
 #include "databackend.h"
+#include "databackend/mlibdata.h"
 #include "songpositionslider.h"
 #include <QWidget>
 #include <QPushButton>
@@ -68,7 +69,7 @@ class MainBar:public QWidget
 		void slotPause();
 		void slotStop();
 		void slotForward();
-		void slotUpdateInfo(const Xmms::PropDict&);
+		void slotUpdateInfo(int id);
 		void slotScroll();
 		void slotSetVolume(int);
 		void slotGetVolume(const Xmms::Dict&);

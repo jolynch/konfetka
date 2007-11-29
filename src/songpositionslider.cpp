@@ -17,7 +17,7 @@ SongPositionSlider::SongPositionSlider(DataBackend * c,Qt::Orientation o, QWidge
 	GRACE_DISTANCE = 10;
 	CUEGRACE_DISTANCE = 2;
 	connect(conn,SIGNAL(currentPlaytime(int)),this,SLOT(setInitTime(int)));
-	connect(conn,SIGNAL(newSong(Xmms::PropDict)),this,SLOT(setDuration(Xmms::PropDict)));
+	connect(conn,SIGNAL(currentId(int)),this,SLOT(setDuration(int)));
 	connect(this,SIGNAL(valueChanged(int)),this,SIGNAL(timeChanged(int)));
 	connect(this,SIGNAL(valueChanged(int)),this,SLOT(update()));
 	connect(conn,SIGNAL(songPositionChanged(uint)), this, SLOT(handlePlaytimeSignal(uint)));
@@ -57,15 +57,20 @@ void SongPositionSlider::setTimeFromSlider() {
 }
 
 //Sets the duration of the slider, this !!NEEDS!! to be called elsewhere
-void SongPositionSlider::setDuration(const Xmms::PropDict& info) {
+void SongPositionSlider::setDuration(int id) {
+	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
 	markers.clear();
-	if(info.contains("duration")){
-	duration = (info.get<int>("duration")) /MAGFACTOR;
+	QTime tmp=QTime::fromString(mlib->getInfo(QString("duration"),id).toString(),"mm:ss");
+	if(!tmp.isValid())
+		tmp=QTime::fromString(mlib->getInfo(QString("duration"),id).toString(),"h:mm:ss");
+	int ms=tmp.msec()+tmp.second()*1000+tmp.minute()*60*1000+tmp.hour()*60*60*1000;
+	duration = ms/MAGFACTOR;
+	if(duration>=0){
 	setRange(0,duration);
 	songEmitted = false;
 	curType = FILE;
 	}
- 	else if(info.contains("url") && (info.get<std::string>("url")).find("file://") == std::string::npos){
+ 	else if((mlib->getInfo(QString("url"),id).toString().toStdString()).find("file://") == std::string::npos){
  	curType = STREAM;
 	emit timeChanged(-1);
 	update();
@@ -75,9 +80,9 @@ void SongPositionSlider::setDuration(const Xmms::PropDict& info) {
 	qDebug()<<"Could not retrieve duration of song from Server and is not a stream  [ERROR]";
 	}
 
-	currentID = info.get<int>("id");
-	if(info.contains("cuepoints")) {
-	QString temp = QString((info.get<std::string>("cuepoints")).c_str());
+	currentID = id;
+	QString temp = (mlib->getInfo(QString("cuepoints"),id)).toString();
+	if(temp!="Unknown"){
 	QStringList tmp = temp.split(",");
 		for(int i =0;i<tmp.size();i++) {
 		markers.insert(tmp.value(i).toInt());

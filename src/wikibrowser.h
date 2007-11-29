@@ -5,6 +5,8 @@
 #ifndef WIKIBROWSER_H
 #define WIKIBROWSER_H
 #include "imagehttp.h"
+#include "databackend.h"
+#include "databackend/mlibdata.h"
 #include <QTextBrowser>
 #include <QByteArray>
 #include <QHttp>
@@ -31,10 +33,11 @@ class WikiBrowser:public QTextBrowser
 		QString last;
 		QStack<QString> bStack;
 		QStack<QString> fStack;
+		DataBackend * conn;
 	public:
-		WikiBrowser(QWidget * parent);
+		WikiBrowser(DataBackend * c,QWidget * parent);
 		~WikiBrowser();
-		void parseUrl(Xmms::PropDict info);
+		void parseUrl(int id);
 		QVariant loadResource ( int type, const QUrl & name );
 		QByteArray data;
 		void scroll(const QUrl & url);
@@ -56,11 +59,12 @@ class WikiView:public QWidget {
 		QVBoxLayout * vlayout;
 		QString * artistHome;
 		QPushButton * goHome;
+		DataBackend * conn;
 	public :
-		WikiView(QWidget * parent,Qt::WindowFlags f);
+		WikiView(DataBackend * c,QWidget * parent,Qt::WindowFlags f);
 		~WikiView();
 		WikiBrowser * myWiki;
-		void setHome(Xmms::PropDict info);
+		void setHome(int id);
 	public slots:
 		void updateProgress(int,int);
 		void goToHome();

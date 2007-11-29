@@ -4,6 +4,8 @@
 #endif
 #ifndef LYRICBROWSER_H
 #define LYRICBROWSER_H
+#include "databackend.h"
+#include "databackend/mlibdata.h"
 #include <QTextBrowser>
 #include <QByteArray>
 #include <QHttp>
@@ -20,10 +22,11 @@ class LyricBrowser:public QTextBrowser
 		int currentID;
 		QHttp * browser;
 		QString parse(QString in);
+		DataBackend * conn;
 	public:
-		LyricBrowser();
+		LyricBrowser(DataBackend * c);
 		~LyricBrowser();
-		void parseUrl(Xmms::PropDict info);
+		void parseUrl(int id);
 	public slots:
 		void httpData(int,bool);
 		void setSource(const QUrl &);

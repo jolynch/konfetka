@@ -1,6 +1,11 @@
+#ifndef XMMSCLIENTPP
+#define XMMSCLIENTPP
+#include <xmmsclient/xmmsclient++.h>
+#endif
 #ifndef ALBUMART_H
 #define ALBUMART_H
-#include <xmmsclient/xmmsclient++.h>
+#include "databackend.h"
+#include "databackend/mlibdata.h"
 #include <QtNetwork>
 #include <QtGui>
 #include <QDomDocument>
@@ -41,12 +46,14 @@ class AlbumArt: public QWidget
 	
 	QTimer timeout;
 
+	DataBackend * conn;
+
 	public:
-		AlbumArt();
+		AlbumArt(DataBackend * c);
 		~AlbumArt();
 		void paintEvent(QPaintEvent *);
 	public slots:
-	void fetchXML(Xmms::PropDict);
+	void fetchXML(int);
 	void fetchImage(bool);
 	void setImage(bool);
 	void slotReflect(bool);

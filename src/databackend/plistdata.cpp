@@ -9,8 +9,6 @@ PlaylistDelegate::PlaylistDelegate(QAbstractItemModel * m,DataBackend * c)
 	editing=false;
 	connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),this,SLOT(statusChanged(Xmms::Playback::Status)));
 	connect(conn,SIGNAL(currentPos(const unsigned int)),this,SLOT(posChanged(uint)));
-	conn->playlist.currentPos()(Xmms::bind(&DataBackend::curPos,conn));
-	conn->playback.getStatus()(Xmms::bind(&DataBackend::getstatus, conn));
 	}
 
 QSize PlaylistDelegate::sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const

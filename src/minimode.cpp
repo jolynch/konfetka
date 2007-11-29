@@ -54,7 +54,7 @@ MiniMode::MiniMode(DataBackend * c,AlbumArt * a,QWidget * p, Qt::WindowFlags f):
 	
 	connect(parentAlbArt,SIGNAL(newPixmap(QPixmap)),this,SLOT(loadNewPixmap(QPixmap)));
 	
-	connect(conn,SIGNAL(newSong(Xmms::PropDict)),this,SLOT(setNewInfo(Xmms::PropDict)));
+	connect(conn,SIGNAL(currentId(int)),this,SLOT(setNewInfo(int)));
 	connect(position,SIGNAL(timeChanged(int)),this,SLOT(changeTimeButton()));
 	connect(timeButton,SIGNAL(clicked()),this,SLOT(toggleTimeMode()));
 	
@@ -242,18 +242,15 @@ void MiniMode::loadNewPixmap(QPixmap image) {
 	artLabel->setPixmap(image);
 }
 
-void MiniMode::setNewInfo(Xmms::PropDict info){
+void MiniMode::setNewInfo(int id){
 	QString str;
 	QStringList list;
 	list<<"artist"<<"album"<<"title";
 	curSongInfo.clear();
-
+	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
 	for(int i=0;i<list.size();i++) {
 	str = list[i].mid(0,1).toUpper()+list[i].mid(1)+":";
-		if(info.contains(list[i].toStdString()))
-		str+= info.get<std::string>(list[i].toStdString()).c_str();
-		else
-		str+= "Unknown";
+		str+=mlib->getInfo(list[i],id).toString();
 // 	str=str.left(20);
 	if(i+1<list.size())
 	str += "\n";

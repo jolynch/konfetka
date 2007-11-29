@@ -32,7 +32,6 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		bool scrapResultI(unsigned int foo); //@overload for scrapping 1 int returns.
 //		bool nonFatalError(const std::string& error); - Don't use this anymore!
 		bool newSongResponse(const unsigned int& id);
-		bool getNewSongInfo(const Xmms::PropDict& info);
 		bool getstatus(const Xmms::Playback::Status& status);
 		bool getCurPlaytime(int);
 		bool configResponse(const Xmms::Dict& val);
@@ -50,7 +49,6 @@ class XMMS2Interface:public QObject, public Xmms::Client
 // 	public slots:
 // 		void changeSongInPlaylist(int);
 	signals:
-		void newSong(Xmms::PropDict);
 		void changeStatus(Xmms::Playback::Status);
 		void currentId(int);
 		void currentPlaytime(int);

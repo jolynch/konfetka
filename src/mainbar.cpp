@@ -136,7 +136,7 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 
 	QObject::connect(scrollTimer, SIGNAL(timeout()), this, SLOT(slotScroll()));
 
-	QObject::connect(conn,SIGNAL(newSong(Xmms::PropDict)),this,SLOT(slotUpdateInfo(Xmms::PropDict)));
+	QObject::connect(conn,SIGNAL(currentId(int)),this,SLOT(slotUpdateInfo(int)));
 	QObject::connect(conn,SIGNAL(volumeChanged(Xmms::Dict)),
 					this,SLOT(slotGetVolume(Xmms::Dict)));
 	if(mini)
@@ -252,22 +252,17 @@ void MainBar::updateTime() {
 	}
 }
 
-void MainBar::slotUpdateInfo(const Xmms::PropDict& info)
+void MainBar::slotUpdateInfo(int id)
 {
 QString display;
 
 QPalette temp;
 temp.setColor(QPalette::WindowText, QColor(150, 150, 200));
 temp.setColor(QPalette::Window, QColor(0, 0, 0));
-
-		try {scrollInfo="Artist: "+info.get<string>("artist")+"   -   ";}
-		catch(Xmms::no_such_key_error& err ){}
-
-		try {scrollInfo+="Album: "+info.get<string>("album")+"   -   ";;}
-		catch(Xmms::no_such_key_error& err ){}
-
-		try {scrollInfo+="Title: "+info.get<string>("title")+"       ";}
-		catch(Xmms::no_such_key_error& err ){}
+	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
+	scrollInfo=mlib->getInfo(QString("artist"),id).toString().toStdString();
+	scrollInfo+=mlib->getInfo(QString("title"),id).toString().toStdString();
+	scrollInfo+=mlib->getInfo(QString("album"),id).toString().toStdString();
 for(int i=scrollInfo.length();i < TitleBar->width()/5;i++)
 {scrollInfo+=" ";}
 

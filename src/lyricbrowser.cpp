@@ -1,8 +1,9 @@
 #ifndef LYRICBROWSER_CPP
 #define LYRICBROWSER_CPP
 #include "lyricbrowser.h"
-LyricBrowser::LyricBrowser():QTextBrowser()
+LyricBrowser::LyricBrowser(DataBackend * c):QTextBrowser()
 	{
+	conn=c;
 	browser=new QHttp();
 	connect(browser,SIGNAL(requestFinished(int,bool)),this,SLOT(httpData(int,bool)));
 	browser->setHost("lyrc.com.ar");
@@ -58,32 +59,39 @@ QString LyricBrowser::parse(QString in)
 	return out;
 	}
 
-void LyricBrowser::parseUrl(Xmms::PropDict info)
+void LyricBrowser::parseUrl(int id)
 	{
 	adress=new QString("/en/tema1en.php?artist=");
-	std::string foo;
-	try{foo=info.get<std::string>("artist");}
-	catch(Xmms::no_such_key_error& err)
+	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
+	QVariant tmp=mlib->getInfo(QString("artist"),id);
+	if(tmp.toInt()==-1)
 		{
-		this->setText("Could not read tag");
+		this->setText(" ");
 		return;
 		}
+	else if(tmp.toString()=="Unknown")
+		{
+		this->setText("Unknown Artist");
+		return;
+		}
+	std::string foo=tmp.toString().toStdString();
 	while(foo.find(" ")!=std::string::npos)
 		{foo.replace(foo.find(" "),1,"%20");}
 	adress->append(foo.c_str());
 	adress->append("&songname=");
-	try{foo=info.get<std::string>("title");}
-	catch(Xmms::no_such_key_error& err)
+	tmp=mlib->getInfo(QString("title"),id);
+	if(tmp.toString()=="Unknown")
 		{
-		this->setText("Could not read tag");
+		this->setText("Unknown Title");
 		return;
 		}
+	foo=tmp.toString().toStdString();
 	while(foo.find(" ")!=std::string::npos)
 		{foo.replace(foo.find(" "),1,"%20");}
 	adress->append(foo.c_str());
 	this->setSource(*(new QUrl(*adress)));
 	//delete adress;
-	adress= new QString();
+	//adress= new QString();
 	}
 
 void LyricBrowser::httpData(int id, bool error)

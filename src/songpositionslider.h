@@ -10,6 +10,7 @@
 #ifndef SONGPOSITIONSLIDER_H
 #define SONGPOSITIONSLIDER_H
 #include "databackend.h"
+#include "databackend/mlibdata.h"
 #include <QTimer>
 #include <QSlider>
 #include <QDebug>
@@ -19,6 +20,7 @@
 #include <QLinearGradient>
 #include <QSet>
 #include <QMenu>
+#include <QTime>
 
 class DataBackend;
 typedef int SongType;
@@ -56,7 +58,7 @@ class SongPositionSlider:public QSlider
 		
 		void setTimeFromSlider();
 		void setInitTime(int);	
-		void setDuration(const Xmms::PropDict&);
+		void setDuration(int id);
 		bool handlePlaytimeSignal(uint);
 		void setMarker(); //sets a marker at wherever the time variable is
 		void delMarker(); //same, but removes one

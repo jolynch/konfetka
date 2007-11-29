@@ -16,7 +16,7 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 	statusString="";
 	infoString="";
 	finalString=new QString();
-	albumArt=new AlbumArt();
+	albumArt=new AlbumArt(conn);
 	netInfo=new QTabWidget();
 	netInfo->setTabPosition(QTabWidget::South);
 	info=new QWidget();
@@ -43,8 +43,8 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 	infoLayout->setRowMinimumHeight(0,175);
 //	infoLayout->setRowMinimumHeight(1,100);
 	info->setLayout(infoLayout);
-	wiki=new WikiView(parent,f);
-	lyrics=new LyricBrowser();
+	wiki=new WikiView(conn,parent,f);
+	lyrics=new LyricBrowser(conn);
 	options=new QScrollArea();
 	//JOEY MOVED THESE TWO LINES UP FOR OPTIONS
 	//visualization=new Visualization(conn,this, NULL);
@@ -85,10 +85,10 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 	layout->setColumnMinimumWidth(2,(int)(wid*(2.0/7)));
 	layout->setSpacing(5);
 	this->setLayout(layout);
-	QObject::connect(conn,SIGNAL(newSong(Xmms::PropDict)),
-				this,SLOT(updateSong(Xmms::PropDict)));
-	QObject::connect(conn,SIGNAL(newSong(Xmms::PropDict)),
-				albumArt,SLOT(fetchXML(Xmms::PropDict)));
+	QObject::connect(conn,SIGNAL(currentId(int)),
+				this,SLOT(updateSong(int)));
+	QObject::connect(conn,SIGNAL(currentId(int)),
+				albumArt,SLOT(fetchXML(int)));
 	QObject::connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),
 				this,SLOT(updateStatus(Xmms::Playback::Status)));
 	}
@@ -169,30 +169,22 @@ void RearPanel::updateStatus(Xmms::Playback::Status status)
 	songInfo->setText(*finalString);
 	}
 
-void RearPanel::updateSong(Xmms::PropDict info)
+void RearPanel::updateSong(int id)
 	{
-	{
-	using namespace std;
-		try {infoString=info.get<string>("artist");}
-		catch(Xmms::no_such_key_error& err )
-			{infoString="No Artist";}
-		infoString+="\n";
-		try {infoString+=info.get<string>("title");}
-		catch(Xmms::no_such_key_error& err )
-			{infoString+="No Title";}
-		infoString+="\n";
-		try {infoString+=info.get<string>("album");}
-		catch(Xmms::no_such_key_error& err )
-			{infoString+="No Album";}
-		infoString+="\n";
-	}
+	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
+	infoString=mlib->getInfo(QString("artist"),id).toString().toStdString();
+	infoString+="\n";
+	infoString+=mlib->getInfo(QString("title"),id).toString().toStdString();
+	infoString+="\n";
+	infoString+=mlib->getInfo(QString("album"),id).toString().toStdString();
+	infoString+="\n";
 	finalString->clear();
 	finalString->append(statusString.c_str());
 	finalString->append(infoString.c_str());
 	songInfo->setText(*finalString);
-	wiki->myWiki->parseUrl(info);
-	wiki->setHome(info);
-	lyrics->parseUrl(info);
+	wiki->myWiki->parseUrl(id);
+	wiki->setHome(id);
+	lyrics->parseUrl(id);
 	}
 
 //JOEY

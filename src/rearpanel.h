@@ -5,6 +5,7 @@
 #ifndef REARPANEL_H
 #define REARPANEL_H
 #include "databackend.h"
+#include "databackend/mlibdata.h"
 #include "equalizer.h"
 #include "visualization.h"
 #include "options.h"
@@ -61,7 +62,7 @@ class RearPanel: public QWidget
 		AlbumArt* getAlbumArt();
 	public slots:
 		void updateStatus(Xmms::Playback::Status);
-		void updateSong(Xmms::PropDict);
+		void updateSong(int id);
 		//ADDED BY JOEY FOR OPTIONS
 		void createNewVis();
 	signals:

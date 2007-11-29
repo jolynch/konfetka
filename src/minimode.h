@@ -6,6 +6,7 @@
 #ifndef MINIMODE_H
 #define MINIMODE_H
 #include "databackend.h"
+#include "databackend/mlibdata.h"
 #include "basicvis.h"
 #include "albumart.h"
 #include "mainbar.h"
@@ -52,7 +53,7 @@ class MiniMode:public QWidget
 		void setVolume();
 		void setInfo();
 		void loadNewPixmap(QPixmap);
-		void setNewInfo(Xmms::PropDict);
+		void setNewInfo(int);
 		void changeTimeButton();
 		void toggleTimeMode();
 		void toggleSize();

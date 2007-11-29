@@ -78,6 +78,7 @@ void XMMS2Interface::emitInitialXmms2Settings()
 	this->playback.getStatus()(Xmms::bind(&XMMS2Interface::getstatus, this));
 	this->playback.getPlaytime()(Xmms::bind(&XMMS2Interface::getCurPlaytime, this));
 	this->playback.volumeGet()(Xmms::bind(&XMMS2Interface::volumeResponse, this));
+	this->playlist.currentPos()(Xmms::bind(&XMMS2Interface::curPos,this));
 	}
 
 XMMS2Interface::~XMMS2Interface()
@@ -97,14 +98,7 @@ bool XMMS2Interface::newSongResponse(const unsigned int& id)
 	{
 	if(quitting) return false;
 	emit(currentId(id));
-	this->medialib.getInfo(id)(Xmms::bind(&XMMS2Interface::getNewSongInfo, this));
 	return true;
-	}
-
-bool XMMS2Interface::getNewSongInfo(const Xmms::PropDict& info)
-	{
-	emit(newSong(info));
-	return false;
 	}
 
 bool XMMS2Interface::getstatus(const Xmms::Playback::Status& status)

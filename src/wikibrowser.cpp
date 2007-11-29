@@ -1,8 +1,9 @@
 #ifndef WIKIBROWSER_CPP
 #define WIKIBROWSER_CPP
 #include "wikibrowser.h"
-WikiBrowser::WikiBrowser(QWidget * parent):QTextBrowser()
+WikiBrowser::WikiBrowser(DataBackend * c,QWidget * parent):QTextBrowser()
 	{
+	conn=c;
 	browser=new QHttp();
 	wikiPath = new QString("/wiki/");
 	browser->setHost("en.wikipedia.org");
@@ -19,20 +20,23 @@ WikiBrowser::~WikiBrowser()
 	delete wikiPath;
 	}
 
-void WikiBrowser::parseUrl(Xmms::PropDict info)
+void WikiBrowser::parseUrl(int id)
 	{
+	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
 	//std::cout<<browser->hasPendingRequests ()<<std::endl;
 	wikiPath->clear(); wikiPath->append("/wiki/");
-	std::string foo;
-	try
+	QVariant tmp=mlib->getInfo(QString("artist"),id);
+	if(tmp.toInt()==-1)
 		{
-		foo=info.get<std::string>("artist");
-		}
-	catch(Xmms::no_such_key_error& err)
-		{
-		this->setText("Could not read tag");
+		this->setText(" ");
 		return;
 		}
+	else if(tmp.toString()=="Unknown")
+		{
+		this->setText("Unknown Artist");
+		return;
+		}
+	std::string foo=tmp.toString().toStdString();
 	while(foo.find(" ")!=std::string::npos)
 		{foo.replace(foo.find(" "),1,"_");}
 	wikiPath->append(foo.c_str());
@@ -133,7 +137,8 @@ void WikiBrowser::scroll(const QUrl & url) {
 }
 
 
-WikiView::WikiView(QWidget * parent,Qt::WindowFlags f):QWidget(parent,f) {
+WikiView::WikiView(DataBackend * c,QWidget * parent,Qt::WindowFlags f):QWidget(parent,f) {
+	conn=c;
 	goHome = new QPushButton("To Artist");
 	backButton = new QPushButton("Go Back");
 	forwardButton = new QPushButton("Go Forward");
@@ -142,7 +147,7 @@ WikiView::WikiView(QWidget * parent,Qt::WindowFlags f):QWidget(parent,f) {
 
 	progressBar = new QProgressBar();
 
-	myWiki = new WikiBrowser(this);
+	myWiki = new WikiBrowser(conn,this);
 	connect(myWiki->browser,SIGNAL(dataReadProgress(int, int)),this, SLOT(updateProgress(int,int)));
 	connect(backButton,SIGNAL(clicked()),myWiki,SLOT(slotBack()));
 	connect(forwardButton,SIGNAL(clicked()),myWiki,SLOT(slotForward()));
@@ -180,13 +185,13 @@ if(!artistHome->isEmpty())
 myWiki->setSource(QUrl(*artistHome));
 }
 
-void WikiView::setHome(Xmms::PropDict info) {
-std::string foo;
-
-try{
-foo=info.get<std::string>("artist");
-}
-catch(Xmms::no_such_key_error& err){return;}
+void WikiView::setHome(int id) {
+MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
+QVariant tmp=mlib->getInfo(QString("artist"),id);
+if(tmp.toInt()==-1)
+	{return;}
+std::string foo=tmp.toString().toStdString();
+if(foo=="Unknown") return;
 
 while(foo.find(" ")!=std::string::npos){
 foo.replace(foo.find(" "),1,"_");

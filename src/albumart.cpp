@@ -4,8 +4,9 @@
 
 using namespace std;
 
-AlbumArt::AlbumArt()
+AlbumArt::AlbumArt(DataBackend * c)
 	{
+	conn=c;
 	numBad=0; paintFix=true;
 	numToGet=0;
 	QSettings s;
@@ -73,15 +74,20 @@ AlbumArt::~AlbumArt()
 	delete albumPic;
 	}
 
-void AlbumArt::fetchXML(Xmms::PropDict info) {
+void AlbumArt::fetchXML(int id_) {
 
 	
 
 	paintFix=true;
 	string a;numBad=0;
-	id = info.get<int32_t> ("id");
+	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
+	id = id_;
 	try{
-		try {
+		a+=mlib->getInfo(QString("album"),id).toString().toStdString();
+		a+=" "+mlib->getInfo(QString("artist"),id).toString().toStdString();
+		album=mlib->getInfo(QString("album"),id).toString();
+		artist=mlib->getInfo(QString("artist"),id).toString();
+/*		try {
 		a+=info.get<string>("album");
 		album = QString(info.get<string>("album").c_str());
 		}
@@ -95,7 +101,7 @@ void AlbumArt::fetchXML(Xmms::PropDict info) {
 		catch(Xmms::no_such_key_error& err ) {
 		numBad+=1;
 		}
-	combo.clear();
+*/	combo.clear();
 	combo.append(a.c_str());
 	}
 	catch(...){}
