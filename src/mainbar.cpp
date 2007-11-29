@@ -260,9 +260,9 @@ QPalette temp;
 temp.setColor(QPalette::WindowText, QColor(150, 150, 200));
 temp.setColor(QPalette::Window, QColor(0, 0, 0));
 	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
-	scrollInfo=mlib->getInfo(QString("artist"),id).toString().toStdString();
-	scrollInfo+=mlib->getInfo(QString("title"),id).toString().toStdString();
-	scrollInfo+=mlib->getInfo(QString("album"),id).toString().toStdString();
+	scrollInfo="Artist: "+mlib->getInfo(QString("artist"),id).toString().toStdString()+" ";
+	scrollInfo+="Title: "+mlib->getInfo(QString("title"),id).toString().toStdString()+" ";
+	scrollInfo+="Album: "+mlib->getInfo(QString("album"),id).toString().toStdString()+" ";
 for(int i=scrollInfo.length();i < TitleBar->width()/5;i++)
 {scrollInfo+=" ";}
 
