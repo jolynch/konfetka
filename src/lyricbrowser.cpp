@@ -74,10 +74,7 @@ void LyricBrowser::parseUrl(int id)
 		this->setText("Unknown Artist");
 		return;
 		}
-	std::string foo=tmp.toString().toStdString();
-	while(foo.find(" ")!=std::string::npos)
-		{foo.replace(foo.find(" "),1,"%20");}
-	adress->append(foo.c_str());
+	adress->append(QUrl::toPercentEncoding(tmp.toString()));
 	adress->append("&songname=");
 	tmp=mlib->getInfo(QString("title"),id);
 	if(tmp.toString()=="Unknown")
@@ -85,10 +82,7 @@ void LyricBrowser::parseUrl(int id)
 		this->setText("Unknown Title");
 		return;
 		}
-	foo=tmp.toString().toStdString();
-	while(foo.find(" ")!=std::string::npos)
-		{foo.replace(foo.find(" "),1,"%20");}
-	adress->append(foo.c_str());
+	adress->append(QUrl::toPercentEncoding(tmp.toString()));
 	this->setSource(*(new QUrl(*adress)));
 	//delete adress;
 	//adress= new QString();

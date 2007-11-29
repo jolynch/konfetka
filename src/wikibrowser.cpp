@@ -36,10 +36,7 @@ void WikiBrowser::parseUrl(int id)
 		this->setText("Unknown Artist");
 		return;
 		}
-	std::string foo=tmp.toString().toStdString();
-	while(foo.find(" ")!=std::string::npos)
-		{foo.replace(foo.find(" "),1,"_");}
-	wikiPath->append(foo.c_str());
+	wikiPath->append(QUrl::toPercentEncoding(tmp.toString()));
 	if(last!=wikiPath)
 	this->setSource(QUrl(*wikiPath));
 	last = *wikiPath;
@@ -190,15 +187,9 @@ MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
 QVariant tmp=mlib->getInfo(QString("artist"),id);
 if(tmp.toInt()==-1)
 	{return;}
-std::string foo=tmp.toString().toStdString();
-if(foo=="Unknown") return;
-
-while(foo.find(" ")!=std::string::npos){
-foo.replace(foo.find(" "),1,"_");
-}
-
+if(tmp.toString()=="Unknown") return;
 artistHome->clear();
-artistHome->append(foo.c_str());
+artistHome->append(QUrl::toPercentEncoding(tmp.toString()));
 }
 
 #endif

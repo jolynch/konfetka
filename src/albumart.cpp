@@ -83,8 +83,8 @@ void AlbumArt::fetchXML(int id_) {
 	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
 	id = id_;
 	try{
-		a+=mlib->getInfo(QString("album"),id).toString().toStdString();
-		a+=" "+mlib->getInfo(QString("artist"),id).toString().toStdString();
+		a+=*(mlib->getInfo(QString("album"),id).toString().toUtf8().data());
+		a+=" "+*(mlib->getInfo(QString("artist"),id).toString().toUtf8().data());
 		album=mlib->getInfo(QString("album"),id).toString();
 		artist=mlib->getInfo(QString("artist"),id).toString();
 /*		try {
@@ -102,7 +102,7 @@ void AlbumArt::fetchXML(int id_) {
 		numBad+=1;
 		}
 */	combo.clear();
-	combo.append(a.c_str());
+	combo.append(QString::fromUtf8(a.c_str()));
 	}
 	catch(...){}
 
@@ -130,7 +130,7 @@ void AlbumArt::fetchXML(int id_) {
 
    	httpRequestAborted = false;
 	
-	a=toUrl.toStdString();
+/*	a=toUrl.toStdString();
 	//cout<<album->toStdString()<<endl;
 	int pos;
 	while(a.find(" ",0)!=string::npos)
@@ -139,7 +139,7 @@ void AlbumArt::fetchXML(int id_) {
 	a.replace(pos,1,"%20");
 	}
 	toUrl.clear();
-	toUrl.append(a.c_str());
+*/	toUrl.append(QString::fromUtf8(a.c_str()));
 	httpGetId = http->get(toUrl, xmlFile);
 
 	curAlbumArtPath=Xmms::getUserConfDir().c_str();

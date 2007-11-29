@@ -260,13 +260,19 @@ QPalette temp;
 temp.setColor(QPalette::WindowText, QColor(150, 150, 200));
 temp.setColor(QPalette::Window, QColor(0, 0, 0));
 	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
-	scrollInfo="Artist: "+mlib->getInfo(QString("artist"),id).toString().toStdString()+" ";
-	scrollInfo+="Title: "+mlib->getInfo(QString("title"),id).toString().toStdString()+" ";
-	scrollInfo+="Album: "+mlib->getInfo(QString("album"),id).toString().toStdString()+" ";
+	scrollInfo="Artist: ";
+	scrollInfo+=(mlib->getInfo(QString("artist"),id).toString().toUtf8().data());
+	scrollInfo+="  -  ";
+	scrollInfo+="Title: ";
+	scrollInfo+=(mlib->getInfo(QString("title"),id).toString().toUtf8().data());
+	scrollInfo+="  -  ";
+	scrollInfo+="Album: ";
+	scrollInfo+=(mlib->getInfo(QString("album"),id).toString().toUtf8().data());
+	scrollInfo+="     ";
 for(int i=scrollInfo.length();i < TitleBar->width()/5;i++)
 {scrollInfo+=" ";}
 
-display.append(scrollInfo.c_str());
+display.append(QString::fromUtf8(scrollInfo.c_str()));
 TitleBar->setAlignment ( Qt::AlignCenter );
 TitleBar -> setPalette(temp);
 TitleBar->setMaximumSize(TitleBar->width(),50);
@@ -284,7 +290,7 @@ string var;
 var=scrollInfo.substr(0,1);
 scrollInfo.erase(0,1);
 scrollInfo+=var;
-TitleBar -> setText(scrollInfo.c_str());
+TitleBar -> setText(QString::fromUtf8(scrollInfo.c_str()));
 }
 
 void MainBar::slotMute()
@@ -325,8 +331,7 @@ void MainBar::slotMini()
 	}
 
 QString MainBar::curInfo() {
-QString str(scrollInfo.c_str());
-return str;
+return QString::fromUtf8(scrollInfo.c_str());
 }
 
 #endif

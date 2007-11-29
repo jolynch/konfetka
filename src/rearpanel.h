@@ -35,7 +35,7 @@ class RearPanel: public QWidget
 		QWidget * p;
 		DataBackend * conn;
 		std::string statusString;
-		std::string infoString;
+		QString infoString;
 		QString * finalString;
 		QLabel * songInfo;
 		AlbumArt * albumArt;

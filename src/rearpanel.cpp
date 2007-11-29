@@ -163,24 +163,25 @@ void RearPanel::updateStatus(Xmms::Playback::Status status)
 		break;
 		}}
 	//delete finalString;
-	finalString=new QString();
+	if(finalString==NULL) finalString=new QString();
+	finalString->clear();
 	finalString->append(statusString.c_str());
-	finalString->append(infoString.c_str());
+	finalString->append(infoString);
 	songInfo->setText(*finalString);
 	}
 
 void RearPanel::updateSong(int id)
 	{
 	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
-	infoString=mlib->getInfo(QString("artist"),id).toString().toStdString();
-	infoString+="\n";
-	infoString+=mlib->getInfo(QString("title"),id).toString().toStdString();
-	infoString+="\n";
-	infoString+=mlib->getInfo(QString("album"),id).toString().toStdString();
-	infoString+="\n";
+	infoString=mlib->getInfo(QString("artist"),id).toString();
+	infoString.append("\n");
+	infoString.append(mlib->getInfo(QString("title"),id).toString());
+	infoString.append("\n");
+	infoString.append(mlib->getInfo(QString("album"),id).toString());
+	infoString.append("\n");
 	finalString->clear();
 	finalString->append(statusString.c_str());
-	finalString->append(infoString.c_str());
+	finalString->append(infoString);
 	songInfo->setText(*finalString);
 	wiki->myWiki->parseUrl(id);
 	wiki->setHome(id);
