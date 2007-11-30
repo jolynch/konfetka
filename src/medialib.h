@@ -85,6 +85,7 @@ Q_OBJECT
 	static const ItemType ARTIST = 0x001;
 	static const ItemType ALBUM = 0x010;
 	static const ItemType SONG = 0x011;
+	static const ItemType INVALID = 0x100;
 	static const SourceType SELECTED = 0x01;
 	static const SourceType VISIBLE = 0x10;
 	ItemType getItemType(QTreeWidgetItem*);	
@@ -107,6 +108,7 @@ Q_OBJECT
 	public slots:
 	void refreshList();
 	void checkIfRefreshIsNeeded();
+	void respondToPeriodicUpdate();
 	//refer to cpp
 // 	bool getArtists(const Xmms::List <Xmms::Dict> &list);
 	void loadUniv();

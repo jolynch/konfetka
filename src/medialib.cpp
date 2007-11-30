@@ -89,6 +89,7 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 					this,SLOT(infoChanged(int)));
 	connect(mlib,SIGNAL(updatesDone()),
 					this,SLOT(checkIfRefreshIsNeeded()));
+	connect(mlib,SIGNAL(periodicUpdate()),this,SLOT(respondToPeriodicUpdate()));
 	connect(mediaList,SIGNAL(itemExpanded(QTreeWidgetItem*)),this,SLOT(itemExpanded(QTreeWidgetItem*)));
 
 	connect(searchDialog,SIGNAL(newList(QList< QPair <Xmms::Coll::Coll*,Operator> >)),
@@ -180,7 +181,6 @@ void MediaLib::artistList(QList<QString> info) {
 		QTreeWidgetItem * waitItem = new QTreeWidgetItem(newItem);
 		waitItem->setText(0,"...");
 		}
-	mediaList->sortItems(0,Qt::AscendingOrder);
 // 	Xmms::Coll::Has artColl(*visibleMedia,"artist");
 // 	Xmms::Coll::Complement albumItems;
 // 	albumItems.setOperand(artColl);
@@ -305,15 +305,19 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 			}
 			temp = new QTreeWidgetItem();
 			temp->setText(0,title);
-			std::cout<<*list << title.toStdString()<<std::endl;
+// 			std::cout<<*list << title.toStdString()<<std::endl;
 			album->addChild(temp);
 			idToSongItem.insert(*list,temp);
+			if(mlib->getInfo("status",*list).toInt()==3) {
+				for(int i=0;i<temp->columnCount();i++) {
+				temp->setForeground(i,QBrush(QColor("grey"),Qt::SolidPattern));
+				}
+			}
 		}
 		
 		if(album->childCount()==0) {
 // 		delete album;
 		}
-	album->sortChildren(0,Qt::AscendingOrder);
 	return true;
 }
 
@@ -321,10 +325,20 @@ void MediaLib::infoChanged(int id) {
 	if(idToSongItem.contains(id) && idToSongItem.value(id)!=NULL) {
 		QVariant tmp = mlib->getInfo(QString("title"),id);
 		idToSongItem.value(id)->setText(0,tmp.toString());
+		if(mlib->getInfo("status",id).toInt()==3) {
+			for(int i=0;i<idToSongItem.value(id)->columnCount();i++) {
+			idToSongItem.value(id)->setForeground(i,QBrush(QColor("grey"),Qt::SolidPattern));
+			}
+		}
 	}
 	else {
 	idStack.push(id);
 	}
+}
+
+void MediaLib::respondToPeriodicUpdate() {
+// 	if(this->hasFocus())
+// 	std::cout<<"UPDATe"<<std::endl;
 }
 
 void MediaLib::slotRemove() {
@@ -334,6 +348,7 @@ void MediaLib::slotRemove() {
 	Xmms::Coll::Union * media = selectedAsColl();
 	
 	conn->collection.queryIds(*media)(Xmms::bind(&MediaLib::removeIds,this));
+	//doesn't actually remove squat, simply closes the parent's node
 	removeNodes(what);
 }
 
@@ -382,46 +397,16 @@ void MediaLib::refreshList() {
 
 void MediaLib::checkIfRefreshIsNeeded() {
 	uint id;
-// 	bool needToUpdate=false;
-// 	QTreeWidgetItem* artist;
-// 	QTreeWidgetItem* album;
+	QTreeWidgetItem* temp;
 		while(!idStack.isEmpty()) {
 		id = idStack.pop();
-// 		if(!idToSongItem.contains(id) || idToSongItem.value(id)==NULL) continue;
-// 		QTreeWidgetItem * itm = idToSongItem.value(id);
-// 		album = itm->parent();
-// 		artist = album->parent();
-// 		
-// 		bool needToUpdate = false;
-// 		QString artist = itm->info("artist").toString();
-// 		QString album = itm->info("album").toString();
-// 		QTreeWidgetItem* artistNode = NULL;
-// 		QList<QTreeWidgetItem*> listArtist = mediaList->findItems(artist,Qt::MatchExactly);
-// 			for(int i=0;i<listArtist.size();i++) {
-// 				if(listArtist.value(i)->parent()==NULL) {
-// 					artistNode = listArtist.value(i);
-// 					if(listArtist.value(i)->isExpanded())
-// 					needToUpdate = true;
-// 					break;
-// 				}
-// 			}
-// 			if(artistNode == NULL)
-// 			needToUpdate = true;
-// 		QList<QTreeWidgetItem*> listAlbum = mediaList->findItems(album,Qt::MatchExactly);
-// 			for(int i=0;i<listAlbum.size();i++) {
-// 				if(listAlbum.value(i)->parent()==NULL && listAlbum.value(i)->isExpanded()) {
-// 					needToUpdate = true;
-// 					break;
-// 				}
-// 			}
-// 		if(needToUpdate) {
-// 		((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getListFromServer(visibleMedia,"artist");
-// 		while(!idStack.isEmpty())
-// 		idStack.pop();
-// 		return;
-// 		}
+			if(idToSongItem.contains(id)) {
+			temp = idToSongItem.value(id);
+			temp->setText(0,mlib->getInfo("title",id).toString());
+			temp->parent()->setText(0,mlib->getInfo("album",id).toString());
+			temp->parent()->parent()->setText(0,mlib->getInfo("artist",id).toString());
+			}
 	}
-	mlib->getListFromServer(visibleMedia,"artist");
 }
 
 

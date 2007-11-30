@@ -1,6 +1,5 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-	<file alias="xmmsLogo.png">images/xmms2Logo.png</file>	
 	<file alias="right_arrow.png">images/tree_right.png</file>
 	<file alias="down_arrow.png">images/tree_down.png</file>
 	<file alias="groove.png">images/groove.png</file>
@@ -59,6 +58,7 @@
 	<file>images/leftArrow.png</file>
 	<file>images/rightArrow.png</file>
 	<file>images/refresh.png</file>
+	<file>images/xmms2Logo.png</file>
 
 	<file alias="weirdline">data/weirdline</file>
 </qresource>

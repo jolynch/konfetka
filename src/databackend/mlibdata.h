@@ -57,11 +57,13 @@ class MlibData:public QObject {
 	QHash<uint,MediaInfo*> cache;
 	QStringList standardTags;
 	QTimer changeTimer;
+	QTimer periodicUpdateTimer;
 	
 	public:
 	MlibData(DataBackend *c,QObject * parent = 0);
 	QVariant getInfo(std::string property, uint id);
 	QVariant getInfo(QString property, uint id);
+	QVariant getInfo(char* property, uint id);
 	bool hasInfo(uint id);
 	QStringList getStandardTags();
 
@@ -79,6 +81,7 @@ class MlibData:public QObject {
 	void infoChanged(int id);
 	void gotListFromServer(QString property, QList<QString> info);
 	void updatesDone();
+	void periodicUpdate();
 
 };
 

@@ -40,6 +40,7 @@ CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::Windo
 
 	mimeData = NULL; drag = NULL;
 
+// 	del= new QShortcut(Qt::Key_Delete,this,SLOT(()),SLOT(slotRemove()));
 	connect(collDisplay->verticalScrollBar(),SIGNAL(valueChanged(int)),this,SLOT(getNextFew(int)));
 	connect(collDisplay,SIGNAL(itemDoubleClicked(QTreeWidgetItem *,int)),this,SLOT(addItemToPlist(QTreeWidgetItem*,int)));
 
@@ -81,7 +82,7 @@ void CollectionBrowser::addIdToView(int id, bool isPriority) {
 					newItem->setText(i,(mlib->getInfo(labels[i].toLower(),id)).toString());
 				}	
 				
-				if(mlib->getInfo(QString("status"),id).toInt()==3) {
+				if(mlib->getInfo("status",id).toInt()==3) {
 				greyItem(newItem);
 				}
 			numFetched+=1;
@@ -169,13 +170,13 @@ void CollectionBrowser::getNextFew(int val) {
 			if(mlib->hasInfo(id))
 			addIdToView(id,true);
 			else
-			mlib->getInfo(QString("url"),id);
+			mlib->getInfo("url",id);
 		}
 }
 
 void CollectionBrowser::addItemToPlist(QTreeWidgetItem* item,int col) {
 	int id = idToItem.key(item);
-	conn->playlist.addUrl(mlib->getInfo(QString("url"),id).toString().toStdString());
+	conn->playlist.addUrl(mlib->getInfo("url",id).toString().toStdString());
 }
 
 void CollectionBrowser::greyItem(QTreeWidgetItem* item) {
@@ -190,7 +191,7 @@ void CollectionBrowser::startDragTree(QTreeWidgetItem* item,int col) {
 	QList<QUrl> resultList;
 	mimeData = new QMimeData();
 	foreach(QTreeWidgetItem* item,sel) {
-		QString path = mlib->getInfo(QString("url"),idToItem.key(item)).toString();
+		QString path = mlib->getInfo("url",idToItem.key(item)).toString();
 		resultList.append(QUrl(path));
 	}
 	mimeData->setUrls(resultList);
@@ -228,11 +229,6 @@ void CollectionBrowser::startDrag() {
 	drag->setMimeData(mimeData);
 	waitTimer.stop();
 	drag->exec(Qt::CopyAction | Qt::MoveAction);
-}
-
-void CollectionBrowser::mousePressEvent(QMouseEvent * event) {
-	std::cout<<"PRESSED"<<std::endl;
-	event->ignore();
 }
 
 #endif

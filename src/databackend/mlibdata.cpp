@@ -58,6 +58,8 @@ MlibData::MlibData(DataBackend * c,QObject * parent):QObject(parent) {
 	connect(&changeTimer,SIGNAL(timeout()),this,SIGNAL(updatesDone()));
 	connect(&changeTimer,SIGNAL(timeout()),&changeTimer,SLOT(stop()));
 	connect(&waitTimer,SIGNAL(timeout()),this,SLOT(fetchSomeMore()));
+	connect(&periodicUpdateTimer,SIGNAL(timeout()),this,SIGNAL(periodicUpdate()));
+	periodicUpdateTimer.start(10000);
 }
 
 void MlibData::fetchSomeMore() {
@@ -103,6 +105,10 @@ QVariant MlibData::getInfo(QString property, uint id) {
 	
 QVariant MlibData::getInfo(std::string property, uint id) {
 	return getInfo(QString(property.c_str()),id);
+}
+
+QVariant MlibData::getInfo(char* property, uint id) {
+	return getInfo(QString(property),id);
 }
 
 bool MlibData::hasInfo(uint id) {
