@@ -215,7 +215,7 @@ PlistOptions::PlistOptions(Options* option,QWidget * parent):QWidget(parent)
 	headers->setDragEnabled(true);
 	headers->setAcceptDrops(true);
 	layout->addWidget(headers,0,0,1,2);
-	del= new QShortcut(QKeySequence(Qt::Key_Delete),this,SLOT(remove()),SLOT(remove()));
+// 	del= new QShortcut(QKeySequence(Qt::Key_Delete),this,SLOT(remove()),SLOT(remove()));
 	addItem=new QComboBox();
 	QStringList labels;
 	labels<<"Custom: edit with property"<<"Title"<<"Artist"<<"Album"<<"Time"<<"Filename"<<"Track"<<"Genre";

@@ -68,7 +68,7 @@ FileBrowser::FileBrowser(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QW
 	layout->setRowStretch(0,1);
 	this->setLayout(layout);
 
-	deleteSC = new QShortcut(Qt::Key_Delete,this,SLOT(slotRemove()),SLOT(slotRemove()));
+// 	deleteSC = new QShortcut(Qt::Key_Delete,this,SLOT(slotRemove()),SLOT(slotRemove()));
 
 	connect(toWhat,SIGNAL(currentIndexChanged(QString)),this,SLOT(destinationChanged(QString)));
 	connect(fileTree, SIGNAL(clicked(QModelIndex)),this,SLOT(setRoot(QModelIndex)));

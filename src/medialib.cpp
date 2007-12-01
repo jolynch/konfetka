@@ -12,8 +12,6 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	
 	complexSearch = false;
 	layout = new QGridLayout();
-// 	delItem = new QShortcut(QKeySequence(Qt::Key_Delete),this,SLOT(slotRemove()),SLOT(slotRemove()));
-// 	delItem->setContext(Qt::WindowShortcut);
 
 	QStringList Hlabels;
 	Hlabels << "Your MediaLib";
@@ -25,6 +23,9 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	mediaList->setAcceptDrops(true);
 	mediaList->setDropIndicatorShown(true);
 	mediaList->setObjectName ("mediaList");
+
+	delItem = new QShortcut(QKeySequence(Qt::Key_Delete),mediaList,SLOT(slotRemove()),SLOT(slotRemove()));
+	delItem->setContext(Qt::WidgetShortcut);
 
 	loadUniverse= new QPushButton();
 	loadUniverse->setIcon(QIcon(":images/xmms2Logo"));
@@ -803,7 +804,7 @@ ComplexSearchDialog::ComplexSearchDialog(DataBackend* conn, Xmms::Coll::Coll* in
                                       | QDialogButtonBox::Cancel);
 	buttons->setCenterButtons(1);
 	
-	delItem = new QShortcut(Qt::Key_Delete,this,SLOT(removeOperand()),SLOT(removeOperand()));
+// 	delItem = new QShortcut(Qt::Key_Delete,this,SLOT(removeOperand()),SLOT(removeOperand()));
 
 	connect(buttons,SIGNAL(accepted()),this,SLOT(accept()));
 	connect(buttons,SIGNAL(rejected()),this,SLOT(reject()));

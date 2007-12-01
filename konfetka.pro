@@ -26,8 +26,6 @@ else{
 	}
 
 system(cp data/art.xml $$KONFPATH/art.xml)
-system(cp data/stylesheet $$KONFPATH/stylesheet)
-system(cp data/stylesheet.buttons $$KONFPATH/stylesheet.buttons)
 system(cp -r data/eqPresets $$KONFPATH/eqPresets) 
 
 # Input
