@@ -157,7 +157,7 @@ Q_OBJECT
 	void dropEvent(QDropEvent *event);
 	void dragMoveEvent ( QDragMoveEvent * ); 
 	void dragEnterEvent(QDragEnterEvent *event);
-	
+	void keyPressEvent(QKeyEvent *event);
 
 	//Adding to Mlib related
 	void recurAdd(QString,bool);

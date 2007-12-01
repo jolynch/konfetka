@@ -12,7 +12,8 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	
 	complexSearch = false;
 	layout = new QGridLayout();
-	delItem = new QShortcut(Qt::Key_Delete,this,SLOT(slotRemove()),SLOT(slotRemove()));
+// 	delItem = new QShortcut(QKeySequence(Qt::Key_Delete),this,SLOT(slotRemove()),SLOT(slotRemove()));
+// 	delItem->setContext(Qt::WindowShortcut);
 
 	QStringList Hlabels;
 	Hlabels << "Your MediaLib";
@@ -342,7 +343,9 @@ void MediaLib::respondToPeriodicUpdate() {
 }
 
 void MediaLib::slotRemove() {
+	std::cout<<"DELETE PRESSED"<<std::endl;
 	if(!mediaList->hasFocus()) return;
+	std::cout<<"DELETE"<<std::endl;
 	QList<QTreeWidgetItem *> what;
 	what = mediaList->selectedItems();
 	Xmms::Coll::Union * media = selectedAsColl();
@@ -354,28 +357,38 @@ void MediaLib::slotRemove() {
 
 void MediaLib::removeNodes(QList<QTreeWidgetItem*> list) {
 	QTreeWidgetItem* curItem;
+	std::cout<<list.size()<<std::endl;
 		for(int i=0;i<list.size();i++) {
 			curItem = list.value(i);
 			switch (getItemType(curItem)) {
 				case ARTIST: {
-					for(int i=0;i<curItem->childCount();i++)
+				std::cout<<"A"<<std::endl;
+					for(int i=0;i<curItem->childCount();i++) {
+					if(!list.contains(curItem->child(i)))
 					list.append(curItem->child(i));
+					}
 					break;
 				}
 				case ALBUM: {
-					for(int i=0;i<curItem->childCount();i++)
+				std::cout<<"Al"<<std::endl;
+					for(int i=0;i<curItem->childCount();i++) {
+					if(!list.contains(curItem->child(i)))
 					list.append(curItem->child(i));
+					}
 					break;
 				}
 				case SONG: {
+				std::cout<<"S"<<std::endl;
 					QTreeWidgetItem* ptr = curItem->parent();
 					QTreeWidgetItem* ptr2 = curItem->parent()->parent();
 					idToSongItem.remove(idToSongItem.key(curItem));
+					if(ptr!=NULL)
 					delete ptr->takeChild(ptr->indexOfChild(curItem));
-					if(ptr->childCount()==0)
+					if(ptr->childCount()==0 && ptr2!=NULL)
 					delete ptr2->takeChild(ptr2->indexOfChild(ptr));
-					if(ptr2->childCount()==0)
+					if(ptr2!=NULL && ptr2->childCount()==0)
 					delete mediaList->takeTopLevelItem(mediaList->indexOfTopLevelItem(ptr2));
+// 					std::cout<<list.value(i)->text(0).toStdString()<<std::endl;
 					break;
 				}
 			}
@@ -441,10 +454,12 @@ void MediaLib::searchMlib() {
 ItemType MediaLib::getItemType(QTreeWidgetItem* item) {
 	if(item->parent() == NULL)
 	return ARTIST;
-	else if(item->childCount()==0)
+	else if(item->parent()->parent()==NULL)
+	return ALBUM;
+	else if(item->childCount()==0 && item->parent()->parent()!=NULL)
 	return SONG;
 	else
-	return ALBUM;
+	return INVALID;
 }
 
 Xmms::Coll::Union* MediaLib::selectedAsColl() {
@@ -524,15 +539,15 @@ void MediaLib::addToMlibDoubleClick(QTreeWidgetItem * item,int) {
 }
 
 void MediaLib::startDrag() {
+	doubleClickTimer.stop();
 	QDrag * drag = new QDrag(this);
 	QMimeData * mimeData = new QMimeData;
 	mimeData->setUrls(urlList);
 	drag->setMimeData(mimeData);
 	drag->setPixmap(QPixmap(":images/volume_button_sound"));
-// 	std::cout<<urlList.size()<<std::endl;
+	std::cout<<urlList.size()<<std::endl;
 	urlList.clear();
-	drag->start();
-	doubleClickTimer.stop();
+	drag->exec();
 }
 
 void MediaLib::stopTimerAndClearList() {
@@ -619,6 +634,7 @@ DropTreeWidget::DropTreeWidget(MediaLib* newLib,DataBackend* c):QTreeWidget() {
 	dirModel = new QDirModel();
 	dirModel->setNameFilters(filters);
 	dirModel->setFilter(QDir::AllDirs|QDir::Files|QDir::NoDotAndDotDot);
+	setFocusPolicy(Qt::StrongFocus);
 	
 }
 
@@ -730,6 +746,11 @@ void DropTreeWidget::dropEvent(QDropEvent *event){
 		}
 	}
 	
+}
+
+void DropTreeWidget::keyPressEvent ( QKeyEvent * event ) {
+	std::cout<<"key pressed"<<std::endl;
+	event->ignore();
 }
 
 void MediaLib::loadUpCollection(Xmms::Coll::Coll* tmpColl) {

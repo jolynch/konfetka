@@ -20,7 +20,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	mainbar=new MainBar(conn,this,this,NULL);
 	QDesktopWidget *desktop = papa->desktop();
 	QRect deskRect;
-	deskRect = desktop->availableGeometry(0);
+	deskRect = desktop->availableGeometry(desktop->primaryScreen());
 
 	rearpanel=new RearPanel(conn,deskRect, this, NULL);	
 
