@@ -757,6 +757,7 @@ void DropTreeWidget::keyPressEvent ( QKeyEvent * event ) {
 	event->ignore();
 }
 
+
 void MediaLib::loadUpCollection(Xmms::Coll::Coll* tmpColl) {
 	lastVisibleMedia = tmpColl;
 	visibleMedia = tmpColl;

@@ -193,7 +193,7 @@ class ComplexSearchDialog:public QDialog {
 	ComplexSearchDialog(DataBackend*, Xmms::Coll::Coll*);
 	Xmms::Coll::Coll* newColl(QString attr,QString oper,QString val,bool notFlag);
 	void keyPressEvent(QKeyEvent *event);
-
+	
 	public slots:
 	void accept();
 	void addOperand();

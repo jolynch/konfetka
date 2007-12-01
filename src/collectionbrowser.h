@@ -22,7 +22,7 @@
 #include <QDrag>
 #include <QUrl>
 #include <QLineEdit>
-#include <QShortcut>
+#include <QKeyEvent>
 
 class CollectionBrowser:public LayoutPanel {
 	Q_OBJECT
@@ -46,9 +46,6 @@ class CollectionBrowser:public LayoutPanel {
 	QSplitter * listSplitter;
 	QLineEdit * dispColl;
 	
-// 	QShortcut * deleteColl;
-// 	QShortcut * deletePlaylist;
-// 	QShortcut * delete;
 	//Dragging
 	QTimer waitTimer;
 	QMimeData * mimeData;
@@ -61,7 +58,16 @@ class CollectionBrowser:public LayoutPanel {
 	void setLayoutSide(bool);
 	bool recievedNewColl(const Xmms::Coll::Coll&);
 	bool updateCollDisplay(const Xmms::List <uint> &list);
+	//Removes a collection
+	void removeSelectedCollections();
+	//Removes a playlist
+	void removeSelectedPlaylists();
+	//Appends an extra NOT collection
+	void removeSelectedItems();
+	
 	void resizeEvent(QResizeEvent* event);
+	void keyPressEvent(QKeyEvent* event);
+	
 
 	public slots:
 	void updateCollList(QStringList);

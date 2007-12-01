@@ -40,7 +40,6 @@ CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::Windo
 
 	mimeData = NULL; drag = NULL;
 
-// 	del= new QShortcut(Qt::Key_Delete,this,SLOT(()),SLOT(slotRemove()));
 	connect(collDisplay->verticalScrollBar(),SIGNAL(valueChanged(int)),this,SLOT(getNextFew(int)));
 	connect(collDisplay,SIGNAL(itemDoubleClicked(QTreeWidgetItem *,int)),this,SLOT(addItemToPlist(QTreeWidgetItem*,int)));
 
@@ -128,11 +127,17 @@ void CollectionBrowser::updatePlistList(QStringList list) {
 
 void CollectionBrowser::getCollectionFromItem(QListWidgetItem * item) {
 // 	std::cout<<item->text().toStdString()<<std::endl;
-	if(collList->row(item) >=0)
+	if(collList->row(item) >0) {
 	conn->collection.get(item->text().toStdString(),collNamespace)(Xmms::bind(&CollectionBrowser::recievedNewColl,this));
-	else if(plistList->row(item)>=0)
+	plistList->setCurrentItem(plistList->item(0));
+	}
+	else if(plistList->row(item)>0) {
 	conn->collection.get(item->text().toStdString(),plistNamespace)(Xmms::bind(&CollectionBrowser::recievedNewColl,this));
-	else return;
+	collList->setCurrentItem(collList->item(0));
+	}
+	else {
+	collDisplay->clear();
+	}
 }
 
 bool CollectionBrowser::recievedNewColl(const Xmms::Coll::Coll& newColl) {
@@ -229,6 +234,43 @@ void CollectionBrowser::startDrag() {
 	drag->setMimeData(mimeData);
 	waitTimer.stop();
 	drag->exec(Qt::CopyAction | Qt::MoveAction);
+}
+
+void CollectionBrowser::keyPressEvent(QKeyEvent* event) {
+	if(event->key() == (Qt::Key_Delete) && collDisplay->hasFocus())
+	removeSelectedItems();
+	else if(event->key() == (Qt::Key_Delete) && collList->hasFocus())
+	removeSelectedCollections();
+	else if(event->key() == (Qt::Key_Delete) && plistList->hasFocus())
+	removeSelectedPlaylists();
+	else
+	event->ignore();
+}
+
+//Removes a collection
+void CollectionBrowser::removeSelectedCollections() {
+	QList<QListWidgetItem*> temp = collList->selectedItems();
+		for(int i=0;i<temp.size();i++) {
+		conn->collection.remove(temp.value(i)->text().toStdString(),collNamespace)
+						(Xmms::bind(&DataBackend::scrapResult, conn));
+		}
+	collDisplay->clear();
+}
+
+//Removes a playlist
+void CollectionBrowser::removeSelectedPlaylists() {
+	QList<QListWidgetItem*> temp = plistList->selectedItems();
+		for(int i=0;i<temp.size();i++) {
+// 		std::cout<<"Removing playlists"<<std::endl;
+		conn->collection.remove(temp.value(i)->text().toStdString(),plistNamespace)
+						(Xmms::bind(&DataBackend::scrapResult, conn));
+		}
+	collDisplay->clear();
+}
+
+//Appends an extra NOT collection
+void CollectionBrowser::removeSelectedItems(){
+	std::cout<<"Delete from collDisplay"<<std::endl;
 }
 
 #endif
