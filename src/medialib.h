@@ -162,6 +162,9 @@ Q_OBJECT
 	//Adding to Mlib related
 	void recurAdd(QString,bool);
 	void numSongs(QString path);
+	
+	signals:
+	void removeSelected();
 };
 
 class ComplexSearchDialog:public QDialog {
@@ -188,7 +191,8 @@ class ComplexSearchDialog:public QDialog {
 
 	public:
 	ComplexSearchDialog(DataBackend*, Xmms::Coll::Coll*);
-	Xmms::Coll::Coll* newColl(QString attr,QString oper,QString val,bool notFlag);	
+	Xmms::Coll::Coll* newColl(QString attr,QString oper,QString val,bool notFlag);
+	void keyPressEvent(QKeyEvent *event);
 
 	public slots:
 	void accept();

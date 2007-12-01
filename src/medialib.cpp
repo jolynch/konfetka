@@ -24,9 +24,6 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	mediaList->setDropIndicatorShown(true);
 	mediaList->setObjectName ("mediaList");
 
-	delItem = new QShortcut(QKeySequence(Qt::Key_Delete),mediaList,SLOT(slotRemove()),SLOT(slotRemove()));
-	delItem->setContext(Qt::WidgetShortcut);
-
 	loadUniverse= new QPushButton();
 	loadUniverse->setIcon(QIcon(":images/xmms2Logo"));
 	loadUniverse->setToolTip("Load Universe");
@@ -81,6 +78,7 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	connect(mediaList,SIGNAL(itemPressed(QTreeWidgetItem *,int)),this,SLOT(addToMlibDrag(QTreeWidgetItem*,int))); 
 	connect(mediaList,SIGNAL(itemDoubleClicked(QTreeWidgetItem *,int)),this,SLOT(addToMlibDoubleClick(QTreeWidgetItem*,int)));
 	connect(mediaList,SIGNAL(itemClicked(QTreeWidgetItem *,int)),this,SLOT(stopTimerAndClearList()));
+	connect(mediaList,SIGNAL(removeSelected()),this,SLOT(slotRemove()));
 
 	connect(&doubleClickTimer,SIGNAL(timeout()),this,SLOT(startDrag()));
 	
@@ -344,15 +342,13 @@ void MediaLib::respondToPeriodicUpdate() {
 }
 
 void MediaLib::slotRemove() {
-	std::cout<<"DELETE PRESSED"<<std::endl;
 	if(!mediaList->hasFocus()) return;
-	std::cout<<"DELETE"<<std::endl;
 	QList<QTreeWidgetItem *> what;
 	what = mediaList->selectedItems();
 	Xmms::Coll::Union * media = selectedAsColl();
 	
 	conn->collection.queryIds(*media)(Xmms::bind(&MediaLib::removeIds,this));
-	//doesn't actually remove squat, simply closes the parent's node
+// 	doesn't actually remove squat, simply closes the parent's node
 	removeNodes(what);
 }
 
@@ -363,7 +359,6 @@ void MediaLib::removeNodes(QList<QTreeWidgetItem*> list) {
 			curItem = list.value(i);
 			switch (getItemType(curItem)) {
 				case ARTIST: {
-				std::cout<<"A"<<std::endl;
 					for(int i=0;i<curItem->childCount();i++) {
 					if(!list.contains(curItem->child(i)))
 					list.append(curItem->child(i));
@@ -371,7 +366,6 @@ void MediaLib::removeNodes(QList<QTreeWidgetItem*> list) {
 					break;
 				}
 				case ALBUM: {
-				std::cout<<"Al"<<std::endl;
 					for(int i=0;i<curItem->childCount();i++) {
 					if(!list.contains(curItem->child(i)))
 					list.append(curItem->child(i));
@@ -379,7 +373,6 @@ void MediaLib::removeNodes(QList<QTreeWidgetItem*> list) {
 					break;
 				}
 				case SONG: {
-				std::cout<<"S"<<std::endl;
 					QTreeWidgetItem* ptr = curItem->parent();
 					QTreeWidgetItem* ptr2 = curItem->parent()->parent();
 					idToSongItem.remove(idToSongItem.key(curItem));
@@ -391,6 +384,14 @@ void MediaLib::removeNodes(QList<QTreeWidgetItem*> list) {
 					delete mediaList->takeTopLevelItem(mediaList->indexOfTopLevelItem(ptr2));
 // 					std::cout<<list.value(i)->text(0).toStdString()<<std::endl;
 					break;
+				}
+				default: {
+					QTreeWidgetItem* tmp = curItem->parent();
+					while(tmp!=NULL) {
+					delete tmp;
+					curItem = tmp;
+					tmp = curItem->parent();
+					}
 				}
 			}
 		}
@@ -455,7 +456,7 @@ void MediaLib::searchMlib() {
 ItemType MediaLib::getItemType(QTreeWidgetItem* item) {
 	if(item->parent() == NULL)
 	return ARTIST;
-	else if(item->parent()->parent()==NULL)
+	else if(item->parent()->parent()==NULL && item->childCount()>0)
 	return ALBUM;
 	else if(item->childCount()==0 && item->parent()->parent()!=NULL)
 	return SONG;
@@ -750,7 +751,9 @@ void DropTreeWidget::dropEvent(QDropEvent *event){
 }
 
 void DropTreeWidget::keyPressEvent ( QKeyEvent * event ) {
-	std::cout<<"key pressed"<<std::endl;
+	if(event->key() == (Qt::Key_Delete))
+	emit removeSelected();
+	else
 	event->ignore();
 }
 
@@ -804,8 +807,6 @@ ComplexSearchDialog::ComplexSearchDialog(DataBackend* conn, Xmms::Coll::Coll* in
                                       | QDialogButtonBox::Cancel);
 	buttons->setCenterButtons(1);
 	
-// 	delItem = new QShortcut(Qt::Key_Delete,this,SLOT(removeOperand()),SLOT(removeOperand()));
-
 	connect(buttons,SIGNAL(accepted()),this,SLOT(accept()));
 	connect(buttons,SIGNAL(rejected()),this,SLOT(reject()));
 	connect(add,SIGNAL(clicked()),this,SLOT(addOperand()));
@@ -920,6 +921,13 @@ Xmms::Coll::Coll* ComplexSearchDialog::newColl(QString attr,QString oper,QString
 		return comp;
 		}
 	return resultColl;
+}
+
+void ComplexSearchDialog::keyPressEvent(QKeyEvent *event) {
+	if(event->key() == (Qt::Key_Delete) && itemList->hasFocus())
+	removeOperand();
+	else
+	event->ignore();
 }
 
 void ComplexSearchDialog::accept() {
