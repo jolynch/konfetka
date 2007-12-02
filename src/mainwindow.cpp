@@ -20,7 +20,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	mainbar=new MainBar(conn,this,this,NULL);
 	QDesktopWidget *desktop = papa->desktop();
 	QRect deskRect;
-	deskRect = desktop->availableGeometry(desktop->primaryScreen());
+	deskRect = desktop->availableGeometry(this);
 
 	rearpanel=new RearPanel(conn,deskRect, this, NULL);	
 
@@ -130,11 +130,11 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	PanelController *pc=new PanelController(width());
 	//pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn,this)),PanelController::LEFTPANEL);
 	pc->registerPanel(new Panel(this,"NEW PLIST",new PlaylistPanel_(conn)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
-	pc->registerPanel(new Panel(this,"NEW PLIST",new PlaylistPanel_(conn)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
 	Panel * mlibPanel=new Panel(this,"MEDIALIB",medialibView);
 	PanelPtrList * mlibincompatlist=new PanelPtrList();
 	mlibincompatlist->append(mlibPanel);
 	pc->registerPanel(mlibPanel,PanelController::DOUBLE_SIDED_PANEL,mlibincompatlist);
+	pc->registerPanel(new Panel(this,"NEW PLIST",new PlaylistPanel_(conn)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
 	//pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn,this)),PanelController::RIGHTPANEL);
 
 

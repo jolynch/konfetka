@@ -50,6 +50,27 @@ QList <uint> Playlist_::getSortedSelectedRows()
 	return out;
 	}
 
+void Playlist_::dropEvent(QDropEvent *event)
+	{
+	QModelIndex idx=indexAt(event->pos());
+	if(!idx.isValid())
+		{
+		QPoint tmp=event->pos();
+		tmp.setY(tmp.y()+5);
+		idx=indexAt(tmp);
+		}
+	if(event->source()==this)
+		{
+		if(event->proposedAction()==Qt::MoveAction)
+			model()->dropMimeData(event->mimeData(),Qt::CopyAction,-1,-1,idx);
+		else if(event->proposedAction()==Qt::CopyAction)
+			model()->dropMimeData(event->mimeData(),Qt::MoveAction,-1,-1,idx);
+		}
+	else
+		model()->dropMimeData(event->mimeData(),event->proposedAction(),-1,-1,idx);
+	}
+
+
 /*************************/
 
 PlaylistPanel_::PlaylistPanel_(DataBackend * c):LayoutPanel()
@@ -80,7 +101,7 @@ PlaylistPanel_::PlaylistPanel_(DataBackend * c):LayoutPanel()
 
 		this->setLayout(centralLayout);
 
-// 	del = new QShortcut(QKeySequence(Qt::Key_Delete),playlistView,SLOT(deleteSelected()),SLOT(deleteSelected()));
+	del = new QShortcut(QKeySequence(Qt::Key_Delete),playlistView,SLOT(deleteSelected()),SLOT(deleteSelected()));
 	this->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding));
 	}
 

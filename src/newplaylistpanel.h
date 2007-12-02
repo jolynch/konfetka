@@ -31,6 +31,7 @@ class Playlist_:public QTableView
 		Playlist_(DataBackend * c);
 		void setModelAndDelegate(SinglePlaylist * model);
 		QList <uint> getSortedSelectedRows(); //Sorted from lowest to highest
+		void dropEvent(QDropEvent *event);
 	private slots:
 		void doubleClicked(const QModelIndex & index);
 	};

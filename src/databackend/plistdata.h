@@ -25,6 +25,7 @@
 #include <QStyleOptionViewItem>
 #include <QtAlgorithms>
 #include <string>
+#include <list>
 
 struct PlaylistDragInfo
 	{
@@ -62,6 +63,7 @@ class SinglePlaylist:public QAbstractItemModel
 		QStringList humanReadableHeader;
 		std::string plistName;
 		PlaylistDelegate * delegate;
+		std::list< std::string > sortOrder;
 
 		void parseHumanReadableHeader();
 	public:
@@ -69,6 +71,7 @@ class SinglePlaylist:public QAbstractItemModel
 
 		SinglePlaylist(DataBackend * c,std::string name,QStringList hv_=QStringList());
 		void setHeader(QStringList newVal);
+		void setOrder(std::list< std::string > order);
 
 		PlaylistDelegate * getDelegate();
 		bool setInitialPlist(const Xmms::List< unsigned int > &list);
@@ -109,6 +112,7 @@ class PlistData:public QObject
 		std::string currentPlist;
 		QHash <QString, SinglePlaylist *> plists;
 		QStringList headerVals;
+		std::list< std::string > sortOrder;
 
 		void createPlaylist(std::string name);
 		void refreshPlaylist(SinglePlaylist * plist,std::string name="");

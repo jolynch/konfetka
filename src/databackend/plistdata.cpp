@@ -24,17 +24,19 @@ void PlaylistDelegate::paint ( QPainter * painter, const QStyleOptionViewItem & 
 	QFont f (o.font);
 	if(((MlibData *)conn->getDataBackendObject(DataBackend::MLIB))->getInfo(QString("status"),index.internalId()).toInt()==3)
 		painter->setPen(Qt::gray);
-	if((!editing)&&(status==Xmms::Playback::PLAYING)&&(index.row()==pos))
-		f.setBold (true);
+	if((!editing)&&(index.row()==pos))
+		{
+		f.setItalic(true);
+		if(status==Xmms::Playback::PLAYING)
+			f.setBold(true);
+		}
 	o.font = f;
 	QItemDelegate::paint (painter, o, index);
 	painter->setPen(Qt::black);
 	}
 
 void PlaylistDelegate::setEditing(bool val)
-	{
-	editing=val;
-	}
+	{editing=val;}
 bool PlaylistDelegate::isEditing() {return editing;}
 
 void PlaylistDelegate::posChanged(uint p)
@@ -259,49 +261,91 @@ std::cout<<"called dropMimeData: "<<parent.row()<<" "<<parent.column()<<std::end
 	PlaylistDragInfo * info=getDragInfoFromMimeData(data);
 	if (info!=NULL)
 		{
-		/*if(info->name.toStdString()==plistName)
-			if(action==Qt::CopyAction)
-				for(int i=0; i<info->positions.size(); i++)
-		else
+		if(info->name.toStdString()!=plistName)
 			{
-			QList <uint> ids_=(((PlistData *)conn->getDataBackendObject(DataBackend::PLIST)))
-							->getPlist(info->name.toStdString())->getIdsFromPositions(info->positions);
-			for(int i=0; i<info->positions.size(); i++)
+			if(action==Qt::CopyAction||action==Qt::MoveAction)
 				{
-				if(parent.row()==-1)
-					conn->playlist.add(
+				QList <uint> ids_=(((PlistData *)conn->getDataBackendObject(DataBackend::PLIST)))
+							->getPlist(info->name.toStdString())->getIdsFromPositions(info->positions);
+				for(int i=0; i<info->positions.size(); i++)
+					{
+					if(parent.isValid())
+						conn->playlist.insertId(parent.row()+i,ids_[i],plistName)
+									(Xmms::bind(&DataBackend::scrapResult, conn));
+					else
+						conn->playlist.addId(ids_[i],plistName)
+									(Xmms::bind(&DataBackend::scrapResult, conn));
+					if(action==Qt::MoveAction)
+						conn->playlist.removeEntry(info->positions[i]-i,info->name.toStdString())
+									(Xmms::bind(&DataBackend::scrapResult, conn));
+					}
+				return true;
 				}
+			else return false;
 			}
-		*/return true;
+		else if(action==Qt::CopyAction||action==Qt::MoveAction)
+			{
+			QList <uint> ids_=getIdsFromPositions(info->positions);
+			int idx=-1;
+			if(parent.isValid()) idx=parent.row();
+			if(action==Qt::MoveAction)
+				{
+				for(int i=0; i<info->positions.size(); i++)
+					{
+					conn->playlist.removeEntry(info->positions[i]-i,plistName)
+										(Xmms::bind(&DataBackend::scrapResult, conn));
+					if(parent.isValid()&&idx>info->positions[i]-i) idx--;
+					}
+				}
+			for(int i=0; i<ids_.size(); i++)
+				{
+				if(idx<0) conn->playlist.addId(ids_[i],plistName) (Xmms::bind(&DataBackend::scrapResult, conn));
+				else conn->playlist.insertId(idx+1,ids_[i],plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+				}
+			return true;
+			}
+		else return true;
 		}
 	else if (data->hasUrls())
 		{
-//std::cout<<"has urls"<<std::endl;
-std::cout<<plistName<<std::endl;
 		QList<QUrl> urls=data->urls();
 		for(int i=0; i<urls.size(); i++)
 			{
 			std::string tmp=urls[i].toString().toUtf8().data();
-//std::cout<<tmp<<std::endl;
 			QString dirCheck=urls[i].toString();
 			if(dirCheck.startsWith("file://"))
 				dirCheck.remove(0,7);
 			if(QDir(dirCheck).exists())
 				{
-//std::cout<<"adding rec"<<std::endl;
 				conn->playlist.addRecursive(tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 				}
 			else if(!parent.isValid())
 				{
-//std::cout<<"adding url"<<std::endl;
 				conn->playlist.addUrl(tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 				}
 			else
 				{
-//std::cout<<"inserting"<<std::endl;
 				conn->playlist.insertUrl(parent.row()+i,tmp,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 				}
 			}
+		return true;
+		}
+	else if (data->hasFormat("application/x-collname"))
+		{
+		QByteArray encodedData = data->data("application/x-collname");
+		QDataStream stream(&encodedData, QIODevice::ReadOnly);
+		QString title;
+		QString ns;
+		stream >> title;
+		stream >> ns;
+std::cout<<title.toStdString()<<" "<<ns.toStdString()<<std::endl;
+		Xmms::Coll::Reference ref (title.toStdString(),ns.toStdString().c_str());
+		if(parent.isValid())
+			conn->playlist.insertCollection(parent.row(),ref,sortOrder,plistName)
+								(Xmms::bind(&DataBackend::scrapResult, conn));
+		else
+			conn->playlist.addCollection(ref,sortOrder,plistName)
+								(Xmms::bind(&DataBackend::scrapResult, conn));
 		return true;
 		}
 	else return false;
@@ -328,6 +372,10 @@ std::cout<<"called mimeData"<<std::endl;
 	return mimeData;
 	}
 
+
+void SinglePlaylist::setOrder(std::list< std::string > order)
+	{sortOrder=order;}
+
 /************************************!*********************************/
 
 PlistData::PlistData(DataBackend * c,QObject * parent):QObject(parent)
@@ -340,6 +388,19 @@ PlistData::PlistData(DataBackend * c,QObject * parent):QObject(parent)
 		this,SLOT(playlistsChanged(QStringList)));
 	connect(conn,SIGNAL(playlistNameChanged(const std::string&)),this,SLOT(setCurrentName(const std::string &)));
 	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(qsettingsValChanged(QString,QVariant)));
+	QSettings s;
+	if(!s.contains("konfetka/playlistValues"))
+		{
+		QStringList tmp;
+		tmp<<"Title"<<"Artist"<<"Album"<<"Time";
+		s.setValue("konfetka/playlistValues",tmp);
+		}
+	if(!s.contains("konfetka/collectionImportSortOrder"))
+		{
+		QStringList tmp;
+		tmp<<"title"<<"artist"<<"album"<<"tracknr";
+		s.setValue("konfetka/collectionImportSortOrder",tmp);
+		}
 	}
 
 void PlistData::createPlaylist(std::string name)
@@ -347,6 +408,7 @@ void PlistData::createPlaylist(std::string name)
 std::cout<<"creating playlist: "<<name<<std::endl;
 	if(plists.contains(name.c_str())) return;
 	SinglePlaylist * newPlist=new SinglePlaylist(conn,name,headerVals);
+	newPlist->setOrder(sortOrder);
 	plists.insert(name.c_str(), newPlist);
 	refreshPlaylist(newPlist,name);
 	connect(conn,SIGNAL(playlistChanged(const Xmms::Dict&)),newPlist,SLOT(respondToChanges(const Xmms::Dict&)));
@@ -409,6 +471,20 @@ void PlistData::qsettingsValChanged(QString name,QVariant newVal)
 		QStringList keys=plists.keys();
 		for(int i=0; i<keys.size(); i++)
 			plists[keys[i]]->setHeader(val);
+		}
+	if(name=="konfetka/collectionImportSortOrder")
+		{
+		QStringList val=newVal.toStringList();
+		std::list<std::string> out;
+		QStringList keys=plists.keys();
+		for(int i=0; i<val.size(); i++)
+			{
+std::cout<<val[i].toStdString()<<std::endl;
+			out.push_back(val[i].toStdString());
+			}
+		for(int i=0; i<keys.size(); i++)
+			plists[keys[i]]->setOrder(out);
+		sortOrder=out;
 		}
 	}
 
