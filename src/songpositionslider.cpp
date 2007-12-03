@@ -65,15 +65,15 @@ void SongPositionSlider::setDuration(int id) {
 		tmp=QTime::fromString(mlib->getInfo(QString("duration"),id).toString(),"h:mm:ss");
 	int ms=tmp.msec()+tmp.second()*1000+tmp.minute()*60*1000+tmp.hour()*60*60*1000;
 	duration = ms/MAGFACTOR;
-	if(duration>=0){
-	setRange(0,duration);
-	songEmitted = false;
-	curType = FILE;
-	}
- 	else if((mlib->getInfo(QString("url"),id).toString().toStdString()).find("file://") == std::string::npos){
+	if((mlib->getInfo(QString("url"),id).toString().toStdString()).find("file://") == std::string::npos){
  	curType = STREAM;
 	emit timeChanged(-1);
 	update();
+	}
+	else if(duration>=0){
+	setRange(0,duration);
+	songEmitted = false;
+	curType = FILE;
 	}
 	else {
 	curType = UNKNOWN;

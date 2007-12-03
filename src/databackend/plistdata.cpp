@@ -40,10 +40,21 @@ void PlaylistDelegate::setEditing(bool val)
 bool PlaylistDelegate::isEditing() {return editing;}
 
 void PlaylistDelegate::posChanged(uint p)
-	{pos=p;}
+	{
+	int old=pos;
+	pos=p;
+	if(old<model->rowCount())
+		((SinglePlaylist *)model)->forceRefresh(old);
+	if(p<model->rowCount())
+		((SinglePlaylist *)model)->forceRefresh(p);
+	}
 
 void PlaylistDelegate::statusChanged(Xmms::Playback::Status s)
-	{status=s;}
+	{
+	status=s;
+	if(pos<model->rowCount())
+		((SinglePlaylist *)model)->forceRefresh(pos);
+	}
 
 /*****************************************/
 
@@ -376,6 +387,8 @@ std::cout<<"called mimeData"<<std::endl;
 void SinglePlaylist::setOrder(std::list< std::string > order)
 	{sortOrder=order;}
 
+void SinglePlaylist::forceRefresh(uint row)
+	{dataChanged(index(row,0),index(row,header.size()-1));}
 /************************************!*********************************/
 
 PlistData::PlistData(DataBackend * c,QObject * parent):QObject(parent)

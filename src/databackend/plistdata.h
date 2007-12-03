@@ -78,6 +78,8 @@ class SinglePlaylist:public QAbstractItemModel
 
 		QList<uint> getIdsFromPositions(QList <uint> pos);
 
+		void forceRefresh(uint row);
+
 	//QAbstractItemModel function implementations
 		QModelIndex index ( int row, int column, const QModelIndex & parent = QModelIndex() ) const;
 		Qt::ItemFlags flags(const QModelIndex &index) const;
