@@ -64,6 +64,7 @@ class SinglePlaylist:public QAbstractItemModel
 		std::string plistName;
 		PlaylistDelegate * delegate;
 		std::list< std::string > sortOrder;
+		int insertCollectionAt;
 
 		void parseHumanReadableHeader();
 	public:
@@ -72,6 +73,8 @@ class SinglePlaylist:public QAbstractItemModel
 		SinglePlaylist(DataBackend * c,std::string name,QStringList hv_=QStringList());
 		void setHeader(QStringList newVal);
 		void setOrder(std::list< std::string > order);
+
+		bool insertCollection(const Xmms::Coll::Coll& c);
 
 		PlaylistDelegate * getDelegate();
 		bool setInitialPlist(const Xmms::List< unsigned int > &list);

@@ -349,17 +349,29 @@ std::cout<<"called dropMimeData: "<<parent.row()<<" "<<parent.column()<<std::end
 		QString ns;
 		stream >> title;
 		stream >> ns;
-std::cout<<title.toStdString()<<" "<<ns.toStdString()<<std::endl;
-		Xmms::Coll::Reference ref (title.toStdString(),ns.toStdString().c_str());
 		if(parent.isValid())
-			conn->playlist.insertCollection(parent.row(),ref,sortOrder,plistName)
-								(Xmms::bind(&DataBackend::scrapResult, conn));
+			insertCollectionAt=-1;
 		else
-			conn->playlist.addCollection(ref,sortOrder,plistName)
-								(Xmms::bind(&DataBackend::scrapResult, conn));
+			insertCollectionAt=parent.row();
+		if(ns.contains("PLAYLIST"))
+			conn->collection.get(title.toStdString(),Xmms::Collection::PLAYLISTS)
+					(Xmms::bind(&SinglePlaylist::insertCollection,this));
+		else
+			conn->collection.get(title.toStdString(),Xmms::Collection::COLLECTIONS)
+					(Xmms::bind(&SinglePlaylist::insertCollection,this));
 		return true;
 		}
 	else return false;
+	}
+
+bool SinglePlaylist::insertCollection(const Xmms::Coll::Coll& c)
+	{
+	if(insertCollectionAt<0)
+			conn->playlist.addCollection(c,sortOrder,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+	else
+			conn->playlist.insertCollection(insertCollectionAt,c,sortOrder,plistName)
+									(Xmms::bind(&DataBackend::scrapResult, conn));
+	return true;
 	}
 
 QStringList SinglePlaylist::mimeTypes() const
@@ -411,7 +423,7 @@ PlistData::PlistData(DataBackend * c,QObject * parent):QObject(parent)
 	if(!s.contains("konfetka/collectionImportSortOrder"))
 		{
 		QStringList tmp;
-		tmp<<"title"<<"artist"<<"album"<<"tracknr";
+		tmp<<"title"<<"album"<<"artist"<<"tracknr";
 		s.setValue("konfetka/collectionImportSortOrder",tmp);
 		}
 	}
