@@ -130,10 +130,14 @@ void CollectionBrowser::getCollectionFromItem(QListWidgetItem * item) {
 	if(collList->row(item) >0) {
 	conn->collection.get(item->text().toStdString(),collNamespace)(Xmms::bind(&CollectionBrowser::recievedNewColl,this));
 	plistList->setCurrentItem(plistList->item(0));
+	currentCollection = item->text();
+	currentNamespace = collNamespace;
 	}
 	else if(plistList->row(item)>0) {
 	conn->collection.get(item->text().toStdString(),plistNamespace)(Xmms::bind(&CollectionBrowser::recievedNewColl,this));
 	collList->setCurrentItem(collList->item(0));
+	currentCollection = item->text();
+	currentNamespace = plistNamespace;
 	}
 	else {
 	collDisplay->clear();
@@ -200,15 +204,7 @@ void CollectionBrowser::startDragTree(QTreeWidgetItem* item,int col) {
 		resultList.append(QUrl(path));
 	}
 	mimeData->setUrls(resultList);
-	waitTimer.start(qApp->doubleClickInterval());
-	/*foreach (QTreeWidgetItem* item, sel) {
-		QString text = data(index, Qt::DisplayRole).toString
-	stream << text;
-         }
-	}*/
-
-// 	mimeData->setData("application/x-collname",
-	
+	waitTimer.start(qApp->doubleClickInterval());	
 }
 
 void CollectionBrowser::startDragList(QListWidgetItem* item) {
@@ -261,7 +257,6 @@ void CollectionBrowser::removeSelectedCollections() {
 void CollectionBrowser::removeSelectedPlaylists() {
 	QList<QListWidgetItem*> temp = plistList->selectedItems();
 		for(int i=0;i<temp.size();i++) {
-// 		std::cout<<"Removing playlists"<<std::endl;
 		conn->collection.remove(temp.value(i)->text().toStdString(),plistNamespace)
 						(Xmms::bind(&DataBackend::scrapResult, conn));
 		}
@@ -270,7 +265,19 @@ void CollectionBrowser::removeSelectedPlaylists() {
 
 //Appends an extra NOT collection
 void CollectionBrowser::removeSelectedItems(){
-	std::cout<<"Delete from collDisplay"<<std::endl;
+	QList<QTreeWidgetItem*> temp = collDisplay->selectedItems();
+	Xmms::Coll::Idlist newArguments;
+		for(int i=0;i<temp.size();i++) {
+			newArguments.append(idToItem.key(temp.value(i)));
+		}
+	std::cout<<newArguments.size()<<std::endl;
+	std::cout<<currentCollection.toStdString()<<" "<<currentNamespace<<std::endl;
+	Xmms::Coll::Reference ref(currentCollection.toStdString(),currentNamespace);
+	Xmms::Coll::Intersection newRef;
+	Xmms::Coll::Complement comp(newArguments);
+	newRef.addOperand(ref);
+	newRef.addOperand(comp);
+	conn->collection.save(newRef,currentCollection.toStdString(),currentNamespace);
 }
 
 #endif

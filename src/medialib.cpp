@@ -181,6 +181,7 @@ void MediaLib::artistList(QList<QString> info) {
 		QTreeWidgetItem * waitItem = new QTreeWidgetItem(newItem);
 		waitItem->setText(0,"...");
 		}
+	mediaList->sortItems(0,Qt::AscendingOrder);
 // 	Xmms::Coll::Has artColl(*visibleMedia,"artist");
 // 	Xmms::Coll::Complement albumItems;
 // 	albumItems.setOperand(artColl);
@@ -261,6 +262,7 @@ bool MediaLib::gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &
 		QTreeWidgetItem * tempSong = new QTreeWidgetItem(newAlbum);
 		tempSong->setText(0,"...");
 		}
+	artist->sortChildren(0,Qt::AscendingOrder);
 	return true;
 }
 
@@ -318,6 +320,7 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 		if(album->childCount()==0) {
 // 		delete album;
 		}
+	album->sortChildren(0,Qt::AscendingOrder);
 	return true;
 }
 
@@ -325,6 +328,7 @@ void MediaLib::infoChanged(int id) {
 	if(idToSongItem.contains(id) && idToSongItem.value(id)!=NULL) {
 		QVariant tmp = mlib->getInfo(QString("title"),id);
 		idToSongItem.value(id)->setText(0,tmp.toString());
+		idToSongItem.value(id)->parent()->sortChildren(0,Qt::AscendingOrder);
 		if(mlib->getInfo("status",id).toInt()==3) {
 			for(int i=0;i<idToSongItem.value(id)->columnCount();i++) {
 			idToSongItem.value(id)->setForeground(i,QBrush(QColor("grey"),Qt::SolidPattern));

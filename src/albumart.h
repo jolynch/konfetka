@@ -14,22 +14,15 @@
 #include <math.h>
 #include <QSettings>
 #include <QCryptographicHash>
-class AlbumArt: public QWidget
-	{
+class AlbumArt: public QWidget {
 	Q_OBJECT
 	private:
 	QString curAlbumArtPath, artXmlPath, artHashStorePath;
-	QHBoxLayout * layout;
-	QProgressBar * progress;
-	QIcon * currentArtIcon;
-	QLabel * currentArtLabel;
 	QHttp *http;
 	QFile *xmlFile;
-	QFile *imageFile;
+	QBuffer imageBuffer;
 	QString album;
 	QString artist;
-	QString combo;
-	QString * albumPic;
 	int httpGetId,numBad;
 	int numToGet;
      	bool httpRequestAborted, paintFix;
@@ -39,22 +32,29 @@ class AlbumArt: public QWidget
 	QHash<int,QString> knownUrls;
 	bool fromThis;
 	bool toReflect;
+	
+	//NEW STUFF
+	bool hasAlbum;
 	QPixmap left;
 	QPixmap right;
 	QPixmap center;
-	QPixmap bottom;
+	QPixmap noAlbum;
+	QString query;
 	
 	QTimer timeout;
 
 	DataBackend * conn;
+	MlibData * mlib;
 
 	public:
-		AlbumArt(DataBackend * c);
-		~AlbumArt();
-		void paintEvent(QPaintEvent *);
+	AlbumArt(DataBackend * c);
+	~AlbumArt();
+	void paintEvent(QPaintEvent *);
+	bool gotInformation(const Xmms::bin& res);
+	bool sentInformation(const std::string& res);
 	public slots:
 	void fetchXML(int);
-	void fetchImage(bool);
+	void fetchImage(bool,bool force = 0);
 	void setImage(bool);
 	void slotReflect(bool);
 

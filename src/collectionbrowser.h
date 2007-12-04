@@ -36,6 +36,7 @@ class CollectionBrowser:public LayoutPanel {
 	Xmms::Collection::Namespace plistNamespace;
 	QHash<uint,QTreeWidgetItem*> idToItem;
 	QStringList labels;
+	QString currentCollection; Xmms::Collection::Namespace currentNamespace;
 	QGridLayout * layout1;
 
 	QTreeWidget * collDisplay;
