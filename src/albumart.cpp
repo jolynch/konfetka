@@ -52,16 +52,17 @@ AlbumArt::~AlbumArt()
 	}
 
 void AlbumArt::fetchXML(int newId) {
+// 	std::cout<<"Asked to fetch XML"<<std::endl;
 	id = newId;
 	QString tmpQuery;
 		if(mlib->getInfo("album",id).toInt()!=-1)
 		tmpQuery += mlib->getInfo("album",id).toString();
 		if(mlib->getInfo("arist",id).toInt()!=-1)
 		tmpQuery += " " + mlib->getInfo("artist",id).toString();
+	if(tmpQuery == "" || query == tmpQuery)
+	return;
 	if(tmpQuery!=query)
 	query = tmpQuery;
-	if(query == "")
-	return;
 		//Thanks amarok for the D1URM... code thing
 	QString toUrl;
 	toUrl.append("http://xml.amazon.com/onca/xml3?t=webservices-20&dev-t=D1URM11J3F2CEH&KeywordSearch=");
@@ -84,19 +85,20 @@ void AlbumArt::fetchXML(int newId) {
 	http->setUser(url.userName(), url.password());
 	
    	httpRequestAborted = false;
-	std::cout<<toUrl.toStdString()<<std::endl;
 	httpGetId = http->get(conn->encodeUrl(toUrl), xmlFile);
 
 	connect(http, SIGNAL(done(bool)), this, SLOT(fetchImage(bool)));
 }
 
 void AlbumArt::fetchImage(bool err,bool force) {
-		if(err) {
+// 	std::cout<<"Fetching Image "<<http->state()<<std::endl;
+	if(err) {
 		std::cout<<"Error looking up XML: "<<http->error()<<std::endl;
 		setImage(1);
 		return;
-		}
-	disconnect(http, 0, this, 0);
+	}
+	QObject::disconnect(http, 0, this, 0);
+	std::cout<<"Fetching Image "<<http->state()<<std::endl;
 	xmlFile->flush();
 		if(imageBuffer.isOpen())
 		imageBuffer.close();
@@ -137,13 +139,12 @@ void AlbumArt::fetchImage(bool err,bool force) {
 
 void AlbumArt::setImage(bool err) {
 	QObject::disconnect(http, 0, this, 0);
+// 	std::cout<<"Setting image"<<std::endl;
 	if(err) {
-	std::cout<<"AH DIE"<<http->error()<<std::endl;
 	return;
 	}
 		QImage tmp = QImage::fromData(imageBuffer.data());
 			if(tmp.isNull()) {
-			std::cout<<"AH DIE"<<imageBuffer.size()<<std::endl;
 			center = QPixmap(":images/no_album150");
 			emit newPixmap(center);
 			hasAlbum = false;
@@ -241,6 +242,7 @@ void AlbumArt::saveCoverToFile() {
 }
 
 void AlbumArt::makeRequest(){
+	std::cout<<"making request"<<std::endl;
 	fetchImage(0,true);
 }
 
@@ -271,26 +273,12 @@ update();
 }
 
 bool AlbumArt::gotInformation(const Xmms::bin& res) {
-	if(center.loadFromData(res.c_str (), res.size()))
-	hasAlbum = true;
-		center = center.scaled(175,175,Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-		QPixmap reverseLabel(center.transformed(QMatrix(-1,0,0,1,0,0),Qt::SmoothTransformation));
-		reverseLabel.setAlphaChannel(QPixmap(":images/gradient.png"));
+	if(imageBuffer.isOpen())
+	imageBuffer.close();
+	
+	imageBuffer.setData((const char*)(res.c_str()), res.size());
+	setImage(0);
 
-		QImage rightImage = reverseLabel.toImage().copy(QRect(0,0,87,175));
-		QImage leftImage = reverseLabel.toImage().copy(QRect(87,0,87,175));
-
-		left = QPixmap::fromImage(leftImage);
-		right = QPixmap::fromImage(rightImage);
-
-		reverseLabel = reverseLabel.fromImage(leftImage,Qt::AutoColor); 
-		reverseLabel= reverseLabel.transformed(QMatrix(1,-.1,0,1,0,0),Qt::SmoothTransformation);
-		
-/*		//std::cout<<reverseLabel.toImage().numBytes()<<std::endl;*/
-		
-		left = left.transformed(QMatrix(1,-.1,0,1,0,0),Qt::SmoothTransformation);
-		right = right.transformed(QMatrix(1,.1,0,1,0,0),Qt::SmoothTransformation);
-	update();
 	return true;
 }
 
