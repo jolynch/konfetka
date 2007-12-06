@@ -2,8 +2,7 @@
 #define ALBUMART_CPP
 #include "albumart.h"
 
-AlbumArt::AlbumArt(DataBackend * c)
-	{
+AlbumArt::AlbumArt(DataBackend * c) {
 	conn=c;
 	mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
 	numToGet=0;
@@ -20,32 +19,13 @@ AlbumArt::AlbumArt(DataBackend * c)
 	http = new QHttp();
 	xmlFile = NULL;
 
-	artHashStorePath=Xmms::getUserConfDir().c_str();
-	artHashStorePath.append("/clients/konfetka/artHashStore");
 	artXmlPath=Xmms::getUserConfDir().c_str();
 	artXmlPath.append("/clients/konfetka/art.xml");
-	curAlbumArtPath=Xmms::getUserConfDir().c_str();
-	curAlbumArtPath.append("/clients/konfetka/curAlbumArt.jpg");
-	QFile file(artHashStorePath);
-	file.open(QIODevice::ReadOnly);
-	QDataStream in(&file);
-	in >> knownUrls; //read the hash
-	file.flush();
-	file.close();
-
 	center = QPixmap(":images/no_album150");
 	}
 
 AlbumArt::~AlbumArt()
 	{
-	QFile file(artHashStorePath);
-	file.open(QIODevice::WriteOnly);
-	QDataStream out(&file);
-	out<<knownUrls; // write the hash to file
-	file.flush();
-	file.close();
-
-	//delete currentArtIcon;
 	delete http;
 	if(xmlFile != NULL)
 	delete xmlFile;
@@ -98,7 +78,7 @@ void AlbumArt::fetchImage(bool err,bool force) {
 		return;
 	}
 	QObject::disconnect(http, 0, this, 0);
-	std::cout<<"Fetching Image "<<http->state()<<std::endl;
+// 	std::cout<<"Fetching Image "<<http->state()<<std::endl;
 	xmlFile->flush();
 		if(imageBuffer.isOpen())
 		imageBuffer.close();
@@ -145,8 +125,7 @@ void AlbumArt::setImage(bool err) {
 	}
 		QImage tmp = QImage::fromData(imageBuffer.data());
 			if(tmp.isNull()) {
-			center = QPixmap(":images/no_album150");
-			emit newPixmap(center);
+			emit newPixmap(noAlbum);
 			hasAlbum = false;
 			update();
 			return;
@@ -162,16 +141,11 @@ void AlbumArt::setImage(bool err) {
 		QImage rightImage = reverseLabel.toImage().copy(QRect(0,0,87,175));
 		QImage leftImage = reverseLabel.toImage().copy(QRect(87,0,87,175));
 
-		left = QPixmap::fromImage(leftImage);
-		right = QPixmap::fromImage(rightImage);
+		left = QPixmap::fromImage(leftImage).transformed(QMatrix(1,-.1,0,1,0,0),Qt::SmoothTransformation);
+		right = QPixmap::fromImage(rightImage).transformed(QMatrix(1,.1,0,1,0,0),Qt::SmoothTransformation);
 
 		reverseLabel = reverseLabel.fromImage(leftImage,Qt::AutoColor); 
 		reverseLabel= reverseLabel.transformed(QMatrix(1,-.1,0,1,0,0),Qt::SmoothTransformation);
-		
-/*		//std::cout<<reverseLabel.toImage().numBytes()<<std::endl;*/
-		
-		left = left.transformed(QMatrix(1,-.1,0,1,0,0),Qt::SmoothTransformation);
-		right = right.transformed(QMatrix(1,.1,0,1,0,0),Qt::SmoothTransformation);
 	conn->bindata.add(Xmms::bin((unsigned char*) imageBuffer.data().data(),imageBuffer.size()))
 					(Xmms::bind(&AlbumArt::sentInformation,this));
 	imageBuffer.close();
@@ -188,7 +162,7 @@ void AlbumArt::mouseReleaseEvent(QMouseEvent * event) {
 	menu->setTitle("Album Art");
 	menu->addAction("Next Cover",this,SLOT(getNextCover()));
 	menu->addAction("Previous Cover",this,SLOT(getPrevCover()));
-	menu->addAction("Original Cover",this,SLOT(getOrigCover()));
+	menu->addAction("Best Match",this,SLOT(getOrigCover()));
 	menu->addAction("Save Cover to File",this,SLOT(saveCoverToFile()));
 	menu->popup(event->globalPos());
 }
@@ -242,7 +216,7 @@ void AlbumArt::saveCoverToFile() {
 }
 
 void AlbumArt::makeRequest(){
-	std::cout<<"making request"<<std::endl;
+// 	std::cout<<"making request"<<std::endl;
 	fetchImage(0,true);
 }
 

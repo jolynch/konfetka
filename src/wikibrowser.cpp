@@ -36,7 +36,7 @@ void WikiBrowser::parseUrl(int id)
 		this->setText("Unknown Artist");
 		return;
 		}
-	wikiPath->append(QUrl::toPercentEncoding(tmp.toString()));
+	wikiPath->append(conn->encodeUrl(tmp.toString(),DataBackend::WIKI));
 	if(last!=wikiPath)
 	this->setSource(QUrl(*wikiPath));
 	last = *wikiPath;
@@ -189,7 +189,7 @@ if(tmp.toInt()==-1)
 	{return;}
 if(tmp.toString()=="Unknown") return;
 artistHome->clear();
-artistHome->append(QUrl::toPercentEncoding(tmp.toString()));
+artistHome->append(conn->encodeUrl(tmp.toString(),DataBackend::WIKI));
 }
 
 #endif

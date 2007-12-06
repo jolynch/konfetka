@@ -163,12 +163,21 @@ bool XMMS2Interface::handlePlaytimeSignal(uint newTime) {
 	return true;
 }
 
-QString XMMS2Interface::encodeUrl(QString val) {
+QString XMMS2Interface::encodeUrl(QString val,int forWhat) {
 
         QByteArray exclude = "ABCDEFGHIJKLMNOPQRSTUVWXWZabcdefghijklmnopqrstuvwxyz0123456789:/-._";
         QByteArray ray = QUrl::toPercentEncoding(val,exclude);
         QString final(ray);
-        final.replace("%20","+");
+	switch(forWhat) {
+		case XMMS2:
+	        final.replace("%20","+");
+		break;
+		case WIKI:	
+		final.replace("%20","_");
+		break;
+		default:
+		break;
+	}
 
         return final;
 }

@@ -17,23 +17,19 @@
 class AlbumArt: public QWidget {
 	Q_OBJECT
 	private:
-	QString curAlbumArtPath, artXmlPath, artHashStorePath;
+	QString artXmlPath;
 	QHttp *http;
 	QFile *xmlFile;
 	QBuffer imageBuffer;
-	QString album;
-	QString artist;
-	int httpGetId,numBad;
+	int httpGetId;
 	int numToGet;
-     	bool httpRequestAborted, paintFix;
+     	bool httpRequestAborted;
 	QString imageUrl;
 	QDomNodeList allCovers;
 	int id;
-	QHash<int,QString> knownUrls;
-	bool fromThis;
 	bool toReflect;
 	
-	//NEW STUFF
+	//Rendering Related
 	bool hasAlbum;
 	QPixmap left;
 	QPixmap right;
@@ -50,7 +46,7 @@ class AlbumArt: public QWidget {
 	AlbumArt(DataBackend * c);
 	~AlbumArt();
 	void paintEvent(QPaintEvent *);
-	bool gotInformation(const Xmms::bin& res);
+	bool gotInformation(const Xmms::bin& res); // Xmms2 bindata calls
 	bool sentInformation(const std::string& res);
 	public slots:
 	void fetchXML(int);

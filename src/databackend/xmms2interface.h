@@ -19,6 +19,7 @@
 #include <string>
 class SongPositionSlider;
 
+typedef int UrlType;
 class XMMS2Interface:public QObject, public Xmms::Client
 	{	Q_OBJECT
 	private:
@@ -43,9 +44,11 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		bool handlePlaytimeSignal(uint);
 		void next();
 		void previous();
-		QString encodeUrl(QString);
+		QString encodeUrl(QString,int toXmms2 = XMMS2);
 
 		void emitInitialXmms2Settings();
+		static const UrlType WIKI = 0x001;
+		static const UrlType XMMS2 = 0x010;
 // 	public slots:
 // 		void changeSongInPlaylist(int);
 	signals:
