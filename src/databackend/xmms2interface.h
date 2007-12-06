@@ -44,7 +44,7 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		bool handlePlaytimeSignal(uint);
 		void next();
 		void previous();
-		QString encodeUrl(QString,int toXmms2 = XMMS2);
+		QString encodeUrl(QString,UrlType toXmms2 = XMMS2);
 
 		void emitInitialXmms2Settings();
 		static const UrlType WIKI = 0x001;
