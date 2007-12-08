@@ -131,7 +131,6 @@ QVariant SinglePlaylist::headerData ( int section, Qt::Orientation orientation, 
 
 bool SinglePlaylist::removeRows ( int row, int count, const QModelIndex & parent)
 	{
-std::cout<<"removeRows called"<<std::endl;
 	if(parent.isValid()) return false;
 	if(row+count>ids.size()) return false;
 	for(int i=0; i<count; i++)
@@ -202,7 +201,6 @@ void SinglePlaylist::respondToChanges(const Xmms::Dict& val)
 			addToModel(id);
 			break;
 		case XMMS_PLAYLIST_CHANGED_INSERT:
-std::cout<<"insert "<<pos<<std::endl;
 			addToModel(id,pos);
 			break;
 		case XMMS_PLAYLIST_CHANGED_MOVE:
@@ -210,7 +208,6 @@ std::cout<<"insert "<<pos<<std::endl;
 			moveInModel(pos,npos);
 			break;
 		case XMMS_PLAYLIST_CHANGED_REMOVE:
-std::cout<<"removed "<<pos<<std::endl;
 			removeFromModel(pos);
 			break;
 		default:
@@ -265,7 +262,6 @@ PlaylistDragInfo * SinglePlaylist::getDragInfoFromMimeData(const QMimeData *data
 
 bool SinglePlaylist::dropMimeData(const QMimeData *data,Qt::DropAction action, int row, int column, const QModelIndex &parent)
 	{
-std::cout<<"called dropMimeData: "<<parent.row()<<" "<<parent.column()<<std::endl;
 	if (action == Qt::IgnoreAction)
 		return true;
 	PlaylistDragInfo * info=getDragInfoFromMimeData(data);
@@ -382,7 +378,6 @@ QStringList SinglePlaylist::mimeTypes() const
 
 QMimeData * SinglePlaylist::mimeData(const QModelIndexList &indexes) const
 	{
-std::cout<<"called mimeData"<<std::endl;
 	QMimeData *mimeData = new QMimeData();
 	QByteArray encodedData;
 	QDataStream stream(&encodedData, QIODevice::WriteOnly);
@@ -394,6 +389,12 @@ std::cout<<"called mimeData"<<std::endl;
 	return mimeData;
 	}
 
+void SinglePlaylist::sort (int column, Qt::SortOrder order)
+	{
+	std::list<std::string> prop;
+	prop.push_back(header[column].toStdString());
+	conn->playlist.sort(prop,plistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+	}
 
 void SinglePlaylist::setOrder(std::list< std::string > order)
 	{sortOrder=order;}
@@ -429,7 +430,6 @@ PlistData::PlistData(DataBackend * c,QObject * parent):QObject(parent)
 
 void PlistData::createPlaylist(std::string name)
 	{
-std::cout<<"creating playlist: "<<name<<std::endl;
 	if(plists.contains(name.c_str())) return;
 	SinglePlaylist * newPlist=new SinglePlaylist(conn,name,headerVals);
 	newPlist->setOrder(sortOrder);
@@ -470,7 +470,6 @@ QString PlistData::getCurrentName()
 
 void PlistData::setCurrentName(const std::string & name)
 	{
-std::cout<<"current playlist: "<<name<<std::endl;
 	refreshPlaylist(getPlist(name));
 	currentPlist=name;
 	}
@@ -503,7 +502,6 @@ void PlistData::qsettingsValChanged(QString name,QVariant newVal)
 		QStringList keys=plists.keys();
 		for(int i=0; i<val.size(); i++)
 			{
-std::cout<<val[i].toStdString()<<std::endl;
 			out.push_back(val[i].toStdString());
 			}
 		for(int i=0; i<keys.size(); i++)

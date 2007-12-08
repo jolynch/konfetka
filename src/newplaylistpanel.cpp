@@ -11,6 +11,8 @@ Playlist_::Playlist_(DataBackend * c,QWidget * p):QTableView(p)
 	vh->setDefaultSectionSize(20);
 	setVerticalHeader(vh);
 	QHeaderView * hh=horizontalHeader();
+	hh->setHighlightSections(false);
+	hh->setMovable(false);
 	setHorizontalHeader(hh);
 	this->setWordWrap(false);
 	this->setDragDropOverwriteMode(false);
@@ -23,6 +25,7 @@ Playlist_::Playlist_(DataBackend * c,QWidget * p):QTableView(p)
 	this->setAcceptDrops(true);
 	this->setDropIndicatorShown(true);
 	this->setDragDropMode(QAbstractItemView::DragDrop);
+	this->setSortingEnabled(true);
 	rightClickMenu=new QMenu();
 	rightClickMenu->addAction("Remove selected items",((PlaylistPanel_ *)(parent)),SLOT(deleteSelected()));
 	rightClickMenu->addAction("Crop selected",((PlaylistPanel_ *)(parent)),SLOT(cropSelected()));
@@ -77,7 +80,7 @@ void Playlist_::dropEvent(QDropEvent *event)
 
 void Playlist_::keyPressEvent(QKeyEvent* event)
 	{
-	if(event->key() == (Qt::Key_Delete))
+	if(event->key() == (Qt::Key_Delete)||(event->key()==(Qt::Key_Backspace)))
 	((PlaylistPanel_ *)(parent))->deleteSelected();
 	}
 
@@ -107,10 +110,10 @@ PlaylistPanel_::PlaylistPanel_(DataBackend * c):LayoutPanel()
 		playlistSwitcher=new QComboBox();
 		playlistSwitcher->addItems(((CollData *)conn->getDataBackendObject(DataBackend::COLL))->getPlaylists());
 		playlistSwitcher->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Fixed));
-		connect(playlistSwitcher,SIGNAL(currentIndexChanged(const QString &)),this,SLOT(playlistSelected(QString)));
 		centralLayout->addWidget(playlistSwitcher,0,1);
 		connect(((CollData *)conn->getDataBackendObject(DataBackend::COLL)),SIGNAL(playlistsChanged(QStringList)),
 						this,SLOT(playlistsChanged(QStringList)));
+		connect(playlistSwitcher,SIGNAL(currentIndexChanged(const QString &)),this,SLOT(playlistSelected(QString)));
 		playlistModeSwitcher=new QPushButton("Playing:");
 		connect(playlistModeSwitcher,SIGNAL(clicked()),this,SLOT(playlistModeSwitched()));
 		centralLayout->addWidget(playlistModeSwitcher,0,0);
@@ -119,6 +122,7 @@ PlaylistPanel_::PlaylistPanel_(DataBackend * c):LayoutPanel()
 
 // 	del = new QShortcut(QKeySequence(Qt::Key_Delete),playlistView,SLOT(deleteSelected()),SLOT(deleteSelected()));
 	this->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding));
+//	conn->playlist.currentActive() (Xmms::bind(&DataBackend::getCurrentPlaylist,conn));
 	}
 
 void PlaylistPanel_::setLayoutSide(bool right_side)
@@ -128,7 +132,7 @@ std::cout<<"ping layoutside: "<<right_side<<std::endl;
 
 void PlaylistPanel_::playlistSelected(QString name)
 	{
-	if(locked) return;
+//	if(locked) return;
 	currentPlaylistName=name.toStdString();
 	currentPlaylist=plistBackend->getPlist(currentPlaylistName);
 	if(currentPlaylist!=NULL) playlistView->setModelAndDelegate(currentPlaylist);
@@ -166,13 +170,14 @@ void PlaylistPanel_::playlistsChanged(QStringList newList)
 	int tmp=playlistSwitcher->findText(currentPlaylistName.c_str());
 	if(tmp==-1) tmp=0;
 	playlistSwitcher->setCurrentIndex(tmp);
-	conn->playlist.currentActive() (Xmms::bind(&DataBackend::getCurrentPlaylist,conn));
+//	conn->playlist.currentActive() (Xmms::bind(&DataBackend::getCurrentPlaylist,conn));
 	}
 
 void PlaylistPanel_::setCurrentName(std::string name)
 	{
 	if(editing||locked) return;
 	editing=true;
+std::cout<<name<<" "<<playlistSwitcher->findText(name.c_str())<<std::endl;
 	playlistSwitcher->setCurrentIndex(playlistSwitcher->findText(name.c_str()));
 	editing=false;
 	}

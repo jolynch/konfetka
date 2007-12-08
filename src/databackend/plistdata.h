@@ -95,6 +95,7 @@ class SinglePlaylist:public QAbstractItemModel
 		bool dropMimeData(const QMimeData *data,Qt::DropAction action, int row, int column, const QModelIndex &parent);
 		QStringList mimeTypes() const;
 		QMimeData * mimeData(const QModelIndexList &indexes) const;
+		void sort ( int column, Qt::SortOrder order = Qt::AscendingOrder );
 
 	//Basic modification functions
 	//These only modify the model itself - they do not call xmms2.
