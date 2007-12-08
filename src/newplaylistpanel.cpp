@@ -1,9 +1,10 @@
 #ifndef PLAYLISTPANEL__CPP
 #define PLAYLISTPANEL__CPP
 #include "newplaylistpanel.h"
-Playlist_::Playlist_(DataBackend * c):QTableView()
+Playlist_::Playlist_(DataBackend * c,QWidget * p):QTableView(p)
 	{
 	conn=c;
+	parent=p;
 	QHeaderView * vh=verticalHeader();
 	vh->hide();
 	vh->setResizeMode(QHeaderView::Fixed);
@@ -22,6 +23,10 @@ Playlist_::Playlist_(DataBackend * c):QTableView()
 	this->setAcceptDrops(true);
 	this->setDropIndicatorShown(true);
 	this->setDragDropMode(QAbstractItemView::DragDrop);
+	rightClickMenu=new QMenu();
+	rightClickMenu->addAction("Remove selected items",((PlaylistPanel_ *)(parent)),SLOT(deleteSelected()));
+	rightClickMenu->addAction("Crop selected",((PlaylistPanel_ *)(parent)),SLOT(cropSelected()));
+	rightClickMenu->addAction("Clear playlist",((PlaylistPanel_ *)(parent)),SLOT(clear()));
 	connect(this,SIGNAL(doubleClicked(const QModelIndex &)),this,SLOT(doubleClicked(const QModelIndex &)));
 	}
 
@@ -70,6 +75,17 @@ void Playlist_::dropEvent(QDropEvent *event)
 		model()->dropMimeData(event->mimeData(),event->proposedAction(),-1,-1,idx);
 	}
 
+void Playlist_::keyPressEvent(QKeyEvent* event)
+	{
+	if(event->key() == (Qt::Key_Delete))
+	((PlaylistPanel_ *)(parent))->deleteSelected();
+	}
+
+void Playlist_::contextMenuEvent ( QContextMenuEvent * event )
+	{
+	rightClickMenu->exec(event->pos());
+	}
+
 
 /*************************/
 
@@ -86,7 +102,7 @@ PlaylistPanel_::PlaylistPanel_(DataBackend * c):LayoutPanel()
 		connect(conn,SIGNAL(playlistNameChanged(const std::string&)),this,SLOT(setCurrentName(const std::string &)));
 		connect(plistBackend,SIGNAL(playlistReady(std::string,SinglePlaylist *)),
 						this,SLOT(playlistReady(std::string,SinglePlaylist *)));
-		playlistView=new Playlist_(conn);
+		playlistView=new Playlist_(conn,this);
 		centralLayout->addWidget(playlistView,1,0,1,2);
 		playlistSwitcher=new QComboBox();
 		playlistSwitcher->addItems(((CollData *)conn->getDataBackendObject(DataBackend::COLL))->getPlaylists());
@@ -177,4 +193,20 @@ void PlaylistPanel_::deleteSelected()
 		conn->playlist.removeEntry(selected[i],currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
+void PlaylistPanel_::cropSelected()
+	{
+	QList <uint> selected=playlistView->getSortedSelectedRows();
+	int size=currentPlaylist->rowCount();
+	int offset=selected.size()-1;
+	for(int i=size-1; i>=0; i--)
+		{
+		if(i==selected[offset])
+			offset--;
+		else
+			conn->playlist.removeEntry(i,currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));
+		}
+	}
+
+void PlaylistPanel_::clear()
+	{conn->playlist.clear(currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));}
 #endif

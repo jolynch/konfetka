@@ -13,7 +13,7 @@ PlaylistDelegate::PlaylistDelegate(QAbstractItemModel * m,DataBackend * c)
 
 QSize PlaylistDelegate::sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const
 	{
-	return QSize(20,50);
+	return QSize(10,50);
 	}
 
 void PlaylistDelegate::paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const

@@ -22,16 +22,23 @@
 #include <QModelIndexList>
 #include <QtAlgorithms>
 #include <QShortcut>
+#include <QContextMenuEvent>
+#include <QMenu>
+#include <QKeyEvent>
 
 class Playlist_:public QTableView
 	{	Q_OBJECT
 	private:
 		DataBackend * conn;
+		QWidget * parent;
+		QMenu * rightClickMenu;
 	public:
-		Playlist_(DataBackend * c);
+		Playlist_(DataBackend * c,QWidget * p);
 		void setModelAndDelegate(SinglePlaylist * model);
 		QList <uint> getSortedSelectedRows(); //Sorted from lowest to highest
 		void dropEvent(QDropEvent *event);
+		void keyPressEvent(QKeyEvent* event);
+		void contextMenuEvent ( QContextMenuEvent * event );
 	private slots:
 		void doubleClicked(const QModelIndex & index);
 	};
@@ -57,11 +64,13 @@ class PlaylistPanel_:public LayoutPanel
 	private slots:
 		void playlistSelected(QString name);
 		void playlistModeSwitched();
-		void deleteSelected();
 	public slots:
 		void playlistsChanged(QStringList playlists);
 		void setCurrentName(std::string name);
 		void playlistReady(std::string name,SinglePlaylist * plist);
+		void deleteSelected();
+		void cropSelected();
+		void clear();
 	};
 
 #endif
