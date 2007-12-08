@@ -48,8 +48,8 @@ class MiniMode:public QWidget
 		void slotPlay();
 		void slotStop();
 		void slotPause();
-		void slotBack();
-		void slotForward();
+//		void slotBack();
+//		void slotForward();
 		void setVolume();
 		void setInfo();
 		void loadNewPixmap(QPixmap);
@@ -65,7 +65,7 @@ class MiniMode:public QWidget
 		void paintEvent(QPaintEvent *event);
 		void resizeEvent(QResizeEvent* event);
 	signals:
-		void changeSongRel(int);
+//		void changeSongRel(int);
 		void hideMe();
 		void volumeValueChanged(int);
 		void setVolumeValue(int);

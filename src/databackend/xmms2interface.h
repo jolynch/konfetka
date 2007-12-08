@@ -61,7 +61,7 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		void playlistNameChanged(const std::string& name);
 		void collectionsChanged(const Xmms::Dict& change);
 		void aboutToChangeSong();
-		void changeSong(int);
+//		void changeSong(int);
 		void syncTime(int,SongPositionSlider*);
 		void songPositionChanged(uint);
 	};

@@ -61,8 +61,8 @@ class MainWindow:public QWidget
 		QSlider * slider;
 	public:
 		MainWindow(QApplication * a, QWidget * parent = 0, Qt::WindowFlags f = 0);
-		//!Added by Joe to make it easier to get to the playlist and medialib.
-		MediaLib* theMediaLib(); //! end
+//		//!Added by Joe to make it easier to get to the playlist and medialib.
+//		MediaLib* theMediaLib(); //! end
 	public slots:
 		void slotStayOnTop(bool);
 		void slotHide();

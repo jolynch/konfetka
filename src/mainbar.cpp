@@ -115,7 +115,7 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 
 	this->setLayout(layout);
 
-	QObject::connect(backButton, SIGNAL(clicked()), this, SLOT(slotBack()));
+	QObject::connect(backButton, SIGNAL(clicked()), conn, SLOT(playPreviousSong()));
 
 	QObject::connect(volumeButton, SIGNAL(clicked()),this, SLOT(slotMute()));
 //	QObject::connect(shortcut, SIGNAL(activated()), this, SLOT(slotHide()));
@@ -126,7 +126,7 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 
 	QObject::connect(stopButton, SIGNAL(clicked()), this, SLOT(slotStop()));
 
-	QObject::connect(forwardButton, SIGNAL(clicked()), this, SLOT(slotForward()));
+	QObject::connect(forwardButton, SIGNAL(clicked()), conn, SLOT(playNextSong()));
 
 	QObject::connect(quitButton, SIGNAL(clicked()), p, SLOT(slotQuit()));
 
@@ -145,7 +145,7 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 		QObject::connect(miniButton,SIGNAL(clicked()),p,SLOT(slotHide()));
 	QObject::connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),
 				this,SLOT(newStatus(Xmms::Playback::Status)));
-	connect(this,SIGNAL(changeSongRel(int)),conn,SIGNAL(changeSong(int)));
+//	connect(this,SIGNAL(changeSongRel(int)),conn,SIGNAL(changeSong(int)));
 }
 	
 
@@ -164,12 +164,12 @@ MainBar::~MainBar()
 	delete volumeSlider;
 	}
 
-void MainBar::slotBack()
+/*void MainBar::slotBack()
 	{
 	emit changeSongRel(-1);
 // 	conn->playlist.setNextRel(-1)(Xmms::bind(&DataBackend::scrapResultI, conn));
 // 	conn->playback.tickle()(Xmms::bind(&DataBackend::scrapResult, conn));
-	}
+	}*/
 
 void MainBar::slotPlay()
 	{
@@ -186,12 +186,12 @@ void MainBar::slotStop()
 	conn->playback.stop()(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
-void MainBar::slotForward()
+/*void MainBar::slotForward()
 	{
 	emit changeSongRel(1);
 // 	conn->playlist.setNextRel(1)(Xmms::bind(&DataBackend::scrapResultI, conn));
 // 	conn->playback.tickle()(Xmms::bind(&DataBackend::scrapResult, conn));
-	}
+	}*/
 
 /*All stuff to do with seeking and timing of the song*/
 

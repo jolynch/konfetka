@@ -56,8 +56,8 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	temp = menu->addAction(QIcon(":images/play_button.png"),"Play",mainbar,SLOT(slotPlay()));
 	menu->addAction(QIcon(":images/pause_button.png"),"Pause",mainbar,SLOT(slotPause()));
 	menu->addAction(QIcon(":images/stop_button.png"),"Stop",mainbar, SLOT(slotStop()));
-	menu->addAction(QIcon(":images/next_button.png"),"Next Song",mainbar,SLOT(slotForward()));
-	menu->addAction(QIcon(":images/back_button.png"),"Previous Song",mainbar,SLOT(slotBack()));
+	menu->addAction(QIcon(":images/next_button.png"),"Next Song",conn,SLOT(playNextSong()));
+	menu->addAction(QIcon(":images/back_button.png"),"Previous Song",conn,SLOT(playPreviousSong()));
 	
 	menu->addSeparator();
 	
@@ -362,9 +362,9 @@ void MainWindow::clickResponse(QSystemTrayIcon::ActivationReason reason)
 	}*/
 
 
-//! ADDED TO MAKE RAND PLAY WORK, also makes other things more convenient
+/*//! ADDED TO MAKE RAND PLAY WORK, also makes other things more convenient
 MediaLib* MainWindow::theMediaLib() {
 return medialibView;
 }
-//! done
+//! done*/
 #endif

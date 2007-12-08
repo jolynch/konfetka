@@ -21,6 +21,7 @@ class DataBackend:public XMMS2Interface//, public QObject
 	QObject * mlibData;
 	QObject * plistData;
 	QObject * collData;
+	bool random;
 	
 	public:
 	static const DataBackendType COLL	=0x001;
@@ -30,10 +31,20 @@ class DataBackend:public XMMS2Interface//, public QObject
 	DataBackend(QObject * parent, std::string name);
 	QObject * getDataBackendObject(DataBackendType type);
 
+
+///FORWARD/BACKWARD
+	public slots:
+	void playNextSong();
+	void playPreviousSong();
+	private slots:
+	void getRandom(QString name, QVariant newValue);
+	
+///SETTINGS
 	/**
 	***All QSettings keys starting with "konfetka"
 	***have their inital values sent out in qsettingsValueChanged
 	**/
+	public:
 	void emitInitialQSettings();
 
 	public slots:
@@ -44,7 +55,7 @@ class DataBackend:public XMMS2Interface//, public QObject
 	void qsettingsValueChanged(QString /*name*/, QVariant /*newValue*/);
 
 
-
+///CURRENT SONG LOOPBACK
 	//The following is for emitting the currentId signal anytime info is changed.
 	private:
 	int currId;

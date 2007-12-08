@@ -56,7 +56,6 @@ class PlaylistDelegate:public QItemDelegate
 class SinglePlaylist:public QAbstractItemModel
 	{	Q_OBJECT
 	private:
-		bool connected;
 		QList <uint> ids;
 		DataBackend * conn;
 		QStringList header;

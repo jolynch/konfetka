@@ -58,15 +58,15 @@ MiniMode::MiniMode(DataBackend * c,AlbumArt * a,QWidget * p, Qt::WindowFlags f):
 	connect(position,SIGNAL(timeChanged(int)),this,SLOT(changeTimeButton()));
 	connect(timeButton,SIGNAL(clicked()),this,SLOT(toggleTimeMode()));
 	
-	connect(back, SIGNAL(clicked()), this, SLOT(slotBack()));
+	connect(back, SIGNAL(clicked()), conn, SLOT(playPreviousSong()));
 	connect(play, SIGNAL(clicked()), this, SLOT(slotPlay()));
 	connect(pause, SIGNAL(clicked()), this, SLOT(slotPause()));
 	connect(stop, SIGNAL(clicked()), this, SLOT(slotStop()));
-	connect(forward, SIGNAL(clicked()), this, SLOT(slotForward()));
+	connect(forward, SIGNAL(clicked()), conn, SLOT(playNextSong()));
 
 	connect(quit, SIGNAL(clicked()),this, SIGNAL(hideMe()));
 
-	connect(this,SIGNAL(changeSongRel(int)),conn,SIGNAL(changeSong(int)));
+//	connect(this,SIGNAL(changeSongRel(int)),conn,SIGNAL(changeSong(int)));
 
 	connect(volume,SIGNAL(valueChanged(int)),this,SIGNAL(volumeValueChanged(int)));
 	connect(this,SIGNAL(setVolumeValue(int)),volume,SLOT(setValue(int)));
@@ -203,9 +203,9 @@ void MiniMode::paintEvent(QPaintEvent *event) {
 }
 
 
-void MiniMode::slotBack() {
+/*void MiniMode::slotBack() {
 	emit changeSongRel(-1);
-}
+}*/
 
 void MiniMode::slotPlay()
 	{
@@ -227,10 +227,10 @@ void MiniMode::slotStop()
 // 	updateTimer();
 }
 
-void MiniMode::slotForward()
+/*void MiniMode::slotForward()
 	{
 	emit changeSongRel(1);
-}
+}*/
 
 void MiniMode::setVolume() {
 }

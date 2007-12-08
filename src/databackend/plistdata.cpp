@@ -62,7 +62,6 @@ SinglePlaylist::SinglePlaylist(DataBackend * c,std::string name,QStringList hv_)
 	{
 	conn=c; humanReadableHeader=hv_;
 	parseHumanReadableHeader();
-	connected=false;
 	plistName=name;
 	delegate=new PlaylistDelegate(this,conn);
 	connect(((MlibData *)conn->getDataBackendObject(DataBackend::MLIB)),SIGNAL(infoChanged(int)),this,SLOT(infoChanged(int)));

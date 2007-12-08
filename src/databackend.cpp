@@ -13,9 +13,14 @@ DataBackend::DataBackend(QObject * parent, std::string name):XMMS2Interface(pare
 	collData=new CollData(this);
 	plistData=new PlistData(this);
 
+	QSettings s;
+	random=false;
+	if(!s.contains("konfetka/randomPlay")) s.setValue("konfetka/randomPlay",false);
+
 	currId=0;
 	QObject::connect(((XMMS2Interface *)this),SIGNAL(currentId(int)),this,SLOT(currentIdChanged(int)));
 	QObject::connect(((MlibData *)mlibData),SIGNAL(infoChanged(int)),this,SLOT(infoChanged(int)));
+	QObject::connect(this,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(getRandom(QString,QVariant)));
 }
 
 QObject * DataBackend::getDataBackendObject(DataBackendType type) {
@@ -52,4 +57,27 @@ void DataBackend::infoChanged(int id) {
 		this->playback.currentID()(Xmms::bind(&XMMS2Interface::newSongResponse, this));
 }
 
+void DataBackend::playNextSong()
+	{
+	if(!random)
+		{
+		this->playlist.setNextRel(1)(Xmms::bind(&XMMS2Interface::scrapResultI, this));
+		this->playback.tickle()(Xmms::bind(&XMMS2Interface::scrapResult, this));
+		return;
+		}
+	}
+
+void DataBackend::playPreviousSong()
+	{
+	if(!random)
+		{
+		this->playlist.setNextRel(-1)(Xmms::bind(&XMMS2Interface::scrapResultI, this));
+		this->playback.tickle()(Xmms::bind(&XMMS2Interface::scrapResult, this));
+		return;
+		}
+	}
+
+void DataBackend::getRandom(QString name, QVariant newValue)
+	{if(name=="konfetka/randomPlay")
+		random=newValue.toBool();}
 #endif

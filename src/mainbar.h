@@ -64,11 +64,11 @@ class MainBar:public QWidget
 //		QShortcut * shortcut;
 
 	private slots:
-		void slotBack();
+//		void slotBack();
 		void slotPlay();
 		void slotPause();
 		void slotStop();
-		void slotForward();
+//		void slotForward();
 		void slotUpdateInfo(int id);
 		void slotScroll();
 		void slotSetVolume(int);
@@ -86,7 +86,7 @@ class MainBar:public QWidget
 	signals:
 		void infoChanged();
 		void volumeChanged(int);
-		void changeSongRel(int);
+//		void changeSongRel(int);
 	};
 
 #endif
