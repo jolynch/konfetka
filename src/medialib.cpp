@@ -29,10 +29,10 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	loadUniverse->setToolTip("Load Universe");
 	loadUniverse->setFixedSize(32,32);
 
-	update = new QPushButton();
-	update->setIcon(QIcon(":images/repeat_all"));
-	update->setToolTip("Update Your MediaLib");
-	update->setFixedSize(32,32);
+	updateAll = new QPushButton();
+	updateAll->setIcon(QIcon(":images/repeat_all"));
+	updateAll->setToolTip("Update Your MediaLib");
+	updateAll->setFixedSize(32,32);
 
 	QMenu * makeCollMenu = new QMenu();
 	makeCollMenu->addAction("Use Visible Items",this,SLOT(useVisible()));
@@ -60,7 +60,7 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	layout->addWidget(mediaList,1,0,1,1);
 	layout->addWidget(complexSearchButton,0,1,1,1,Qt::AlignHCenter);
 	buttons->addWidget(loadUniverse,Qt::AlignHCenter);
-	buttons->addWidget(update,Qt::AlignHCenter);
+	buttons->addWidget(updateAll,Qt::AlignHCenter);
 	buttons->addWidget(makeColl,Qt::AlignHCenter);
 	layout->addLayout(buttons,1,1,1,1,Qt::AlignHCenter | Qt::AlignTop);
 	layout->setSpacing(5);
@@ -72,7 +72,7 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 
 
 	connect(loadUniverse,SIGNAL(clicked()),this,SLOT(loadUniv()));
-	connect(update,SIGNAL(clicked()),this,SLOT(refreshList()));
+	connect(updateAll,SIGNAL(clicked()),this,SLOT(refreshList()));
 	connect(searchLine,SIGNAL(returnPressed()),this,SLOT(searchMlib()));
 	
 	connect(mediaList,SIGNAL(itemPressed(QTreeWidgetItem *,int)),this,SLOT(addToMlibDrag(QTreeWidgetItem*,int))); 
@@ -106,7 +106,7 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 MediaLib::~MediaLib() {
 	delete mediaList;
 	delete loadUniverse;
-	delete update;
+	delete updateAll;
 	delete makeColl;
 	delete searchLine;
 	delete searchLabel;
@@ -308,13 +308,13 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 			temp = new QTreeWidgetItem();
 			temp->setText(0,title);
 // 			std::cout<<*list << title.toStdString()<<std::endl;
-			album->addChild(temp);
 			idToSongItem.insert(*list,temp);
-			if(mlib->getInfo("status",*list).toInt()==3) {
+			if(title != "" && mlib->getInfo("status",*list).toInt()==3) {
 				for(int i=0;i<temp->columnCount();i++) {
 				temp->setForeground(i,QBrush(QColor("grey"),Qt::SolidPattern));
 				}
 			}
+			album->addChild(temp);
 		}
 		
 		if(album->childCount()==0) {
@@ -328,10 +328,9 @@ void MediaLib::infoChanged(int id) {
 	if(idToSongItem.contains(id) && idToSongItem.value(id)!=NULL) {
 		QVariant tmp = mlib->getInfo(QString("title"),id);
 		idToSongItem.value(id)->setText(0,tmp.toString());
-		idToSongItem.value(id)->parent()->sortChildren(0,Qt::AscendingOrder);
-		if(mlib->getInfo("status",id).toInt()==3) {
-			for(int i=0;i<idToSongItem.value(id)->columnCount();i++) {
-			idToSongItem.value(id)->setForeground(i,QBrush(QColor("grey"),Qt::SolidPattern));
+			if(mlib->getInfo("status",id).toInt()==3) {
+				for(int i=0;i<idToSongItem.value(id)->columnCount();i++) {
+				idToSongItem.value(id)->setForeground(i,QBrush(QColor("grey"),Qt::SolidPattern));
 			}
 		}
 	}
@@ -425,6 +424,7 @@ void MediaLib::checkIfRefreshIsNeeded() {
 			temp->parent()->setText(0,mlib->getInfo("album",id).toString());
 			temp->parent()->parent()->setText(0,mlib->getInfo("artist",id).toString());
 			}
+		update();
 	}
 }
 
@@ -629,6 +629,14 @@ void MediaLib::recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> > newLi
 void MediaLib::setLayoutSide(bool right_side) { //true=right, false=left
 }
 
+void MediaLib::contextMenuEvent(QContextMenuEvent *event) {
+		if(!mediaList->hasFocus()) 
+		return;
+	std::cout<<"AHH"<<std::endl;
+	QTreeWidgetItem * itm = mediaList->itemAt(event->pos());
+	std::cout<<itm->text(0).toStdString()<<std::endl;
+}
+
 DropTreeWidget::DropTreeWidget(MediaLib* newLib,DataBackend* c):QTreeWidget() {
 	setDragDropMode(QAbstractItemView::DropOnly);
 	setAcceptDrops(true);
@@ -794,8 +802,7 @@ ComplexSearchDialog::ComplexSearchDialog(DataBackend* conn, Xmms::Coll::Coll* in
 	temp.clear();
 	temp<<"matches"<<"="<<"has tag"<<"<"<<">"<<"<="<<">=";
 	oper->addItems(temp);
-	
-	valueLabel = new QLabel("Value:");
+		valueLabel = new QLabel("Value:");
 	value = new QLineEdit();	
 	
 	appendageTypeLabel = new QLabel("Appendage Type:");

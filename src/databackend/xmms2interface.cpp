@@ -2,18 +2,15 @@
 #define XMMS2Interface_CPP
 #include "xmms2interface.h"
 
-XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObject(parent), Xmms::Client (name)
-	{
+XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObject(parent), Xmms::Client (name) {
 	quitting=false;
-	char * path;
-	path = getenv("XMMS_PATH");
-	try
-		{
+	char * path =  getenv("XMMS_PATH");
+	try {
 		if (path!=NULL)
-			((Xmms::Client*)this)->connect(path);
+		((Xmms::Client*)this)->connect(path);
 		else
-			((Xmms::Client*)this)->connect();
-		}
+	        ((Xmms::Client*)this)->connect();
+	}
 	catch( Xmms::connection_error& err )
 		{
  		std::cout << "Connection failed: " << err.what() << std::endl;
@@ -33,7 +30,7 @@ XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObjec
 						QMessageBox::Yes | QMessageBox::No,
 						QMessageBox::No);
 				if(ret==(QMessageBox::No)) {
-				qApp->quit();
+				exit(1);
 				return;
 				}
 				
@@ -50,12 +47,15 @@ XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObjec
 				}
                         }
 			
-			if (path!=NULL)
-			((Xmms::Client*)this)->connect(path);
-			else
-			((Xmms::Client*)this)->connect();
+				if (path!=NULL)
+				((Xmms::Client*)this)->connect(path);
+				else
+	        		((Xmms::Client*)this)->connect();
 			}
-
+			else {
+			std::cout<<"UNKOWN ERROR OCCURED ... try opening konfetka again ...?"<<std::endl;
+			exit(1);
+			}
 		}
 	this->setMainloop (new XmmsQT4 (this->getConnection ()));
 	this->playback.broadcastCurrentID()(Xmms::bind(&XMMS2Interface::newSongResponse, this));
@@ -68,8 +68,7 @@ XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObjec
 	this->playlist.broadcastLoaded()(Xmms::bind(&XMMS2Interface::getCurrentPlaylist, this));
 	this->collection.broadcastCollectionChanged()(Xmms::bind(&XMMS2Interface::handleCollChange, this));
 	this->playback.signalPlaytime()(Xmms::bind (&XMMS2Interface::handlePlaytimeSignal, this));
-
-	}
+}
 
 void XMMS2Interface::emitInitialXmms2Settings()
 	{

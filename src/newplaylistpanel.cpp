@@ -101,7 +101,7 @@ PlaylistPanel_::PlaylistPanel_(DataBackend * c):LayoutPanel()
 
 		this->setLayout(centralLayout);
 
-	del = new QShortcut(QKeySequence(Qt::Key_Delete),playlistView,SLOT(deleteSelected()),SLOT(deleteSelected()));
+// 	del = new QShortcut(QKeySequence(Qt::Key_Delete),playlistView,SLOT(deleteSelected()),SLOT(deleteSelected()));
 	this->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding));
 	}
 

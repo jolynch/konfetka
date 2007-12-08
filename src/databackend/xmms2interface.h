@@ -31,7 +31,6 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		~XMMS2Interface();
 		bool scrapResult(); //function for async returns with unimportant results.
 		bool scrapResultI(unsigned int foo); //@overload for scrapping 1 int returns.
-//		bool nonFatalError(const std::string& error); - Don't use this anymore!
 		bool newSongResponse(const unsigned int& id);
 		bool getstatus(const Xmms::Playback::Status& status);
 		bool getCurPlaytime(int);

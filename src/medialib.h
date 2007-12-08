@@ -65,7 +65,7 @@ Q_OBJECT
 	bool adding,complexSearch;
 	DropTreeWidget * mediaList;
 	QPushButton * loadUniverse;
-	QPushButton * update;
+	QPushButton * updateAll;
 	QPushButton * makeColl;
 	QPushButton * complexSearchButton;
 	QLineEdit * searchLine;
@@ -97,6 +97,7 @@ Q_OBJECT
 	Xmms::Coll::Union* selectedAsColl();
 	bool addToPlaylistFromCollectionDrag(const Xmms::List <Xmms::Dict> &list);
 	void setLayoutSide(bool right_side);
+	void contextMenuEvent(QContextMenuEvent *event);
 	void loadUpCollection(Xmms::Coll::Coll*);
 	int numDone,total;
 
@@ -153,7 +154,7 @@ Q_OBJECT
 	DropTreeWidget(MediaLib*,DataBackend* c);
 	~DropTreeWidget();
 	
-	//Drag Drop
+	//Drag Drop / User interaction
 	void dropEvent(QDropEvent *event);
 	void dragMoveEvent ( QDragMoveEvent * ); 
 	void dragEnterEvent(QDragEnterEvent *event);
