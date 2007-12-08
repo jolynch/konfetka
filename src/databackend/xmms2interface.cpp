@@ -30,7 +30,7 @@ XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObjec
 						QMessageBox::Yes | QMessageBox::No,
 						QMessageBox::No);
 				if(ret==(QMessageBox::No)) {
-				exit(1);
+				exit(EXIT_FAILURE);
 				return;
 				}
 				
@@ -53,8 +53,8 @@ XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObjec
 	        		((Xmms::Client*)this)->connect();
 			}
 			else {
-			std::cout<<"UNKOWN ERROR OCCURED ... try opening konfetka again ...?"<<std::endl;
-			exit(1);
+			std::cout<<"Autostarting the server failed, either this is your configuration, or an unkown error was recieved."<<std::endl;
+			exit(EXIT_FAILURE);
 			}
 		}
 	this->setMainloop (new XmmsQT4 (this->getConnection ()));

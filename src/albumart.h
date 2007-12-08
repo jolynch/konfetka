@@ -17,13 +17,11 @@
 class AlbumArt: public QWidget {
 	Q_OBJECT
 	private:
-	QString artXmlPath;
 	QHttp *http;
-	QFile *xmlFile;
 	QBuffer imageBuffer;
+	QBuffer xmlBuffer;
 	int httpGetId;
 	int numToGet;
-     	bool httpRequestAborted;
 	QString imageUrl;
 	QDomNodeList allCovers;
 	int id;
@@ -59,12 +57,10 @@ class AlbumArt: public QWidget {
 	void getPrevCover();
 	void getNextCover();
 	void getOrigCover();
-	void saveCoverToFile();
 	void makeRequest();
 	
 	signals:
 	void newPixmap(QPixmap);
-	//void mousePressEvent( QMouseEvent * event )
 	};
 
 #endif
