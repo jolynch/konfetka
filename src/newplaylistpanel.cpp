@@ -254,7 +254,11 @@ void PlaylistPanel_::setCurrentName(std::string name)
 	{
 	if(editing||locked) return;
 	editing=true;
-	playlistSwitcher->setCurrentIndex(playlistSwitcher->findText(name.c_str()));
+	int tmp=playlistSwitcher->findText(name.c_str());
+	if(tmp==playlistSwitcher->currentIndex())
+		playlistSelected(playlistSwitcher->currentText());
+	else
+		playlistSwitcher->setCurrentIndex(tmp);
 	editing=false;
 	}
 
