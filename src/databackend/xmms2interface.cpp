@@ -72,12 +72,12 @@ XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObjec
 
 void XMMS2Interface::emitInitialXmms2Settings()
 	{
+	this->playlist.currentActive() (Xmms::bind(&XMMS2Interface::getCurrentPlaylist,this));
 	this->playback.currentID()(Xmms::bind(&XMMS2Interface::newSongResponse, this));
 	this->playback.getStatus()(Xmms::bind(&XMMS2Interface::getstatus, this));
 	this->playback.getPlaytime()(Xmms::bind(&XMMS2Interface::getCurPlaytime, this));
 	this->playback.volumeGet()(Xmms::bind(&XMMS2Interface::volumeResponse, this));
 	this->playlist.currentPos()(Xmms::bind(&XMMS2Interface::curPos,this));
-	this->playlist.currentActive() (Xmms::bind(&XMMS2Interface::getCurrentPlaylist,this));
 	}
 
 XMMS2Interface::~XMMS2Interface()

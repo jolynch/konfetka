@@ -72,14 +72,10 @@ class SinglePlaylist:public QAbstractItemModel
 		SinglePlaylist(DataBackend * c,std::string name,QStringList hv_=QStringList());
 		void setHeader(QStringList newVal);
 		void setOrder(std::list< std::string > order);
-
 		bool insertCollection(const Xmms::Coll::Coll& c);
-
 		PlaylistDelegate * getDelegate();
 		bool setInitialPlist(const Xmms::List< unsigned int > &list);
-
 		QList<uint> getIdsFromPositions(QList <uint> pos);
-
 		void forceRefresh(uint row);
 
 	//QAbstractItemModel function implementations

@@ -71,9 +71,9 @@ void PanelController::leftCycle(bool up)
 	left->hide();
 	left=left_list[idx];
 	left->setSide(false);
-	if((flags[left]&LAYOUT_PANEL)!=BLANK) left->getLayoutPanel()->setLayoutSide(false);
 	if((flags[left]&0x010000)!=BLANK)
-		{connect(left,SIGNAL(cycle(bool)),this,SLOT(leftCycle(bool)));
+		{if((flags[left]&LAYOUT_PANEL)!=BLANK) left->getLayoutPanel()->setLayoutSide(false);
+		connect(left,SIGNAL(cycle(bool)),this,SLOT(leftCycle(bool)));
 		left->setSide_DOUBLESIDEPANEL(false);}
 	left->show();
 	left->allowXMove(x_left);
@@ -95,9 +95,10 @@ void PanelController::rightCycle(bool up)
 	right->hide();
 	right=right_list[idx];
 	right->setSide(true);
-	if((flags[right]&LAYOUT_PANEL)!=BLANK) right->getLayoutPanel()->setLayoutSide(true);
 	if((flags[right]&0x010000)!=BLANK)
-		{connect(right,SIGNAL(cycle(bool)),this,SLOT(rightCycle(bool)));
+		{
+		if((flags[right]&LAYOUT_PANEL)!=BLANK) right->getLayoutPanel()->setLayoutSide(true);
+		connect(right,SIGNAL(cycle(bool)),this,SLOT(rightCycle(bool)));
 		right->setSide_DOUBLESIDEPANEL(true);}
 	right->show();
 	right->allowXMove(x_right);
