@@ -74,14 +74,15 @@ Q_OBJECT
 	QVBoxLayout * buttons;
 	QList<QUrl> urlList;
 	QShortcut  * delItem;
-	QTimer doubleClickTimer;
 	QStack<uint> idStack;
 	ComplexSearchDialog * searchDialog;
+	QMenu * infoMenu;
+	QPoint dragStartPosition;
 	
 	//NEW LISTS
 	QHash<uint,QTreeWidgetItem*> idToSongItem;
 	Xmms::Coll::Coll * visibleMedia;
-	Xmms::Coll::Coll * lastVisibleMedia;
+	Xmms::Coll::Coll * baseMedia;
 	static const ItemType ARTIST = 0x001;
 	static const ItemType ALBUM = 0x010;
 	static const ItemType SONG = 0x011;
@@ -98,8 +99,8 @@ Q_OBJECT
 	bool addToPlaylistFromCollectionDrag(const Xmms::List <Xmms::Dict> &list);
 	void setLayoutSide(bool right_side);
 	void contextMenuEvent(QContextMenuEvent *event);
+	QMimeData* getCurrentMimeData();
 	void loadUpCollection(Xmms::Coll::Coll*);
-	int numDone,total;
 
 	//NEW LISTS
 	bool gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &list);
@@ -110,18 +111,15 @@ Q_OBJECT
 	void refreshList();
 	void checkIfRefreshIsNeeded();
 	void respondToPeriodicUpdate();
-	//refer to cpp
-// 	bool getArtists(const Xmms::List <Xmms::Dict> &list);
 	void loadUniv();
 	void useSelected();
 	void useVisible();
 	void newColl(SourceType type);
 	void searchMlib();
+	void displaySongInfo();
 	
-	void addToMlibDrag(QTreeWidgetItem*,int);
-	void addToMlibDoubleClick(QTreeWidgetItem *,int);
-	void startDrag();
-	void stopTimerAndClearList();
+	void addFromMlibDrag(QTreeWidgetItem*,int);
+	void addFromMlibDoubleClick(QTreeWidgetItem *,int);
 
 	void slotRemove();
 	void removeNodes(QList<QTreeWidgetItem*>);
@@ -159,6 +157,8 @@ Q_OBJECT
 	void dragMoveEvent ( QDragMoveEvent * ); 
 	void dragEnterEvent(QDragEnterEvent *event);
 	void keyPressEvent(QKeyEvent *event);
+	QStringList mimeTypes() const;
+	QMimeData* mimeData(const QList<QTreeWidgetItem *> items) const;
 
 	//Adding to Mlib related
 	void recurAdd(QString,bool);

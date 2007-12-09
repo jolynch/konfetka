@@ -56,6 +56,7 @@ MlibData::MlibData(DataBackend * c,QObject * parent):QObject(parent) {
 	s.setValue("standardTags",standardTags);
 	conn->medialib.broadcastEntryChanged()(Xmms::bind(&MlibData::mlibChanged, this));
 	connect(&changeTimer,SIGNAL(timeout()),this,SIGNAL(updatesDone()));
+	connect(this,SIGNAL(updatesDone()),this,SIGNAL(periodicUpdate()));
 	connect(&changeTimer,SIGNAL(timeout()),&changeTimer,SLOT(stop()));
 	connect(&waitTimer,SIGNAL(timeout()),this,SLOT(fetchSomeMore()));
 	connect(&periodicUpdateTimer,SIGNAL(timeout()),this,SIGNAL(periodicUpdate()));

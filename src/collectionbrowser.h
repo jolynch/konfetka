@@ -37,6 +37,7 @@ class CollectionBrowser:public LayoutPanel {
 	QHash<uint,QTreeWidgetItem*> idToItem;
 	QStringList labels;
 	QString currentCollection; Xmms::Collection::Namespace currentNamespace;
+	Xmms::Coll::Coll* currentCollectionStructure;
 	QGridLayout * layout1;
 
 	QTreeWidget * collDisplay;
@@ -68,7 +69,8 @@ class CollectionBrowser:public LayoutPanel {
 	
 	void resizeEvent(QResizeEvent* event);
 	void keyPressEvent(QKeyEvent* event);
-	
+	QMimeData* getMimeInfo(const QList<QTreeWidgetItem *> items);
+	void appendNewCollection(Xmms::Coll::Coll*);
 
 	public slots:
 	void updateCollList(QStringList);
@@ -78,9 +80,24 @@ class CollectionBrowser:public LayoutPanel {
 	void getNextFew(int value);
 	void addItemToPlist(QTreeWidgetItem*,int);
 	void greyItem(QTreeWidgetItem*);
-	void startDragTree(QTreeWidgetItem*,int);
 	void startDragList(QListWidgetItem*);
 	void startDrag();
+};
+
+class CollTreeWidget:public QTreeWidget {
+	Q_OBJECT
+	private:
+	CollectionBrowser* lib;
+	public:
+	CollTreeWidget(CollectionBrowser* l,QWidget * parent = 0);
+	~CollTreeWidget();
+	
+	//Drag Drop / User interaction
+	void dropEvent(QDropEvent *event);
+	void dragMoveEvent ( QDragMoveEvent * ); 
+	void dragEnterEvent(QDragEnterEvent *event);
+	QStringList mimeTypes() const;
+	QMimeData* mimeData(const QList<QTreeWidgetItem *> items) const;
 };
 
 

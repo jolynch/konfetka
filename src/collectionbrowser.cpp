@@ -11,7 +11,13 @@ CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::Windo
 	numFetched = 0;
 	
 	splitter = new QSplitter(this);
-	collDisplay = new QTreeWidget(splitter);
+	listSplitter = new QSplitter(Qt::Vertical,splitter);
+	collList = new QListWidget(listSplitter);
+	collList->setDragEnabled(true);
+	plistList = new QListWidget(listSplitter);
+	plistList->setDragEnabled(true);
+	
+	collDisplay = new CollTreeWidget(this,splitter);
 	QSettings s;
 	labels<<"Artist"<<"Album"<<"Title"<<"Genre";
 	if(labels.contains("konfetka/collectionbrowserlabels"))
@@ -19,14 +25,10 @@ CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::Windo
 	conn->changeAndSaveQSettings("konfetka/collectionbrowserlabels",labels);
 	collDisplay->setHeaderLabels(labels);
 	collDisplay->setDragEnabled(true);
+	collDisplay->setAcceptDrops(true);
+	collDisplay->setDropIndicatorShown(true);
 	collDisplay->setSelectionMode(QAbstractItemView::ExtendedSelection);
-	splitter->setStretchFactor(0,1);
-
-	listSplitter = new QSplitter(Qt::Vertical,splitter);
-	collList = new QListWidget(listSplitter);
-	collList->setDragEnabled(true);
-	plistList = new QListWidget(listSplitter);
-	plistList->setDragEnabled(true);
+	splitter->setStretchFactor(1,1);
 
 	dispColl = new QLineEdit();
 	dispColl->setEnabled(false);
@@ -44,7 +46,6 @@ CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::Windo
 	connect(collDisplay,SIGNAL(itemDoubleClicked(QTreeWidgetItem *,int)),this,SLOT(addItemToPlist(QTreeWidgetItem*,int)));
 
 	//Drag-Drop
-	connect(collDisplay,SIGNAL(itemPressed(QTreeWidgetItem*,int)),this,SLOT(startDragTree(QTreeWidgetItem*,int)));
 	connect(collList,SIGNAL(itemPressed(QListWidgetItem*)),this,SLOT(startDragList(QListWidgetItem*)));
 	connect(plistList,SIGNAL(itemPressed(QListWidgetItem*)),this,SLOT(startDragList(QListWidgetItem*)));
 	connect(&waitTimer,SIGNAL(timeout()),this,SLOT(startDrag()));
@@ -93,9 +94,9 @@ void CollectionBrowser::addIdToView(int id, bool isPriority) {
 void CollectionBrowser::setLayoutSide(bool side) {
 	std::cout<<"SIDE: "<<side<<std::endl;
 	if(side)
-	splitter->addWidget(collDisplay);
-	else
 	splitter->addWidget(listSplitter);
+	else
+	splitter->addWidget(collDisplay);
 }
 
 void CollectionBrowser::resizeEvent(QResizeEvent* event) {
@@ -146,6 +147,8 @@ void CollectionBrowser::getCollectionFromItem(QListWidgetItem * item) {
 
 bool CollectionBrowser::recievedNewColl(const Xmms::Coll::Coll& newColl) {
 	dispColl->setText(coll->collAsQString(newColl));
+	Xmms::Coll::Reference* temp = new Xmms::Coll::Reference(currentCollection.toStdString(),currentNamespace);
+	currentCollectionStructure = temp;
 	conn->collection.queryIds(newColl)(Xmms::bind(&CollectionBrowser::updateCollDisplay,this));
 	return true;
 }
@@ -192,19 +195,6 @@ void CollectionBrowser::greyItem(QTreeWidgetItem* item) {
 	for(int i=0;i<item->columnCount();i++) {
 	item->setForeground(i,QBrush(QColor("grey"),Qt::SolidPattern));
 	}
-}
-
-void CollectionBrowser::startDragTree(QTreeWidgetItem* item,int col) {
-	std::cout<<item->text(0).toStdString()<<std::endl;
-	QList<QTreeWidgetItem*> sel = collDisplay->selectedItems(); 
-	QList<QUrl> resultList;
-	mimeData = new QMimeData();
-	foreach(QTreeWidgetItem* item,sel) {
-		QString path = mlib->getInfo("url",idToItem.key(item)).toString();
-		resultList.append(QUrl(path));
-	}
-	mimeData->setUrls(resultList);
-	waitTimer.start(qApp->doubleClickInterval());	
 }
 
 void CollectionBrowser::startDragList(QListWidgetItem* item) {
@@ -272,13 +262,84 @@ void CollectionBrowser::removeSelectedItems(){
 		}
 	std::cout<<newArguments.size()<<std::endl;
 	std::cout<<currentCollection.toStdString()<<" "<<currentNamespace<<std::endl;
-	Xmms::Coll::Reference ref(currentCollection.toStdString(),currentNamespace);
-	Xmms::Coll::Intersection newRef;
-	Xmms::Coll::Complement comp(newArguments);
-	newRef.addOperand(ref);
-	newRef.addOperand(comp);
-	conn->collection.save(newRef,currentCollection.toStdString(),currentNamespace);
+	Xmms::Coll::Reference * ref = new Xmms::Coll::Reference(currentCollection.toStdString(),currentNamespace);
+	Xmms::Coll::Intersection * newRef = new Xmms::Coll::Intersection();
+	Xmms::Coll::Complement * comp = new Xmms::Coll::Complement(newArguments);
+	newRef->addOperand(*ref);
+	newRef->addOperand(*comp);
+	conn->collection.save(*newRef,currentCollection.toStdString(),currentNamespace);
 }
+
+QMimeData* CollectionBrowser::getMimeInfo(const QList<QTreeWidgetItem *> items) {
+	QList<QUrl> resultList;
+	QMimeData* mimeData = new QMimeData();
+	foreach(QTreeWidgetItem* item,items) {
+		QString path = mlib->getInfo("url",idToItem.key(item)).toString();
+		resultList.append(QUrl(path));
+	}
+	mimeData->setUrls(resultList);
+	return mimeData;
+}
+
+void CollectionBrowser::appendNewCollection(Xmms::Coll::Coll* tmp) {
+	Xmms::Coll::Union* un = new Xmms::Coll::Union();
+		if(currentCollectionStructure->getType() == Xmms::Coll::UNION) {
+		Xmms::Coll::OperandIterator temp = currentCollectionStructure->getOperandIterator();
+				for(temp.first();temp.valid();temp.next()) {
+				un->addOperand(**temp);
+// 				tmpStr = collAsQString((**temp));
+// 				result += tmpStr;
+// 				temp.next();
+// 					if(temp.valid())
+// 					result+= " OR ";
+				}
+		}
+// 	un->addOperand(*currentCollectionStructure);
+	un->addOperand(*tmp);
+		try{
+		conn->collection.save(*un,currentCollection.toStdString(),currentNamespace);
+		} catch (Xmms::result_error c) { std::cout<<"bled"<<std::endl;}
+}
+
+CollTreeWidget::CollTreeWidget(CollectionBrowser* l,QWidget * parent):QTreeWidget(parent) {
+	lib = l;
+}
+
+CollTreeWidget::~CollTreeWidget() {
+}
+
+
+void CollTreeWidget::dropEvent(QDropEvent *event) {
+	QByteArray encodedData = event->mimeData()->data("application/x-collstruct");
+	int temp = encodedData.toInt();
+	Xmms::Coll::Coll* tmp = (Xmms::Coll::Coll*)temp;
+	std::cout<<tmp->getType()<<std::endl;	
+	lib->appendNewCollection(tmp);
+// 	std::cout<<encodedData.number(16)<<std::endl;
+}
+
+void CollTreeWidget::dragMoveEvent ( QDragMoveEvent * event ) {
+
+}
+
+void CollTreeWidget::dragEnterEvent(QDragEnterEvent *event) {
+	if(event->mimeData()->hasFormat("application/x-collstruct"))
+	event->acceptProposedAction();
+// 	else
+// 	event->ignore();
+}
+
+
+QStringList CollTreeWidget::mimeTypes() const {
+	QStringList types;
+	types << "text/uri-list" << "application/x-collname" <<"application/x-collstructure";
+	return types;
+}
+
+QMimeData* CollTreeWidget::mimeData(const QList<QTreeWidgetItem *> items) const {
+	return lib->getMimeInfo(items);
+}
+
 
 #endif
 

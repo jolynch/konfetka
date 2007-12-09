@@ -21,8 +21,8 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	mediaList->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	mediaList->setDragEnabled(true);
 	mediaList->setAcceptDrops(true);
-	mediaList->setDropIndicatorShown(true);
 	mediaList->setObjectName ("mediaList");
+	
 
 	loadUniverse= new QPushButton();
 	loadUniverse->setIcon(QIcon(":images/xmms2Logo"));
@@ -51,6 +51,10 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	complexSearchButton->setMenu(menu);
 // 	complexSearchButton->setFixedSize(42,25);
 
+	infoMenu = new QMenu("Media Information");
+	infoMenu->addAction("View Media Information",this,SLOT(displaySongInfo()));
+	infoMenu->addAction("Remove Selected Media",this,SLOT(slotRemove()));
+
 	QStringList filters;
 	filters << "*mp3*" << "*m4a*";
 	for(int i =1;i<4;i++)
@@ -75,13 +79,11 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	connect(updateAll,SIGNAL(clicked()),this,SLOT(refreshList()));
 	connect(searchLine,SIGNAL(returnPressed()),this,SLOT(searchMlib()));
 	
-	connect(mediaList,SIGNAL(itemPressed(QTreeWidgetItem *,int)),this,SLOT(addToMlibDrag(QTreeWidgetItem*,int))); 
-	connect(mediaList,SIGNAL(itemDoubleClicked(QTreeWidgetItem *,int)),this,SLOT(addToMlibDoubleClick(QTreeWidgetItem*,int)));
-	connect(mediaList,SIGNAL(itemClicked(QTreeWidgetItem *,int)),this,SLOT(stopTimerAndClearList()));
+	//The pressed really just prepares the urllist, look at DropTreeWidget::mimeData for the actual dragging
+	connect(mediaList,SIGNAL(itemPressed(QTreeWidgetItem *,int)),this,SLOT(addFromMlibDrag(QTreeWidgetItem*,int))); 
+	connect(mediaList,SIGNAL(itemDoubleClicked(QTreeWidgetItem *,int)),this,SLOT(addFromMlibDoubleClick(QTreeWidgetItem*,int)));
 	connect(mediaList,SIGNAL(removeSelected()),this,SLOT(slotRemove()));
 
-	connect(&doubleClickTimer,SIGNAL(timeout()),this,SLOT(startDrag()));
-	
 	//New List thingy
 	connect(mlib,SIGNAL(gotListFromServer(QString, QList<QString>)),
 					this,SLOT(gotNewList(QString, QList<QString>)));
@@ -95,7 +97,7 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	connect(searchDialog,SIGNAL(newList(QList< QPair <Xmms::Coll::Coll*,Operator> >)),
 			this,SLOT(recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> >)));
 	visibleMedia = new Xmms::Coll::Universe();
-	lastVisibleMedia = visibleMedia;
+	baseMedia = visibleMedia;
 	mlib->getListFromServer(visibleMedia,"artist");
 	adding=false;
 
@@ -156,8 +158,11 @@ void MediaLib::newColl(SourceType type) {
 	
 	if(type == VISIBLE)
 	coll->createCollection(*visibleMedia,name.toStdString(),conn->collection.COLLECTIONS);
-	else
-	coll->createCollection(*selectedAsColl(),name.toStdString(),conn->collection.COLLECTIONS);
+	else {
+	std::cout<<"uding selected"<<std::endl;
+	Xmms::Coll::Union * tmp = new Xmms::Coll::Union(*selectedAsColl());
+	coll->createCollection(*tmp,name.toStdString(),conn->collection.COLLECTIONS);
+	}
 }
 
 
@@ -340,8 +345,10 @@ void MediaLib::infoChanged(int id) {
 }
 
 void MediaLib::respondToPeriodicUpdate() {
-// 	if(this->hasFocus())
-// 	std::cout<<"UPDATe"<<std::endl;
+	
+	if(!(hasFocus() || mediaList->hasFocus())) {
+// 	refreshList();
+	}
 }
 
 void MediaLib::slotRemove() {
@@ -437,21 +444,21 @@ void MediaLib::loadUniv() {
 void MediaLib::searchMlib() {
 	std::string text = searchLine->text().toStdString();
 	Xmms::Coll::Union allMatches;
-		Xmms::Coll::Match matchedArt(*visibleMedia,"artist","%"+text+"%");
+		Xmms::Coll::Match matchedArt(*baseMedia,"artist","%"+text+"%");
 		allMatches.addOperand(matchedArt);
-		Xmms::Coll::Match matchedAlb(*visibleMedia,"album","%"+text+"%");
+		Xmms::Coll::Match matchedAlb(*baseMedia,"album","%"+text+"%");
 		allMatches.addOperand(matchedAlb);
-		Xmms::Coll::Match matchedTit(*visibleMedia,"title","%"+text+"%");
+		Xmms::Coll::Match matchedTit(*baseMedia,"title","%"+text+"%");
 		allMatches.addOperand(matchedTit);
-		Xmms::Coll::Match matchedUrl(*visibleMedia,"url","%"+text+"%");
+		Xmms::Coll::Match matchedUrl(*baseMedia,"url","%"+text+"%");
 		allMatches.addOperand(matchedUrl);
-		Xmms::Coll::Match matchedGenre(*visibleMedia,"genre","%"+text+"%");
+		Xmms::Coll::Match matchedGenre(*baseMedia,"genre","%"+text+"%");
 		allMatches.addOperand(matchedGenre);
-		Xmms::Coll::Match matchedID(*visibleMedia,"id","%"+text+"%");
+		Xmms::Coll::Match matchedID(*baseMedia,"id","%"+text+"%");
 		allMatches.addOperand(matchedID);
 		
 	if(text=="")
-	visibleMedia = lastVisibleMedia;
+	visibleMedia = baseMedia;
 	else
 	visibleMedia = new Xmms::Coll::Union(allMatches);
 	mlib->getListFromServer(visibleMedia,"artist");
@@ -510,7 +517,7 @@ Xmms::Coll::Union* MediaLib::selectedAsColl() {
 	return media;
 }
 
-void MediaLib::addToMlibDrag(QTreeWidgetItem*,int) {
+void MediaLib::addFromMlibDrag(QTreeWidgetItem*,int) {
 	urlList.clear();
 	Xmms::Coll::Union * media = selectedAsColl();
 	
@@ -528,37 +535,15 @@ bool MediaLib::addToPlaylistFromCollectionDrag(const Xmms::List <Xmms::Dict> &li
 		urlList.append(QUrl(QString(tmpString.c_str())));
 		}
 	}
-// 		for(int i=0;i<urlList.size();i++)
-// 		std::cout<<urlList.value(i).toString().toStdString()<<std::endl;
-	doubleClickTimer.start(qApp->doubleClickInterval());
 	return true;
 }
 
-void MediaLib::addToMlibDoubleClick(QTreeWidgetItem * item,int) {
+void MediaLib::addFromMlibDoubleClick(QTreeWidgetItem * item,int) {
 //		for(int i=0;i<urlList.size();i++) {
 //		//std::cout<<urlList.value(i).toString().toStdString()<<std::endl;
 //		}
 	urlList.clear();
-// 	Xmms::Coll::Union * media = selectedAsColl();
-	
-	doubleClickTimer.stop();
-}
-
-void MediaLib::startDrag() {
-	doubleClickTimer.stop();
-	QDrag * drag = new QDrag(this);
-	QMimeData * mimeData = new QMimeData;
-	mimeData->setUrls(urlList);
-	drag->setMimeData(mimeData);
-	drag->setPixmap(QPixmap(":images/volume_button_sound"));
-	std::cout<<urlList.size()<<std::endl;
-	urlList.clear();
-	drag->exec();
-}
-
-void MediaLib::stopTimerAndClearList() {
-	doubleClickTimer.stop();
-	urlList.clear();
+// 	Xmms::Coll::Union * media = selectedAsColl();	
 }
 
 void MediaLib::toggleComplexSearch() {
@@ -577,7 +562,7 @@ void MediaLib::toggleComplexSearch() {
 	searchLine->clear();
 	searchLine->setEnabled(true);
 	searchDialog->clearItems();
-		visibleMedia = lastVisibleMedia;
+		visibleMedia = baseMedia;
 		mlib->getListFromServer(visibleMedia,"artist");
 	}
 
@@ -617,8 +602,8 @@ void MediaLib::recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> > newLi
 	}
 
 	if(val!=NULL) {
-// 			if(lastVisibleMedia==NULL)
-// 			delete lastVisibleMedia;
+// 			if(baseMedia==NULL)
+// 			delete baseMedia;
 		visibleMedia = val;
 		std::cout<<"DONE"<<std::endl;
 		searchLine->setText(coll->collAsQString(*val));
@@ -635,6 +620,43 @@ void MediaLib::contextMenuEvent(QContextMenuEvent *event) {
 	std::cout<<"AHH"<<std::endl;
 	QTreeWidgetItem * itm = mediaList->itemAt(event->pos());
 	std::cout<<itm->text(0).toStdString()<<std::endl;
+	infoMenu->exec(event->globalPos());
+}
+
+void MediaLib::displaySongInfo() {
+	QTreeWidgetItem* item = mediaList->currentItem();
+		switch(getItemType(item)) {
+			case ARTIST: {
+			std::cout<<"Artist"<<std::endl;
+			break;
+			}
+			case ALBUM: {
+			std::cout<<"Album"<<std::endl;
+			break;
+			}
+			case SONG: {
+			std::cout<<"Song"<<std::endl;
+			break;
+			}
+		}
+}
+
+QMimeData* MediaLib::getCurrentMimeData() {
+	QMimeData * mimeData = new QMimeData;
+	mimeData->setUrls(urlList);
+	std::cout<<urlList.size()<<std::endl;
+	
+	QByteArray encodedData;
+// 	QDataStream stream(&encodedData, QIODevice::WriteOnly);
+	Xmms::Coll::Coll* tmp = new Xmms::Coll::Union(*selectedAsColl());
+// 	std::cout<<tmp<<std::endl;
+// 	stream << tmp;	
+// 	encodedData.append((char*)tmp);
+	encodedData =QByteArray::number((int)tmp);
+	std::cout<<tmp<<std::endl;
+
+	mimeData->setData("application/x-collstruct", encodedData);
+	return mimeData;
 }
 
 DropTreeWidget::DropTreeWidget(MediaLib* newLib,DataBackend* c):QTreeWidget() {
@@ -686,8 +708,6 @@ void DropTreeWidget::numSongs(QString path) {
 	for(int i=0;i<list.size();i++) {
 		if(list.value(i).isDir()) 
 		numSongs(list.value(i).filePath());
-		else
-		lib->total += 1;
 	}
 
 }
@@ -697,7 +717,7 @@ DropTreeWidget::~DropTreeWidget() {
 }
 
 void DropTreeWidget::dragEnterEvent(QDragEnterEvent *event) {
-	if(event->mimeData()->hasUrls() || event->mimeData()->hasFormat("application/x-collname"))
+	if(event->mimeData()->hasUrls() || event->mimeData()->hasFormat("application/x-collname") && event->source()!=this)
 	event->acceptProposedAction();
 	else
 	event->ignore();
@@ -710,6 +730,10 @@ void DropTreeWidget::dragMoveEvent ( QDragMoveEvent * event) {
 
 //Time to actually do some shite
 void DropTreeWidget::dropEvent(QDropEvent *event){
+	if(event->source()==lib) {
+	event->ignore();
+	return;
+	}
 // //std::cout<<"dragging"<<std::endl;
 	if(event->mimeData()->hasUrls()) {
 		path->clear();
@@ -769,9 +793,18 @@ void DropTreeWidget::keyPressEvent ( QKeyEvent * event ) {
 	event->ignore();
 }
 
+QStringList DropTreeWidget::mimeTypes() const {
+	QStringList types;
+	types << "text/uri-list" << "application/x-collname" <<"application/x-collstruct";
+	return types;
+}
+
+QMimeData* DropTreeWidget::mimeData(const QList<QTreeWidgetItem *> items) const {
+	return lib->getCurrentMimeData();
+}
 
 void MediaLib::loadUpCollection(Xmms::Coll::Coll* tmpColl) {
-	lastVisibleMedia = tmpColl;
+	baseMedia = tmpColl;
 	visibleMedia = tmpColl;
 	delete searchDialog;
 	searchDialog = new ComplexSearchDialog(conn,visibleMedia);
