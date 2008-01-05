@@ -730,7 +730,7 @@ void DropTreeWidget::dragMoveEvent ( QDragMoveEvent * event) {
 
 //Time to actually do some shite
 void DropTreeWidget::dropEvent(QDropEvent *event){
-	if(event->source()==lib) {
+	if(event->source()==lib ||event->source()==this) {
 	event->ignore();
 	return;
 	}

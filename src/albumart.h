@@ -13,7 +13,8 @@
 #include <string>
 #include <math.h>
 #include <QSettings>
-#include <QCryptographicHash>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 class AlbumArt: public QWidget {
 	Q_OBJECT
 	private:
@@ -46,11 +47,15 @@ class AlbumArt: public QWidget {
 	void paintEvent(QPaintEvent *);
 	bool gotInformation(const Xmms::bin& res); // Xmms2 bindata calls
 	bool sentInformation(const std::string& res);
+	void dragEnterEvent(QDragEnterEvent * event);
+	void dropEvent(QDropEvent *event);
+	
 	public slots:
 	void fetchXML(int);
-	void fetchImage(bool,bool force = 0);
-	void setImage(bool);
+	void fetchImage(bool err = 0,bool force = 0);
+	void setImage(bool err = 0);
 	void slotReflect(bool);
+	void processSettingsUpdate(QString,QVariant);
 
 	//Menuing slots
 	void mouseReleaseEvent(QMouseEvent*);

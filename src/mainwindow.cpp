@@ -19,10 +19,12 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	animator=new QTimer();
 	mainbar=new MainBar(conn,this,this,NULL);
 	QDesktopWidget *desktop = papa->desktop();
-	QRect deskRect;
-	deskRect = desktop->availableGeometry(this);
+	QRect deskRect = desktop->availableGeometry();
+	QRect screenRect = desktop->screenGeometry();
+	std::cout<<"DR- X: "<<deskRect.x()<<" Y: "<<deskRect.y()<<" WIDTH: "<<deskRect.width()<<" HEIGHT: "<<deskRect.height()<<std::endl;
+	std::cout<<"SR- X: "<<screenRect.x()<<" Y: "<<screenRect.y()<<" WIDTH: "<<screenRect.width()<<" HEIGHT: "<<screenRect.height()<<std::endl;
 
-	rearpanel=new RearPanel(conn,deskRect, this, NULL);	
+	rearpanel=new RearPanel(conn,screenRect, this, NULL);	
 
 		if(s.value("staysOnTop").toBool())
 		minibar=new MiniMode(conn,rearpanel->getAlbumArt(),NULL,Qt::WindowStaysOnTopHint|Qt::FramelessWindowHint);
@@ -33,10 +35,10 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	connect(mainbar,SIGNAL(volumeChanged(int)),minibar,SIGNAL(setVolumeValue(int)));
 	medialibView=new MediaLib(conn,this,NULL);
 	//playlistpanel=new PlaylistPanel(conn,this);
-	screenW = deskRect.width();
-	screenH = deskRect.height();
+	screenW = screenRect.width();
+	screenH = screenRect.height();
 	height=450; currentHeight=450; step=-20;
-	this->setGeometry(deskRect.x(),deskRect.y(),screenW,450);
+	this->setGeometry(screenRect.x(),screenRect.y(),screenW,450);
 // 	this->setFixedHeight(height);
 // 	this->setFixedWidth(screenW);
 	icon=new QSystemTrayIcon(QIcon(":images/logomini.png"));
@@ -142,6 +144,8 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	pc->registerPanel(new Panel(this,"FILESYSTEM",new FileBrowser(conn,this)),PanelController::LEFTPANEL);
 	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
 	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
 	conn->emitInitialQSettings();
 	conn->emitInitialXmms2Settings();
 	}

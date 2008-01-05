@@ -24,10 +24,12 @@
 #include <QTimer>
 #include <string>
 
+
+//Simple class to store information about an entry in the Media Library
 class MediaInfo{
 	private:
-	QHash<QString,QVariant> songInfo; //Hash storing property->value [Ex artist->311]
-	QHash<QString,QString> infoSource; //Hash storing property->source [Ex artist->mad
+	QHash<QString,QVariant> songInfo; //Hash storing property->value [Ex "artist"->QVariant("311")]
+	QHash<QString,QString> infoSource; //Hash storing property->source [Ex "artist"->"mad"]
 	
 	public:
 	//constructors
@@ -46,25 +48,32 @@ class MediaInfo{
 	void setAllInfo(QHash<QString,QVariant>);
 };
 
+//Backend data for medialib information.  Everything revolves around "getInfo" which
+//will give data about an id, or if it doesn't have it go get it from the server
 class MlibData:public QObject {
 	Q_OBJECT
-	///MLIB DATA
-	///WHATEVER IS NEEDED
 	private:
 	DataBackend * conn;
+	//Requests for new Ids are queued and then fetched every half second to reduce lag gui-side
 	QQueue<uint> waitingIds;
 	QTimer waitTimer;
-	QHash<uint,MediaInfo*> cache;
-	QStringList standardTags;
 	QTimer changeTimer;
+	//This is all the ids that have been fetched so far, does not contain all ids in the mlib
+	QHash<uint,MediaInfo*> cache;
+	//What tags gui should supply
+	QStringList standardTags;
+	//Periodically tells gui-side to update
 	QTimer periodicUpdateTimer;
 	
 	public:
 	MlibData(DataBackend *c,QObject * parent = 0);
+	//Pass me hex for all I care, it is getting decoded
 	QVariant getInfo(std::string property, uint id);
 	QVariant getInfo(QString property, uint id);
 	QVariant getInfo(char* property, uint id);
+	//Kind of a useless check, but wth
 	bool hasInfo(uint id);
+	//Allows access to standard tags
 	QStringList getStandardTags();
 
 	void clearCache();

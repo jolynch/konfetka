@@ -4,6 +4,7 @@
 
 
 BasicVis::BasicVis(DataBackend * c,int h,int w,QWidget* parent, Qt::WindowFlags f, QColor col):QWidget(parent, f) {
+	conn = c;
 	height=180;
 	width=(int)(w*(2.0/7));
 	time = 0;
@@ -11,15 +12,15 @@ BasicVis::BasicVis(DataBackend * c,int h,int w,QWidget* parent, Qt::WindowFlags 
 	
 	numBars = 20;
 	timerLength = 100;
-	QSettings s;
-		if(s.contains("visNumBars") && s.value("visNumBars").toInt()==0)
-		numBars=0;
-		else if(s.contains("visNumBars"))
-		numBars = s.value("visNumBars").toInt();
-		if(s.contains("visFps") && s.value("visFps").toInt()==0)
-		timerLength = 0;
-		else if(s.contains("visFps"))
-		timerLength = 1000/ s.value("visFps").toInt();
+// 	QSettings s;
+// 		if(s.contains("visNumBars") && s.value("visNumBars").toInt()==0)
+// 		numBars=0;
+// 		else if(s.contains("visNumBars"))
+// 		numBars = s.value("visNumBars").toInt();
+// 		if(s.contains("visFps") && s.value("visFps").toInt()==0)
+// 		timerLength = 0;
+// 		else if(s.contains("visFps"))
+// 		timerLength = 1000/ s.value("visFps").toInt();
 	
 	layout = new QGridLayout();
 	
@@ -52,8 +53,8 @@ BasicVis::BasicVis(DataBackend * c,int h,int w,QWidget* parent, Qt::WindowFlags 
 	layout->addWidget(view);
 	layout->setMargin(0);
 	this->setLayout(layout);
-	QObject::connect(timer, SIGNAL(timeout()), this, SLOT(doAnimation()));
-	
+	connect(timer, SIGNAL(timeout()), this, SLOT(doAnimation()));
+	connect(conn,SIGNAL(qsettingsValueChanged(QString, QVariant)),this,SLOT(processSettingsUpdate(QString,QVariant)));
 	setNumAndLen(numBars,timerLength);
 }
 
@@ -64,6 +65,18 @@ BasicVis::~BasicVis() {
 	delete timer;
 	delete waitTimer;
 	delete linearGrad;
+}
+
+void BasicVis::processSettingsUpdate(QString name,QVariant value) {
+	if(name == "konfetka/visFps") {
+		if(value.toInt()!=0)
+		timerLength = 1000/value.toInt();
+		else
+		timerLength = 0;
+	}
+	else if(name == "konfetka/visNumBars") {
+		numBars = value.toInt();
+	}
 }
 
 void BasicVis::paintEvent(QPaintEvent * event) {

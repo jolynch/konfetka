@@ -93,7 +93,7 @@ void Playlist_::keyPressEvent(QKeyEvent* event)
 
 void Playlist_::contextMenuEvent ( QContextMenuEvent * event )
 	{
-	rightClickMenu->exec(event->pos());
+	rightClickMenu->exec(event->globalPos());
 	}
 
 

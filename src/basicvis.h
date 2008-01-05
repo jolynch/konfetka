@@ -19,9 +19,10 @@
 #include <QStyleOption>
 
 class MyScene;
-class BasicVis:public QWidget
-	{	Q_OBJECT
+class BasicVis:public QWidget {
+	Q_OBJECT
 	private:
+	DataBackend * conn;
 	QGridLayout * layout;
 	MyScene * scene;
 	QGraphicsView * view;
@@ -48,6 +49,7 @@ class BasicVis:public QWidget
 	void doAnimation();
 	void toggleAnimation();
 	void paintEvent(QPaintEvent *);
+	void processSettingsUpdate(QString,QVariant);
 	};
 class MyScene:public QGraphicsScene
 	{	Q_OBJECT

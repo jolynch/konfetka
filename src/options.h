@@ -1,119 +1,109 @@
+/*
+A basic Options editor for Konfetka
+Main dev: Joe Lynch
+*/
+
 #ifndef OPTIONS_H
 #define OPTIONS_H
-#include <QWidget>
+#include "databackend.h"
+#include "layoutpanel.h"
 #include <QGridLayout>
-#include <QCheckBox>
 #include <QTabWidget>
-#include <QSpinBox>
-#include <QPushButton>
-#include <QLabel>
-#include <QGroupBox>
-#include <QSettings>
-//PLIST	OPTIONS headers BEGIN
-#include <QShortcut>
-#include <QComboBox>
-#include <QListWidget>
-#include <QListWidgetItem>
+#include <QList>
+#include <QString>
 #include <QStringList>
-//and END.
+#include <QGroupBox>
+#include <QPushButton>
+#include <QComboBox>
+#include <QCheckBox>
+#include <QLabel>
+#include <QSpinBox>
+#include <QListWidget>
+#include <QHBoxLayout>
+#include <QListWidget>
+#include <QKeyEvent>
 
-class GeneralOptions;
-class MlibOptions;
-class PlistOptions;
-class Options:public QWidget
-	{	Q_OBJECT
+class ListEditor;
+class Options:public LayoutPanel {
+	Q_OBJECT
 	private:
-		QGridLayout* layout;
-		QTabWidget * optionTabs;
-		GeneralOptions * gen;
-		MlibOptions * mlib;
-		PlistOptions * plist;
-		QPushButton * okButton;
-		QPushButton * clearButton;
+	DataBackend * conn;
+	QGridLayout * layout;
+	QTabWidget * tab;
+	QGroupBox * yesNo;
+
+	//Various Tabs
+	/*Development Note: This is not the most portable way of doing this, it theoretically would be easier
+	for me to use a class for each 'tab', i.e. a "General" class, etc... but 
+	1) that's harder
+	2) anyone who reads this should be able to make the necessary changes in the data members to provide
+	the same kind of changes (if you can't, request that one of the devs does)
+	*/
+
+	//General
+	QWidget * genOpt;
+
+	QSpinBox * visFps;
+	QLabel * visFpsLabel;
+	QSpinBox * visNumBars;
+	QLabel * visNumBarsLabel;
+	QCheckBox * autoStart;
+	QCheckBox * albArtReflection;
+	QCheckBox * stayOnTop;
+	QComboBox * language;
+
+	//End General
+
+	//Playlist
+	QWidget * plistOpt;
+	ListEditor * plistHeaders;
+	//End Playlist
+
+	//Media Library
+	QWidget * mlibOpt;
+	//End Media Library
+	
+	//Collections
+	QWidget * collOpt;
+	//End Collections
+
+	void constructOptions();
+
 	public:
-		Options(QWidget * parent=0,Qt::WindowFlags f=0);
-		~Options();
+	Options(DataBackend * c,QWidget * parent=0,Qt::WindowFlags f=0);
+	~Options();
+	void setLayoutSide(bool right_side);//true=right, false=left
+
 	public slots:
-		void saveAll();
-		void resetAll();
-		void emitAll();
-	signals:
-		void stayOnTop(bool);
-		void reflectImage(bool);
-		void newVis();
-		void updatePlaylistHeaders(QList<QString>);
-		void doubleClick(bool);
-		void searchWhat(int);
-	};
-class GeneralOptions:public QWidget 
-	{	Q_OBJECT
-	private:
-		Options * parentOptions;
-		QCheckBox * reflectImage;
-		QCheckBox * staysOnTop;
-		QCheckBox * autoStart;
-		QGroupBox * visOptions;
-		QSpinBox * visNumBars;	QLabel * visNumBarsLabel;
-		QSpinBox * visFps;	QLabel * visFpsLabel;
-		QGridLayout * visLayout;
+	void sendSettings(bool all = false);
+	void sendAllSettings();
+	void updateGui(QString,QVariant);
+};
 
-		QGridLayout* layout;
-	public:
-		GeneralOptions(Options* option,QWidget * parent=0,Qt::WindowFlags f=0);
-		~GeneralOptions();
-		void saveChanges();
-		void reset();
-		void emitSignals();
-	signals:
-		void sigStayOnTop(bool);
-		void sigReflectImage(bool);
-		void sigNewVis();
-	};
-
-class MlibOptions:public QWidget 
-	{	Q_OBJECT
+//Often lists need to be edited, for example the import order for collections, or labels of a song to show
+class ListEditor:public QWidget {
+	Q_OBJECT
 	private:
-		QCheckBox * doubleClick;
-		QLabel * doubleClickLabel;
-		QComboBox * searchWhat;
-		QLabel * searchWhatLabel;
-		QGridLayout * layout;
+	DataBackend * conn;
+	QString prop;
+	QGridLayout * layout;
+	QListWidget * list;
+	QComboBox * addItem;
+	QPushButton * addButton;
+	void removeSelected();
+	
 	public:
-		MlibOptions(Options* option=0,QWidget * parent=0,Qt::WindowFlags f=0);
-		~MlibOptions();
-		void saveChanges();
-		void reset();
-		void emitSignals();
-	signals:
-		void sigDoubleClick(bool);
-		void sigSearchWhat(int);
-	};
+	ListEditor(DataBackend * c,QString property,QWidget * parent=0);
+	void keyPressEvent(QKeyEvent * event);
+	void saveChanges();
+	void reset();
+	QList<QString> getList();
+	void setList(QList<QString>);	
 
-///!!VARIABLE SHOULD BE SAVED AS "konfetka/playlistValues"
-///!!updatePlaylistHeaders needs to be connected to Playlist::setHeader() with data from getHeaders()
-//Modifications:
-//BEGIN
-class PlistOptions:public QWidget 
-	{	Q_OBJECT
-	private:
-		QGridLayout * layout;
-		QListWidget * headers;
-		QShortcut * del;
-		QComboBox * addItem;
-		QPushButton * addButton;
-	public:
-		PlistOptions(Options* option=0,QWidget * parent=0);
-		void saveChanges();
-		void reset();
-		QList<QString> getHeaders(); //Alternatively, "getTheShit()"
-		void emitSignals();
 	private slots:
-		void remove();
-		void add();
-		void editable(int npos);
-	signals:
-		void sigUpdatePlaylistHeaders(QList<QString>);
-	};
-//END
+	void remove();
+	void add();
+	void editable(int npos);
+};
 
 #endif

@@ -45,28 +45,15 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 	info->setLayout(infoLayout);
 	wiki=new WikiView(conn,parent,f);
 	lyrics=new LyricBrowser(conn);
-	options=new QScrollArea();
 	//JOEY MOVED THESE TWO LINES UP FOR OPTIONS
 	//visualization=new Visualization(conn,this, NULL);
 	newVis = new BasicVis(conn,deskRect.height(),deskRect.width(),this, NULL);
 	//DONE
-	opt=new Options();
 
-	//JOEY ADDED THIS FOR OPTIONS / other stuff
-	QObject::connect(opt, SIGNAL(stayOnTop(bool)), p, SLOT(slotStayOnTop(bool)));
-	connect(opt,SIGNAL(reflectImage(bool)),albumArt,SLOT(slotReflect(bool)));
-	connect(opt,SIGNAL(newVis()),this,SLOT(createNewVis()));
-	connect(opt,SIGNAL(updatePlaylistHeaders(QList<QString>)),this,SIGNAL(sigUpdateHeaders(QList<QString>)));
-	connect(opt,SIGNAL(doubleClick(bool)),this,SIGNAL(sigDoubleClick(bool)));
-	connect(opt,SIGNAL(searchWhat(int)),this,SIGNAL(sigSearchWhat(int)));
-	//DONE
-
-	options->setWidget(opt);
 	netInfo->addTab(info, "About");
 	netInfo->addTab(infoeditor, "Edit Info");
 	netInfo->addTab(wiki, "Artist Info");
 	netInfo->addTab(lyrics, "Lyrics");
-	netInfo->addTab(options, "Options");
 	equalizer=new Equalizer(conn,(int)(wid*(2.0/7)),this,NULL);
 	layout=new QGridLayout();
 	layout->addWidget(songInfo,0,0);

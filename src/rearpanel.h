@@ -47,8 +47,7 @@ class RearPanel: public QWidget
 		QGridLayout * infoLayout;
 		WikiView * wiki;
 		LyricBrowser * lyrics;
-		QScrollArea * options;
-		Options * opt;
+
 		Visualization * visualization;
 		Equalizer * equalizer;
 		InfoEditor * infoeditor;

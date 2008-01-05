@@ -3,219 +3,179 @@
 #include "options.h"
 #include <iostream>
 
-Options::Options(QWidget * parent,Qt::WindowFlags f):QWidget(parent,f) {
-	optionTabs = new QTabWidget();
+Options::Options(DataBackend * c, QWidget * parent,Qt::WindowFlags f):LayoutPanel(parent,f) {
+	conn = c;
+	layout = new QGridLayout();
+	tab = new QTabWidget();
+	yesNo = new QGroupBox();
+	QHBoxLayout * temp = new QHBoxLayout();
+	QPushButton * save = new QPushButton("Save");
+	QPushButton * cancel = new QPushButton("Cancel");
+	QPushButton * saveAll = new QPushButton("Save All");
+	connect(save,SIGNAL(clicked()),this,SLOT(sendSettings()));
+	connect(saveAll,SIGNAL(clicked()),this,SLOT(sendAllSettings()));
+	temp->addWidget(cancel);
+	temp->addWidget(save);
+	temp->addWidget(saveAll);
+	yesNo->setLayout(temp);
 	
-	gen = new GeneralOptions(this);
-	mlib = new MlibOptions();
-	plist = new PlistOptions();
 
-	optionTabs->addTab(gen,"General");
-	optionTabs->addTab(mlib,"MediaLib");
-	optionTabs->addTab(plist,"Playlist");
+	constructOptions();
 
-	okButton = new QPushButton("Submit Changes");
-	clearButton = new QPushButton("Reset Defaults");
-
-	layout=new QGridLayout();
-	layout->setMargin(0);
-	layout->addWidget(optionTabs,0,0,1,2);
-	layout->addWidget(okButton,1,0);
-	layout->addWidget(clearButton,1,1);
-
-	this->setLayout(layout);
-
-	QSettings s;
-	if(!s.contains("staysOnTop"))
-	resetAll();
-
+	layout->addWidget(tab,0,0);
+	layout->addWidget(yesNo,1,0);
+	setLayout(layout);	
 	
-	connect(okButton,SIGNAL(clicked()),this,SLOT(saveAll()));
-	connect(clearButton,SIGNAL(clicked()),this,SLOT(resetAll()));
-	connect(gen,SIGNAL(sigStayOnTop(bool)),this,SIGNAL(stayOnTop(bool)));
-	connect(gen,SIGNAL(sigReflectImage(bool)),this,SIGNAL(reflectImage(bool)));
-	connect(gen,SIGNAL(sigNewVis()),this,SIGNAL(newVis()));
-	connect(plist,SIGNAL(sigUpdatePlaylistHeaders(QList<QString>)),this,SIGNAL(updatePlaylistHeaders(QList<QString>)));
-	connect(mlib,SIGNAL(sigDoubleClick(bool)),this,SIGNAL(doubleClick(bool)));
-	connect(mlib,SIGNAL(sigSearchWhat(int)),this,SIGNAL(searchWhat(int)));
-	emitAll();
-	}
+	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(updateGui(QString,QVariant)));
+
+}
 
 Options::~Options() {
 	delete layout;
-	delete optionTabs;
-	delete okButton;
-	delete clearButton;
+}
+
+void Options::updateGui(QString name,QVariant value) {
+	if(name == "konfetka/playlistValues") {
+		QStringList temp = value.toStringList();
+		plistHeaders->setList(temp);
 	}
-
-void Options::saveAll() {
-	gen->saveChanges();
-	plist->saveChanges();
-	mlib->saveChanges();
-	emitAll();
-}
-
-void Options::resetAll() {
-	switch(optionTabs->currentIndex()) {
-	case 0:
-	gen->reset();
-	break;
-	case 1:
-	mlib->reset();
-	break;
-	case 2:
-	plist->reset();
+	else if(name == "konfetka/stayOnTop") {
+		if(value.toBool())
+		stayOnTop->setCheckState(Qt::Checked);
+	}
+	else if(name == "konfetka/autoStartXMMS2") {
+		if(value.toBool())
+		autoStart->setCheckState(Qt::Checked);
+	}
+	else if(name == "konfetka/albumArtReflection") {
+		if(value.toBool())
+		albArtReflection->setCheckState(Qt::Checked);
+	}
+	else if(name == "konfetka/visFps") {
+		visFps->setValue(value.toInt());
+	}
+	else if(name == "konfetka/visNumBars") {
+		visNumBars->setValue(value.toInt());
+	}
+	else if(name == "konfetka/language") {
+		language->setCurrentIndex(language->findText(value.toString()));
 	}
 }
 
-void Options::emitAll() {
-	gen->emitSignals();
-	mlib->emitSignals();
-	plist->emitSignals();
+void Options::setLayoutSide(bool right_side){//true=right, false=left
+return;
 }
 
-GeneralOptions::GeneralOptions(Options* option,QWidget * parent,Qt::WindowFlags f):QWidget(parent,f) {
-	parentOptions = option;
-	QSettings s;
-	
-	staysOnTop=new QCheckBox("Stay On Top of Other Windows");
- 	if(s.contains("staysOnTop") && s.value("staysOnTop").toInt() == Qt::Checked )
- 	staysOnTop->setCheckState(Qt::Checked);
-
-	reflectImage = new QCheckBox("Album Art Reflection");
-	if(s.contains("reflectImage") && s.value("reflectImage").toInt() == Qt::Checked )
-	reflectImage->setCheckState(Qt::Checked);
-
-	autoStart = new QCheckBox("Autostart xmms2");
-	if(s.contains("autostart") && s.value("autostart").toBool())
-	autoStart->setCheckState(Qt::Checked);
-
-	visNumBars = new QSpinBox();
-	visNumBarsLabel = new QLabel("Visualizer Bar Count");
-	if(s.contains("visNumBars"))
-	visNumBars->setValue(s.value("visNumBars").toInt());
-
+//Sets up all the widgets and such
+void Options::constructOptions() {
+	//General Options
+	genOpt = new QWidget();
+	QGridLayout * genLayout = new QGridLayout();
 	visFps = new QSpinBox();
-	visFpsLabel = new QLabel("Visualizer FPS");
-	visFps->setRange(0,50);
-	if(s.contains("visFps"))
-	visFps->setValue(s.value("visFps").toInt());
-
-	visOptions = new QGroupBox();
-	visLayout = new QGridLayout();
+	visFps->setRange(0,100);
+	visFps->setValue(10);
+	visFpsLabel = new QLabel("Frames per Second");	
+	visFpsLabel->setToolTip("Number of times to refresh the Visualization per second");
+	visNumBars = new QSpinBox();
+	visNumBars->setRange(0,50);
+	visNumBars->setValue(50);
+	visNumBarsLabel = new QLabel("Number of Bars");
+	visNumBars->setToolTip("Number of bars to represent the visualization data (more than recommended may lead to odd behavior)");
+	
+	QGroupBox * visOptions = new QGroupBox("Visualization Options");
+	visOptions->setCheckable(true);
+	QGridLayout * visLayout = new QGridLayout();
 	visLayout->addWidget(visNumBars,0,0,1,1);
 	visLayout->addWidget(visNumBarsLabel,0,1,1,1);
 	visLayout->addWidget(visFps,1,0,1,1);
 	visLayout->addWidget(visFpsLabel,1,1,1,1);
 	visOptions->setLayout(visLayout);
 
-	layout = new QGridLayout();
-	layout->addWidget(staysOnTop,0,0,1,1);
-	layout->addWidget(reflectImage,1,0,1,1);
-	layout->addWidget(autoStart,2,0,1,1);
-	layout->addWidget(visOptions,0,1,2,3);
-	
-	this->setLayout(layout);
+	autoStart = new QCheckBox("Autostart XMMS2?");
+	albArtReflection = new QCheckBox("Album Art Reflection");
+	stayOnTop = new QCheckBox("Stays On Top");
+	language = new QComboBox();
+	QList<QString> languages;
+	languages << "English" << "Russian";
+	language->addItems(languages);
+
+	genLayout->addWidget(stayOnTop,0,0,1,1);
+	genLayout->addWidget(albArtReflection,1,0,1,1);
+	genLayout->addWidget(autoStart,2,0,1,1);
+	genLayout->addWidget(visOptions,0,1,2,1);
+	genLayout->addWidget(language,2,1,1,1);
+	genOpt->setLayout(genLayout);
+	tab->addTab(genOpt,"General");
+	//End General
+
+	//Playlist Options
+	plistOpt = new QWidget();
+	plistHeaders = new ListEditor(conn,"konfetka/playlistValues");
+	QGridLayout * plistGrid = new QGridLayout();
+	plistGrid->addWidget(plistHeaders);
+	plistOpt->setLayout(plistGrid);
+	tab->addTab(plistOpt,"Playlist");
+	//End Playlist
+
+	//MediaLib Options
+	mlibOpt = new QWidget();
+	tab->addTab(mlibOpt,"MediaLib");
+	//End MediaLib
+
+	//Collections Options
+	collOpt = new QWidget();
+	tab->addTab(collOpt,"Collections");
+	//End Collections
 }
 
-GeneralOptions::~GeneralOptions() {
-	delete staysOnTop;
-	delete reflectImage;
-	delete autoStart;
-	delete visNumBars;
-	delete visNumBarsLabel;
-	delete visFps;
-	delete visFpsLabel;
+void Options::sendSettings(bool all) {
+	int which = tab->currentIndex();
+	/*
+	0 = General, 1 = Playlist, 2 = MediaLib, 3 = Collections
+	*/
+	if(which == 0 || all) {
+	std::cout<<"sending gen"<<std::endl;
+	conn->changeAndSaveQSettings("konfetka/stayOnTop",QVariant(stayOnTop->checkState() == Qt::Checked));
+	conn->changeAndSaveQSettings("konfetka/autoStartXMMS2",QVariant(autoStart->checkState() == Qt::Checked));
+	conn->changeAndSaveQSettings("konfetka/albumArtReflection",QVariant(albArtReflection->checkState() == Qt::Checked));
+	conn->changeAndSaveQSettings("konfetka/visFps",QVariant(visFps->value()));
+	conn->changeAndSaveQSettings("konfetka/visNumBars",QVariant(visNumBars->value()));
+	conn->changeAndSaveQSettings("konfetka/language",QVariant(language->currentText()));
+	}
+	if (which == 1 || all) {
+	std::cout<<"sending plist"<<std::endl;
+	plistHeaders->saveChanges();
+	}
+	if (which == 2 || all) {
+	std::cout<<"sending mlib"<<std::endl;
+	}
+	if (which == 3 || all) {
+	std::cout<<"sending coll"<<std::endl;	
+	}
 }
 
-void GeneralOptions::saveChanges() {
-	QSettings s;
-	s.setValue("staysOnTop",QVariant(staysOnTop->checkState()));
-	s.setValue("reflectImage",QVariant(reflectImage->checkState()));
-	s.setValue("autostart",QVariant(reflectImage->checkState() == Qt::Checked));
-	s.setValue("visNumBars",QVariant(visNumBars->value()));
-	s.setValue("visFps",QVariant(visFps->value()));
+void Options::sendAllSettings() {
+std::cout<<"sending all"<<std::endl;
+sendSettings(true);
 }
 
-void GeneralOptions::emitSignals() {
-	emit sigStayOnTop(staysOnTop->checkState() == Qt::Checked);
-	emit sigReflectImage(reflectImage->checkState() == Qt::Checked);
-	emit sigNewVis();
-}
+/**************************************************************************************************************/
+// List Editor
 
-void GeneralOptions::reset() {
-	staysOnTop->setCheckState(Qt::Unchecked);
-	reflectImage->setCheckState(Qt::Checked);
-	autoStart->setCheckState(Qt::Checked);
-	visNumBars->setValue(50);
-	visFps->setValue(10);
-	saveChanges();
-}
-
-MlibOptions::MlibOptions(Options* option,QWidget * parent,Qt::WindowFlags f):QWidget(parent,f) {
-	QSettings s;
-	doubleClick = new QCheckBox();
-	if(s.contains("mlibDoubleClick") && s.value("mlibDoubleClick").toInt() == Qt::Checked)
-	doubleClick->setCheckState(Qt::Checked); 
-	doubleClickLabel = new QLabel("Double click adds item to playlist");
-
-	searchWhat = new QComboBox();	
-	searchWhat->addItem("All");
-	searchWhat->addItem("Artist");
-	searchWhat->addItem("Album");
-	searchWhat->addItem("Title");
-	if(s.contains("searchWhatIndex"))
-	searchWhat->setCurrentIndex(s.value("searchWhatIndex").toInt());
-	searchWhatLabel = new QLabel("Search :");
-	layout = new QGridLayout();
-	
-	layout->addWidget(doubleClick,0,1);
-	layout->addWidget(doubleClickLabel,0,0);
-	layout->addWidget(searchWhatLabel,1,0);
-	layout->addWidget(searchWhat,1,1);
-	this->setLayout(layout);
-}
-
-MlibOptions::~MlibOptions() {
-	delete doubleClick;
-	delete doubleClickLabel;
-	delete searchWhat;
-	delete searchWhatLabel;
-	delete layout;
-}
-
-void MlibOptions::saveChanges() {
-	QSettings s;
-	s.setValue("mlibDoubleClick",QVariant(doubleClick->checkState()));
-	s.setValue("searchWhatIndex",QVariant(searchWhat->currentIndex()));
-}
-
-void MlibOptions::emitSignals() {
-	emit sigDoubleClick(doubleClick->checkState() == Qt::Checked);
-	emit sigSearchWhat(searchWhat->currentIndex());
-}
-
-void MlibOptions::reset() {
-	doubleClick->setCheckState(Qt::Unchecked);
-	searchWhat->setCurrentIndex(0);
-}
-
-//Modifications:
-//BEGIN
-PlistOptions::PlistOptions(Options* option,QWidget * parent):QWidget(parent)
-	{
+ListEditor::ListEditor(DataBackend * c,QString property,QWidget * parent):QWidget(parent) {
+	conn = c;
+	prop = property;
 	layout=new QGridLayout();
-	headers=new QListWidget();
+	list=new QListWidget();
 	QSettings s;
 	QList<QString> tmp;
-	tmp=s.value("konfetka/playlistValues").toStringList();
+	tmp=s.value(prop).toStringList();
 	if(tmp.isEmpty())
 		tmp<<"Title"<<"Artist"<<"Album"<<"Time";
-	headers->addItems(tmp);
-	headers->setDragEnabled(true);
-	headers->setAcceptDrops(true);
-	layout->addWidget(headers,0,0,1,2);
-// 	del= new QShortcut(QKeySequence(Qt::Key_Delete),this,SLOT(remove()),SLOT(remove()));
+	list->addItems(tmp);
+	list->setDragEnabled(true);
+	list->setAcceptDrops(true);
+	layout->addWidget(list,0,0,1,2);
 	addItem=new QComboBox();
 	QStringList labels;
 	labels<<"Custom: edit with property"<<"Title"<<"Artist"<<"Album"<<"Time"<<"Filename"<<"Track"<<"Genre";
@@ -227,57 +187,71 @@ PlistOptions::PlistOptions(Options* option,QWidget * parent):QWidget(parent)
 	addButton->setIcon(QIcon(":images/plus.png"));
 	addButton->setToolTip("Add new property");
 	layout->addWidget(addButton,1,1);
-	this->setLayout(layout);
-	QObject::connect(addButton, SIGNAL(clicked()), this, SLOT(add()));
-	QObject::connect(addItem, SIGNAL(currentIndexChanged(int)), this, SLOT(editable(int)));
-	}
+	setLayout(layout);
+	connect(addButton, SIGNAL(clicked()), this, SLOT(add()));
+	connect(addItem, SIGNAL(currentIndexChanged(int)), this, SLOT(editable(int)));
+}
 
-QList<QString> PlistOptions::getHeaders()
+void ListEditor::remove()
 	{
-	QList<QString> final;
-		for(int i=0;i<headers->count();i++) {
-		final.append(headers->item(i)->text());
-		}
-	return final;
-	}
-
-void PlistOptions::remove()
-	{
-	QList<QListWidgetItem *> sel=headers->selectedItems();
+	QList<QListWidgetItem *> sel=list->selectedItems();
 	for(int i=0; i<sel.size(); i++)
-		delete headers->takeItem(headers->row(sel[i]));
+		delete list->takeItem(list->row(sel[i]));
 	}
 
-void PlistOptions::add()
+void ListEditor::add()
 	{
-	headers->addItem(addItem->currentText());
+	list->addItem(addItem->currentText());
 	}
 
-void PlistOptions::editable(int npos)
-	{
+void ListEditor::editable(int npos) {
 	if(npos==0)
 		addItem->setEditable(true);
 	else
 		addItem->setEditable(false);
-	}
-
-void PlistOptions::saveChanges() {
-	QList<QString> toStore = getHeaders();
-	QSettings s;
-	s.setValue("konfetka/playlistValues",QVariant(toStore));
 }
 
-void PlistOptions::reset()
-	{
-	headers->clear();
+void ListEditor::saveChanges() {
+	QList<QString> toStore = getList();
+	conn->changeAndSaveQSettings(prop,QVariant(toStore));
+}
+
+void ListEditor::reset() {
+	list->clear();
 	QStringList labels;
 	labels<<"Title"<<"Artist"<<"Album"<<"Time";
-	headers->addItems(labels);
-	}
-
-void PlistOptions::emitSignals() {
-	emit sigUpdatePlaylistHeaders(getHeaders());
+	list->addItems(labels);
 }
-//END
+
+QList<QString> ListEditor::getList() {
+	QList<QString> ret;
+	for(int i=0;i<list->count();i++) {
+		ret.append(list->item(i)->text());	
+	}
+	return ret;
+}
+
+void ListEditor::keyPressEvent(QKeyEvent * event) {
+	if(event->key() == (Qt::Key_Delete))
+	removeSelected();
+	else
+	event->ignore();
+}
+
+void ListEditor::removeSelected() {
+	QList<QListWidgetItem*> sel = list->selectedItems();
+
+	for(int i = 0; i < sel.size();i++) {
+	delete sel.value(i);
+	}
+	std::cout<<"DONE REMOVING"<<std::endl;
+}
+
+void ListEditor::setList(QList<QString> newList) {
+	list->clear();
+	list->addItems(QStringList(newList));
+}	
+
+
 
 #endif
