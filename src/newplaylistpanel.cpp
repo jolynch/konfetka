@@ -22,10 +22,12 @@ Playlist_::Playlist_(DataBackend * c,QWidget * p):QTableView(p)
 	this->setDropIndicatorShown(true);
 	this->setDragDropMode(QAbstractItemView::DragDrop);
 	this->setSortingEnabled(true);
+	this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 	QHeaderView * hh=horizontalHeader();
 	hh->setHighlightSections(false);
 	hh->setMovable(false);
 	hh->setSortIndicatorShown(false);
+	connect(hh,SIGNAL(sectionResized(int,int,int)),this,SLOT(sectionResized(int,int,int)));
 	setHorizontalHeader(hh);
 	rightClickMenu=new QMenu();
 	rightClickMenu->addAction("Remove selected items",((PlaylistPanel_ *)(parent)),SLOT(deleteSelected()));
@@ -37,13 +39,21 @@ Playlist_::Playlist_(DataBackend * c,QWidget * p):QTableView(p)
 	sortMenu->addAction("By aritst, album, title",((PlaylistPanel_ *)(parent)),SLOT(sortByCommonProperties()));
 	rightClickMenu->addMenu(sortMenu);
 	rightClickMenu->addAction("Shuffle",((PlaylistPanel_ *)(parent)),SLOT(shuffle()));
+	totalWidth=viewport()->width();
 	connect(this,SIGNAL(doubleClicked(const QModelIndex &)),this,SLOT(doubleClicked(const QModelIndex &)));
 	}
 
 void Playlist_::setModelAndDelegate(SinglePlaylist * model)
 	{
+//	if(this->model()!=NULL&&((SinglePlaylist *)this->model())->getDelegate()!=NULL)
+//		disconnect(((SinglePlaylist *)this->model())->getDelegate(),SIGNAL(ratiosChanged()),this,SLOT(resizeColumnsToContents()));
 	this->setModel(model);
 	this->setItemDelegate(model->getDelegate());
+	connect(model->getDelegate(),SIGNAL(ratiosChanged()),this,SLOT(resizeColumnsToContents()));
+	resizeColumnsToContents();
+	deltas.clear();
+	for(int i=0; i<model->columnCount(); i++)
+		deltas.append(0);
 	}
 
 void Playlist_::doubleClicked(const QModelIndex & index)
@@ -94,6 +104,33 @@ void Playlist_::keyPressEvent(QKeyEvent* event)
 void Playlist_::contextMenuEvent ( QContextMenuEvent * event )
 	{
 	rightClickMenu->exec(event->globalPos());
+	}
+
+void Playlist_::resizeEvent ( QResizeEvent * event )
+	{
+	totalWidth=viewport()->width();
+	resizeColumnsToContents();
+	}
+
+int Playlist_::sizeHintForColumn ( int column ) const
+	{
+	if(model()!=NULL&&((SinglePlaylist *)model())->getDelegate()!=NULL)
+		return ((SinglePlaylist *)model())->getDelegate()->getWidthFor(column,totalWidth);
+	else
+		return 50;
+	}
+
+void Playlist_::sectionResized ( int logicalIndex, int oldSize, int newSize )
+	{
+	QSettings s;
+	if(logicalIndex>=deltas.size()) return;
+	if(!s.contains("konfetka/plistRatios"))return;
+	deltas[logicalIndex]+=qAbs(newSize/oldSize);
+	if(totalWidth<20||deltas[logicalIndex]<0.1) return;
+	QList<QVariant> tmp=s.value("konfetka/plistRatios").toList();
+	tmp[logicalIndex]=(double)(deltas[logicalIndex]);
+	deltas[logicalIndex]=0;
+//	conn->changeAndSaveQSettings("konfetka/plistRatios",tmp);
 	}
 
 
@@ -331,7 +368,7 @@ void PlaylistPanel_::cropSelected()
 	int offset=selected.size()-1;
 	for(int i=size-1; i>=0; i--)
 		{
-		if(i==selected[offset])
+		if(offset>=0&&i==selected[offset])
 			offset--;
 		else
 			conn->playlist.removeEntry(i,currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));

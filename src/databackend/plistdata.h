@@ -24,6 +24,7 @@
 #include <QPainter>
 #include <QStyleOptionViewItem>
 #include <QtAlgorithms>
+#include <QSettings>
 #include <string>
 #include <list>
 
@@ -41,15 +42,20 @@ class PlaylistDelegate:public QItemDelegate
 		Xmms::Playback::Status status;
 		uint pos;
 		bool editing;
+		QList<QVariant> ratios;
 	public:
 		PlaylistDelegate(QAbstractItemModel * m,DataBackend * c);
 		QSize sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const;
 		void paint ( QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index ) const;
 		void setEditing(bool val);
 		bool isEditing();
+		int getWidthFor(int column, int totalWidth);
 	public slots:
+		void qsettingsValChanged(QString name, QVariant var);
 		void posChanged(uint p);
 		void statusChanged(Xmms::Playback::Status s);
+	signals:
+		void ratiosChanged();
 	};
 
 

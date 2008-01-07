@@ -32,6 +32,7 @@
 #include <QVariant>
 #include <QInputDialog>
 #include <QLineEdit>
+#include <QtGlobal>
 
 class Playlist_:public QTableView
 	{	Q_OBJECT
@@ -39,6 +40,8 @@ class Playlist_:public QTableView
 		DataBackend * conn;
 		QWidget * parent;
 		QMenu * rightClickMenu;
+		int totalWidth;
+		QList<double> deltas;
 	public:
 		Playlist_(DataBackend * c,QWidget * p);
 		void setModelAndDelegate(SinglePlaylist * model);
@@ -46,6 +49,10 @@ class Playlist_:public QTableView
 		void dropEvent(QDropEvent *event);
 		void keyPressEvent(QKeyEvent* event);
 		void contextMenuEvent ( QContextMenuEvent * event );
+		void resizeEvent ( QResizeEvent * event );
+		int sizeHintForColumn ( int column ) const;
+	public slots:
+		void sectionResized ( int logicalIndex, int oldSize, int newSize );
 	private slots:
 		void doubleClicked(const QModelIndex & index);
 	};

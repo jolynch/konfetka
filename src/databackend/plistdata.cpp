@@ -9,6 +9,19 @@ PlaylistDelegate::PlaylistDelegate(QAbstractItemModel * m,DataBackend * c)
 	editing=false;
 	connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),this,SLOT(statusChanged(Xmms::Playback::Status)));
 	connect(conn,SIGNAL(currentPos(const unsigned int)),this,SLOT(posChanged(uint)));
+	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(qsettingsValChanged(QString,QVariant)));
+	QSettings s;
+	bool tmp=(s.contains("konfetka/playlistValues")&&s.contains("konfetka/plistRatios")
+		&&s.value("konfetka/playlistValues").toStringList().size()!=s.value("konfetka/plistRatios").toList().size());
+	if((!s.contains("konfetka/plistRatios"))||tmp)
+		{
+		QList <QVariant> tmp;
+		for(int i=0; i<s.value("konfetka/playlistValues").toStringList().size(); i++)
+			tmp.append(1.0/((double)s.value("konfetka/playlistValues").toStringList().size()));
+		conn->changeAndSaveQSettings("konfetka/plistRatios",tmp);
+		}
+	else
+		ratios=s.value("konfetka/plistRatios").toList();
 	}
 
 QSize PlaylistDelegate::sizeHint ( const QStyleOptionViewItem & option, const QModelIndex & index ) const
@@ -54,6 +67,24 @@ void PlaylistDelegate::statusChanged(Xmms::Playback::Status s)
 	status=s;
 	if(pos<model->rowCount())
 		((SinglePlaylist *)model)->forceRefresh(pos);
+	}
+
+void PlaylistDelegate::qsettingsValChanged(QString name, QVariant var)
+	{
+	if(name=="konfetka/plistRatios")
+		{
+		QList <QVariant> tmp=var.toList();
+		ratios=var.toList();
+		emit ratiosChanged();
+		}
+	}
+
+int PlaylistDelegate::getWidthFor(int column, int totalWidth)
+	{
+	if(column<ratios.size())
+		return (int)(totalWidth*(ratios[column].toDouble()));
+	else
+		return 50;
 	}
 
 /*****************************************/
