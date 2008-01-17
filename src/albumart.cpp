@@ -27,6 +27,10 @@ void AlbumArt::processSettingsUpdate(QString name,QVariant value) {
 
 void AlbumArt::fetchXML(int newId) {
 	id = newId;
+// 	if(mlib->getInfo("picture_front",id).toString()!="Unknown") {
+// 	conn->bindata.retrieve(mlib->getInfo("picture_front",id).toString().toStdString())
+// 						(Xmms::bind(&AlbumArt::gotInformation,this));
+// 	}
 	QString tmpQuery;
 		if(mlib->getInfo("album",id).toInt()!=-1)
 		tmpQuery += mlib->getInfo("album",id).toString();
@@ -37,6 +41,7 @@ void AlbumArt::fetchXML(int newId) {
 	}
 	if(tmpQuery!=query)
 	query = tmpQuery;
+	std::cout<<"Looking for:"<<query.toStdString()<<std::endl;
 	//Thanks amarok for the D1URM... code thing
 	QString toUrl;
 	toUrl.append("http://xml.amazon.com/onca/xml3?t=webservices-20&dev-t=D1URM11J3F2CEH&KeywordSearch=");
@@ -57,7 +62,7 @@ void AlbumArt::fetchXML(int newId) {
 		}
 			
 	httpGetId = http->get(conn->encodeUrl(toUrl), &xmlBuffer);
-
+	std::cout<<httpGetId<<std::endl;
 	connect(&timeout, SIGNAL(timeout()), this, SLOT(fetchImage()));
 // 	timeout.start(5000); //TODO let people change the timeout time
 	connect(http, SIGNAL(done(bool)), this, SLOT(fetchImage(bool)));
@@ -81,12 +86,17 @@ void AlbumArt::fetchImage(bool err,bool force) {
 	
 	QDomDocument doc("art");
 	QDomNode details;
-	if(doc.setContent(xmlBuffer.data())) { // Hope that this succeeds
+	if(!force && doc.setContent(xmlBuffer.data())) { // Hope that this succeeds
 	//TODO debugging output from the xmlbuffer	
+	std::cout<<"Read in XML document"<<std::endl;
 	details = doc.documentElement().namedItem( "Details" );
 
 	allCovers = doc.elementsByTagName("Details");
  	imageUrl=allCovers.item(numToGet).namedItem("ImageUrlLarge").firstChild().nodeValue();
+	std::cout<<allCovers.size()<<std::endl;
+	}
+	else if(force) {
+	imageUrl=allCovers.item(numToGet).namedItem("ImageUrlLarge").firstChild().nodeValue();
 	}
 	else
 	err = true;
@@ -96,14 +106,14 @@ void AlbumArt::fetchImage(bool err,bool force) {
 						(Xmms::bind(&AlbumArt::gotInformation,this));
 		}
 		else if(!err) {
-		QDomNode node = details;
-		imageUrl.remove(0,imageUrl.indexOf("com")+3);
+		QUrl url(imageUrl);
 	
 			if(!imageBuffer.isOpen()) {
 			imageBuffer.open(QIODevice::ReadWrite);
 			}
-		http->setHost("images.amazon.com",80);
-		http->get(imageUrl,&imageBuffer);
+		std::cout<<"Fetching image from server: ["<<url.host().toStdString()<<"] ["<<url.path().toStdString()<<"]"<<std::endl;
+		http->setHost(url.host(),80);
+	 	http->get(url.path(),&imageBuffer);
 		connect(http, SIGNAL(done(bool)), this, SLOT(setImage(bool)));
 		}
 		else {
@@ -242,6 +252,7 @@ void AlbumArt::dropEvent(QDropEvent * event) {
 	QUrl url(event->mimeData()->text());
 // 	std::cout<<url.toStdString()<<std::endl;
 	std::cout<<url.host().toStdString()<<" "<<url.path().toStdString()<<std::endl;
+	
 	
 		if(imageBuffer.isOpen())
 		imageBuffer.close();

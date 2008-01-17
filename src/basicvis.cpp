@@ -73,10 +73,16 @@ void BasicVis::processSettingsUpdate(QString name,QVariant value) {
 		timerLength = 1000/value.toInt();
 		else
 		timerLength = 0;
+	timer->stop();
+	timer->start(timerLength);
 	}
 	else if(name == "konfetka/visNumBars") {
 		numBars = value.toInt();
+		setNumAndLen(numBars,timerLength);
 	}
+	
+	if (timerLength == 0 || numBars == 0)
+	timer->stop();
 }
 
 void BasicVis::paintEvent(QPaintEvent * event) {

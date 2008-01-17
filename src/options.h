@@ -101,7 +101,6 @@ class ListEditor:public QWidget {
 	void setList(QList<QString>);	
 
 	private slots:
-	void remove();
 	void add();
 	void editable(int npos);
 };

@@ -192,18 +192,12 @@ ListEditor::ListEditor(DataBackend * c,QString property,QWidget * parent):QWidge
 	connect(addItem, SIGNAL(currentIndexChanged(int)), this, SLOT(editable(int)));
 }
 
-void ListEditor::remove()
-	{
-	QList<QListWidgetItem *> sel=list->selectedItems();
-	for(int i=0; i<sel.size(); i++)
-		delete list->takeItem(list->row(sel[i]));
-	}
-
-void ListEditor::add()
-	{
+//This simply adds whatever is in the combobox to the list
+void ListEditor::add() {
 	list->addItem(addItem->currentText());
-	}
+}
 
+//Allows the custom tags and such
 void ListEditor::editable(int npos) {
 	if(npos==0)
 		addItem->setEditable(true);
@@ -211,18 +205,22 @@ void ListEditor::editable(int npos) {
 		addItem->setEditable(false);
 }
 
+//Saves the lists of tags under the constructed property
 void ListEditor::saveChanges() {
 	QList<QString> toStore = getList();
 	conn->changeAndSaveQSettings(prop,QVariant(toStore));
 }
 
-void ListEditor::reset() {
-	list->clear();
-	QStringList labels;
-	labels<<"Title"<<"Artist"<<"Album"<<"Time";
-	list->addItems(labels);
-}
+/***    Might add support for this in the future    ***/
+// void ListEditor::reset() {
+// 	list->clear();
+// 	QStringList labels;
+// 	labels<<"Title"<<"Artist"<<"Album"<<"Time";
+// 	list->addItems(labels);
+// } 
+/*****************************************************/
 
+//Easily access the list of tags in a QList
 QList<QString> ListEditor::getList() {
 	QList<QString> ret;
 	for(int i=0;i<list->count();i++) {
@@ -231,6 +229,7 @@ QList<QString> ListEditor::getList() {
 	return ret;
 }
 
+//Allows for delete (or any other keypress)
 void ListEditor::keyPressEvent(QKeyEvent * event) {
 	if(event->key() == (Qt::Key_Delete))
 	removeSelected();
@@ -238,20 +237,21 @@ void ListEditor::keyPressEvent(QKeyEvent * event) {
 	event->ignore();
 }
 
+//Removes all selected items (use with keypress)
 void ListEditor::removeSelected() {
-	QList<QListWidgetItem*> sel = list->selectedItems();
+	QList<QListWidgetItem *> sel=list->selectedItems();
+	for(int i=0; i<sel.size(); i++)
+		delete list->takeItem(list->row(sel[i]));
+}	
 
-	for(int i = 0; i < sel.size();i++) {
-	delete sel.value(i);
-	}
-	std::cout<<"DONE REMOVING"<<std::endl;
-}
-
+//Basically for initiating the list
 void ListEditor::setList(QList<QString> newList) {
 	list->clear();
 	list->addItems(QStringList(newList));
-}	
+}
 
+/**********************************************************************************************/	
+//End List Editor
 
 
 #endif
