@@ -1,7 +1,7 @@
-#ifndef PLAYLISTPANEL__CPP
-#define PLAYLISTPANEL__CPP
-#include "newplaylistpanel.h"
-Playlist_::Playlist_(DataBackend * c,QWidget * p):QTableView(p)
+#ifndef PlaylistPanel_CPP
+#define PlaylistPanel_CPP
+#include "playlistpanel.h"
+Playlist::Playlist(DataBackend * c,QWidget * p):QTableView(p)
 	{
 	conn=c;
 	parent=p;
@@ -30,20 +30,20 @@ Playlist_::Playlist_(DataBackend * c,QWidget * p):QTableView(p)
 	connect(hh,SIGNAL(sectionResized(int,int,int)),this,SLOT(sectionResized(int,int,int)));
 	setHorizontalHeader(hh);
 	rightClickMenu=new QMenu();
-	rightClickMenu->addAction("Remove selected items",((PlaylistPanel_ *)(parent)),SLOT(deleteSelected()));
-	rightClickMenu->addAction("Crop selected",((PlaylistPanel_ *)(parent)),SLOT(cropSelected()));
-	rightClickMenu->addAction("Clear playlist",((PlaylistPanel_ *)(parent)),SLOT(clear()));
+	rightClickMenu->addAction("Remove selected items",((PlaylistPanel *)(parent)),SLOT(deleteSelected()));
+	rightClickMenu->addAction("Crop selected",((PlaylistPanel *)(parent)),SLOT(cropSelected()));
+	rightClickMenu->addAction("Clear playlist",((PlaylistPanel *)(parent)),SLOT(clear()));
 	rightClickMenu->addSeparator();
 	QMenu * sortMenu=new QMenu("Sort");
-	sortMenu->addAction("By filename",((PlaylistPanel_ *)(parent)),SLOT(sortByUrl()));
-	sortMenu->addAction("By aritst, album, title",((PlaylistPanel_ *)(parent)),SLOT(sortByCommonProperties()));
+	sortMenu->addAction("By filename",((PlaylistPanel *)(parent)),SLOT(sortByUrl()));
+	sortMenu->addAction("By aritst, album, title",((PlaylistPanel *)(parent)),SLOT(sortByCommonProperties()));
 	rightClickMenu->addMenu(sortMenu);
-	rightClickMenu->addAction("Shuffle",((PlaylistPanel_ *)(parent)),SLOT(shuffle()));
+	rightClickMenu->addAction("Shuffle",((PlaylistPanel *)(parent)),SLOT(shuffle()));
 	totalWidth=viewport()->width();
 	connect(this,SIGNAL(doubleClicked(const QModelIndex &)),this,SLOT(doubleClicked(const QModelIndex &)));
 	}
 
-void Playlist_::setModelAndDelegate(SinglePlaylist * model)
+void Playlist::setModelAndDelegate(SinglePlaylist * model)
 	{
 //	if(this->model()!=NULL&&((SinglePlaylist *)this->model())->getDelegate()!=NULL)
 //		disconnect(((SinglePlaylist *)this->model())->getDelegate(),SIGNAL(ratiosChanged()),this,SLOT(resizeColumnsToContents()));
@@ -56,13 +56,13 @@ void Playlist_::setModelAndDelegate(SinglePlaylist * model)
 		deltas.append(0);
 	}
 
-void Playlist_::doubleClicked(const QModelIndex & index)
+void Playlist::doubleClicked(const QModelIndex & index)
 	{
 	conn->playlist.setNext(index.row())(Xmms::bind(&DataBackend::scrapResultI, conn));
 	conn->playback.tickle()(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
-QList <uint> Playlist_::getSortedSelectedRows()
+QList <uint> Playlist::getSortedSelectedRows()
 	{
 	QList <uint> out;
 	QModelIndexList indexes=selectedIndexes();
@@ -75,7 +75,7 @@ QList <uint> Playlist_::getSortedSelectedRows()
 	return out;
 	}
 
-void Playlist_::dropEvent(QDropEvent *event)
+void Playlist::dropEvent(QDropEvent *event)
 	{
 	QModelIndex idx=indexAt(event->pos());
 	if(!idx.isValid())
@@ -95,24 +95,24 @@ void Playlist_::dropEvent(QDropEvent *event)
 		model()->dropMimeData(event->mimeData(),event->proposedAction(),-1,-1,idx);
 	}
 
-void Playlist_::keyPressEvent(QKeyEvent* event)
+void Playlist::keyPressEvent(QKeyEvent* event)
 	{
 	if(event->key() == (Qt::Key_Delete)||(event->key()==(Qt::Key_Backspace)))
-	((PlaylistPanel_ *)(parent))->deleteSelected();
+	((PlaylistPanel *)(parent))->deleteSelected();
 	}
 
-void Playlist_::contextMenuEvent ( QContextMenuEvent * event )
+void Playlist::contextMenuEvent ( QContextMenuEvent * event )
 	{
 	rightClickMenu->exec(event->globalPos());
 	}
 
-void Playlist_::resizeEvent ( QResizeEvent * event )
+void Playlist::resizeEvent ( QResizeEvent * event )
 	{
 	totalWidth=viewport()->width();
 	resizeColumnsToContents();
 	}
 
-int Playlist_::sizeHintForColumn ( int column ) const
+int Playlist::sizeHintForColumn ( int column ) const
 	{
 	if(model()!=NULL&&((SinglePlaylist *)model())->getDelegate()!=NULL)
 		return ((SinglePlaylist *)model())->getDelegate()->getWidthFor(column,totalWidth);
@@ -120,7 +120,7 @@ int Playlist_::sizeHintForColumn ( int column ) const
 		return 50;
 	}
 
-void Playlist_::sectionResized ( int logicalIndex, int oldSize, int newSize )
+void Playlist::sectionResized ( int logicalIndex, int oldSize, int newSize )
 	{
 	QSettings s;
 	if(logicalIndex>=deltas.size()) return;
@@ -136,7 +136,7 @@ void Playlist_::sectionResized ( int logicalIndex, int oldSize, int newSize )
 
 /*************************/
 
-PlaylistPanel_::PlaylistPanel_(DataBackend * c):LayoutPanel()
+PlaylistPanel::PlaylistPanel(DataBackend * c):LayoutPanel()
 	{
 	editing=false;
 	locked=false;
@@ -151,7 +151,7 @@ PlaylistPanel_::PlaylistPanel_(DataBackend * c):LayoutPanel()
 		connect(conn,SIGNAL(playlistNameChanged(const std::string&)),this,SLOT(setCurrentName(const std::string &)));
 		connect(plistBackend,SIGNAL(playlistReady(std::string,SinglePlaylist *)),
 						this,SLOT(playlistReady(std::string,SinglePlaylist *)));
-		playlistView=new Playlist_(conn,this);
+		playlistView=new Playlist(conn,this);
 		centralLayout->addWidget(playlistView,1,0,1,2);
 		playlistSwitcher=new QComboBox();
 		playlistSwitcher->addItems(((CollData *)conn->getDataBackendObject(DataBackend::COLL))->getPlaylists());
@@ -210,8 +210,8 @@ PlaylistPanel_::PlaylistPanel_(DataBackend * c):LayoutPanel()
 		repeatStateButton->setToolTip("Change repetition type");
 		setRepIcon();
 		connect(repeatStateButton,SIGNAL(clicked()),this,SLOT(changeRepeatState()));
-		conn->config.valueGet("playlist.repeat_one")(Xmms::bind(&PlaylistPanel_::setRepOneVal,this));
-		conn->config.valueGet("playlist.repeat_all")(Xmms::bind(&PlaylistPanel_::setRepAllVal,this));
+		conn->config.valueGet("playlist.repeat_one")(Xmms::bind(&PlaylistPanel::setRepOneVal,this));
+		conn->config.valueGet("playlist.repeat_all")(Xmms::bind(&PlaylistPanel::setRepAllVal,this));
 		sidebarLayout->addWidget(repeatStateButton,4,0);
 
 		randomPlayButton=new QPushButton();
@@ -226,7 +226,7 @@ PlaylistPanel_::PlaylistPanel_(DataBackend * c):LayoutPanel()
 	this->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding));
 	}
 
-void PlaylistPanel_::setLayoutSide(bool right_side)
+void PlaylistPanel::setLayoutSide(bool right_side)
 	{
 	if(right_side)
 		{
@@ -244,7 +244,7 @@ void PlaylistPanel_::setLayoutSide(bool right_side)
 		}
 	}
 
-void PlaylistPanel_::playlistSelected(QString name)
+void PlaylistPanel::playlistSelected(QString name)
 	{
 	if(locked) return;
 	currentPlaylistName=name.toStdString();
@@ -258,7 +258,7 @@ void PlaylistPanel_::playlistSelected(QString name)
 		}
 	}
 
-void PlaylistPanel_::playlistModeSwitched()
+void PlaylistPanel::playlistModeSwitched()
 	{
 	if(editing)
 		{
@@ -275,7 +275,7 @@ void PlaylistPanel_::playlistModeSwitched()
 		}
 	}
 
-void PlaylistPanel_::playlistsChanged(QStringList newList)
+void PlaylistPanel::playlistsChanged(QStringList newList)
 	{
 	locked=true;
 	playlistSwitcher->clear();
@@ -287,7 +287,7 @@ void PlaylistPanel_::playlistsChanged(QStringList newList)
 	conn->playlist.currentActive() (Xmms::bind(&DataBackend::getCurrentPlaylist,conn));
 	}
 
-void PlaylistPanel_::setCurrentName(std::string name)
+void PlaylistPanel::setCurrentName(std::string name)
 	{
 	if(editing||locked) return;
 	editing=true;
@@ -299,7 +299,7 @@ void PlaylistPanel_::setCurrentName(std::string name)
 	editing=false;
 	}
 
-void PlaylistPanel_::playlistReady(std::string name,SinglePlaylist * plist)
+void PlaylistPanel::playlistReady(std::string name,SinglePlaylist * plist)
 	{
 	if(name==currentPlaylistName)
 		{
@@ -308,13 +308,13 @@ void PlaylistPanel_::playlistReady(std::string name,SinglePlaylist * plist)
 		}
 	}
 
-void PlaylistPanel_::qsettingValChanged(QString name,QVariant val)
+void PlaylistPanel::qsettingValChanged(QString name,QVariant val)
 	{
 	if(name=="konfetka/randomPlay")
 		randomPlayButton->setChecked(val.toBool());
 	}
 
-void PlaylistPanel_::xmms2settingChanged(const Xmms::Dict& change)
+void PlaylistPanel::xmms2settingChanged(const Xmms::Dict& change)
 	{
 	if(change.contains("playlist.repeat_one"))
 		setRepOneVal(change.get<std::string>("playlist.repeat_one"));
@@ -322,13 +322,13 @@ void PlaylistPanel_::xmms2settingChanged(const Xmms::Dict& change)
 		setRepAllVal(change.get<std::string>("playlist.repeat_all"));
 	}
 
-void PlaylistPanel_::addRegPlist()
+void PlaylistPanel::addRegPlist()
 	{
 	Xmms::Coll::Idlist idlist;
 	saveCollAs(idlist);
 	}
 
-void PlaylistPanel_::addPshuffle()
+void PlaylistPanel::addPshuffle()
 	{
 	Xmms::Coll::PartyShuffle pshuffle(0,10);
 	Xmms::Coll::Universe  univ;
@@ -336,32 +336,32 @@ void PlaylistPanel_::addPshuffle()
 	saveCollAs(pshuffle);
 	}
 
-void PlaylistPanel_::addQueue()
+void PlaylistPanel::addQueue()
 	{
 	Xmms::Coll::Queue queue(10);
 	saveCollAs(queue);
 	}
 
-void PlaylistPanel_::addFromFilesystem()
+void PlaylistPanel::addFromFilesystem()
 	{
 	}
 
-void PlaylistPanel_::addFromMedialib()
+void PlaylistPanel::addFromMedialib()
 	{
 	}
 
-void PlaylistPanel_::addFromCollections()
+void PlaylistPanel::addFromCollections()
 	{
 	}
 
-void PlaylistPanel_::deleteSelected()
+void PlaylistPanel::deleteSelected()
 	{
 	QList <uint> selected=playlistView->getSortedSelectedRows();
 	for(int i=selected.size()-1; i>-1; i--)
 		conn->playlist.removeEntry(selected[i],currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
-void PlaylistPanel_::cropSelected()
+void PlaylistPanel::cropSelected()
 	{
 	QList <uint> selected=playlistView->getSortedSelectedRows();
 	int size=currentPlaylist->rowCount();
@@ -375,10 +375,10 @@ void PlaylistPanel_::cropSelected()
 		}
 	}
 
-void PlaylistPanel_::clear()
+void PlaylistPanel::clear()
 	{conn->playlist.clear(currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));}
 
-void PlaylistPanel_::removePlist()
+void PlaylistPanel::removePlist()
 	{
 	if(playlistSwitcher->count()<=1) return;
 	std::string toRemove=currentPlaylistName;
@@ -387,16 +387,16 @@ void PlaylistPanel_::removePlist()
 	conn->collection.remove(toRemove,Xmms::Collection::PLAYLISTS)(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
-void PlaylistPanel_::savePlist()
+void PlaylistPanel::savePlist()
 	{
-	conn->collection.get(currentPlaylistName,Xmms::Collection::PLAYLISTS)(Xmms::bind(&PlaylistPanel_::saveCollAs,this));
+	conn->collection.get(currentPlaylistName,Xmms::Collection::PLAYLISTS)(Xmms::bind(&PlaylistPanel::saveCollAs,this));
 	}
 
-void PlaylistPanel_::openPlist()
+void PlaylistPanel::openPlist()
 	{
 	}
 
-void PlaylistPanel_::changeRepeatState()
+void PlaylistPanel::changeRepeatState()
 	{
 	if(repeat_one)
 		{
@@ -415,20 +415,20 @@ void PlaylistPanel_::changeRepeatState()
 	return;
 	}
 
-void PlaylistPanel_::toggleRandomPlay()
+void PlaylistPanel::toggleRandomPlay()
 	{
 	QSettings s;
 	conn->changeAndSaveQSettings("konfetka/randomPlay",!(s.value("konfetka/randomPlay").toBool()));
 	}
 
-void PlaylistPanel_::sortByUrl()
+void PlaylistPanel::sortByUrl()
 	{
 	std::list<std::string> prop;
 	prop.push_back("url");
 	conn->playlist.sort(prop,currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
-void PlaylistPanel_::sortByCommonProperties()
+void PlaylistPanel::sortByCommonProperties()
 	{
 	std::list<std::string> prop;
 	prop.push_back("artist");
@@ -437,12 +437,12 @@ void PlaylistPanel_::sortByCommonProperties()
 	conn->playlist.sort(prop,currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
-void PlaylistPanel_::shuffle()
+void PlaylistPanel::shuffle()
 	{
 	conn->playlist.shuffle(currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
-void PlaylistPanel_::setRepIcon()
+void PlaylistPanel::setRepIcon()
 	{
 	if(repeat_one)
 		{
@@ -457,7 +457,7 @@ void PlaylistPanel_::setRepIcon()
 	repeatStateButton->setIcon(QIcon(":images/repeat_none.png"));
 	}
 
-bool PlaylistPanel_::setRepOneVal(std::string val)
+bool PlaylistPanel::setRepOneVal(std::string val)
 	{
 	if(val=="0") repeat_one=false;
 	if(val=="1") repeat_one=true;
@@ -465,7 +465,7 @@ bool PlaylistPanel_::setRepOneVal(std::string val)
 	return false;
 	}
 
-bool PlaylistPanel_::setRepAllVal(std::string val)
+bool PlaylistPanel::setRepAllVal(std::string val)
 	{
 	if(val=="0") repeat_all=false;
 	if(val=="1") repeat_all=true;
@@ -473,17 +473,17 @@ bool PlaylistPanel_::setRepAllVal(std::string val)
 	return false;
 	}
 
-bool PlaylistPanel_::saveCollAs(const Xmms::Coll::Coll& coll)
+bool PlaylistPanel::saveCollAs(const Xmms::Coll::Coll& coll)
 	{
 	bool ok;
 	QString text = QInputDialog::getText(0, "Save as","Save playlist as:", QLineEdit::Normal,QString(), &ok);
 	if (ok && !text.isEmpty())
 		conn->collection.save(coll,text.toStdString(),Xmms::Collection::PLAYLISTS)
-					(Xmms::bind(&XMMS2Interface::scrapResult, conn),Xmms::bind(&PlaylistPanel_::saveError,this));
+					(Xmms::bind(&XMMS2Interface::scrapResult, conn),Xmms::bind(&PlaylistPanel::saveError,this));
 	return ok;
 	}
 
-bool PlaylistPanel_::saveError(const std::string& error)
+bool PlaylistPanel::saveError(const std::string& error)
 	{QMessageBox::critical(0, "Could not save playlist", QString("Could not save playlist: ").append(error.c_str()));
 	return false;}
 #endif

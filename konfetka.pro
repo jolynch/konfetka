@@ -11,6 +11,9 @@ QT += xml
 QT += network
 INSTALLS += target
 
+MOC_DIR = mocs
+OBJECTS_DIR = build
+
 KONFPATH=$$(XDG_CONFIG_HOME)
 exists($$KONFPATH){
 	KONFPATH=$$(XDG_CONFIG_HOME)/xmms2/clients/konfetka/
@@ -30,8 +33,8 @@ system(cp -r data/eqPresets $$KONFPATH/eqPresets)
 
 # Input
 
-HEADERS += src/mainbar.h src/databackend.h src/databackend/mlibdata.h src/databackend/plistdata.h src/databackend/colldata.h src/databackend/xmms2interface.h src/databackend/xmmsqt4.h src/rearpanel.h src/equalizer.h src/visualization.h src/visband.h src/mainwindow.h src/options.h src/wikibrowser.h src/imagehttp.h src/lyricbrowser.h src/albumart.h src/panel.h src/medialib.h src/minimode.h src/infoeditor.h src/basicvis.h src/songpositionslider.h src/panelcontroller.h src/layoutpanel.h src/filebrowser.h src/newplaylistpanel.h src/collectionbrowser.h
-SOURCES += src/main.cpp src/mainbar.cpp src/databackend.cpp src/databackend/mlibdata.cpp src/databackend/plistdata.cpp src/databackend/colldata.cpp src/databackend/xmms2interface.cpp src/databackend/xmmsqt4.cpp src/rearpanel.cpp src/equalizer.cpp  src/visualization.cpp src/visband.cpp src/mainwindow.cpp src/options.cpp src/wikibrowser.cpp src/imagehttp.cpp src/lyricbrowser.cpp src/albumart.cpp src/panel.cpp src/medialib.cpp src/infoeditor.cpp src/basicvis.cpp src/minimode.cpp src/songpositionslider.cpp  src/panelcontroller.cpp src/filebrowser.cpp src/newplaylistpanel.cpp src/collectionbrowser.cpp
+HEADERS += src/mainbar.h src/databackend.h src/databackend/mlibdata.h src/databackend/plistdata.h src/databackend/colldata.h src/databackend/xmms2interface.h src/databackend/xmmsqt4.h src/rearpanel.h src/equalizer.h src/visualization.h src/visband.h src/mainwindow.h src/options.h src/wikibrowser.h src/imagehttp.h src/lyricbrowser.h src/albumart.h src/panel.h src/medialib.h src/minimode.h src/infoeditor.h src/basicvis.h src/songpositionslider.h src/panelcontroller.h src/layoutpanel.h src/filebrowser.h src/playlistpanel.h src/collectionbrowser.h
+SOURCES += src/main.cpp src/mainbar.cpp src/databackend.cpp src/databackend/mlibdata.cpp src/databackend/plistdata.cpp src/databackend/colldata.cpp src/databackend/xmms2interface.cpp src/databackend/xmmsqt4.cpp src/rearpanel.cpp src/equalizer.cpp  src/visualization.cpp src/visband.cpp src/mainwindow.cpp src/options.cpp src/wikibrowser.cpp src/imagehttp.cpp src/lyricbrowser.cpp src/albumart.cpp src/panel.cpp src/medialib.cpp src/infoeditor.cpp src/basicvis.cpp src/minimode.cpp src/songpositionslider.cpp  src/panelcontroller.cpp src/filebrowser.cpp src/playlistpanel.cpp src/collectionbrowser.cpp
 
 
 RESOURCES = konfetka.qrc

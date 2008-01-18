@@ -12,7 +12,7 @@
 #include "collectionbrowser.h"
 #include "options.h"
 
-#include "newplaylistpanel.h"
+#include "playlistpanel.h"
 
 #include "medialib.h"
 #include "minimode.h"
@@ -32,7 +32,7 @@
 namespace konfetka
 	{
 	enum windowState
-		{rearPanel,playlistOnly,medialibOnly,playlist_medialib};
+		{rearPanel,playlistOnly,medialibOnly,Playlistmedialib};
 	}
 
 class MainWindow:public QWidget
@@ -48,7 +48,7 @@ class MainWindow:public QWidget
 		MiniMode * minibar;
 		RearPanel * rearpanel;
 		MainBar * mainbar;
-		//Handle * playlist_handle;
+		//Handle * Playlisthandle;
 		//Panel * playlist;
 		//Handle * medialib_handle;
 		//Panel * medialib;

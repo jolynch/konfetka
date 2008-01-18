@@ -1,5 +1,5 @@
-#ifndef PLAYLISTPANEL__H
-#define PLAYLISTPANEL__H
+#ifndef PlaylistPanel_H
+#define PlaylistPanel_H
 #include "databackend.h"
 #include "databackend/plistdata.h"
 #include "databackend/colldata.h"
@@ -34,7 +34,7 @@
 #include <QLineEdit>
 #include <QtGlobal>
 
-class Playlist_:public QTableView
+class Playlist:public QTableView
 	{	Q_OBJECT
 	private:
 		DataBackend * conn;
@@ -43,7 +43,7 @@ class Playlist_:public QTableView
 		int totalWidth;
 		QList<double> deltas;
 	public:
-		Playlist_(DataBackend * c,QWidget * p);
+		Playlist(DataBackend * c,QWidget * p);
 		void setModelAndDelegate(SinglePlaylist * model);
 		QList <uint> getSortedSelectedRows(); //Sorted from lowest to highest
 		void dropEvent(QDropEvent *event);
@@ -57,7 +57,7 @@ class Playlist_:public QTableView
 		void doubleClicked(const QModelIndex & index);
 	};
 
-class PlaylistPanel_:public LayoutPanel
+class PlaylistPanel:public LayoutPanel
 	{	Q_OBJECT
 	private:
 		bool editing, locked;
@@ -68,7 +68,7 @@ class PlaylistPanel_:public LayoutPanel
 		PlistData * plistBackend;
 
 		QGridLayout * centralLayout;
-		Playlist_ * playlistView;
+		Playlist * playlistView;
 		QComboBox * playlistSwitcher;
 		QPushButton * playlistModeSwitcher;
 		QLabel * historyLabel;
@@ -88,7 +88,7 @@ class PlaylistPanel_:public LayoutPanel
 		QGridLayout * rightLayout;
 
 	public:
-		PlaylistPanel_(DataBackend * c);
+		PlaylistPanel(DataBackend * c);
 		void setLayoutSide(bool right_side);
 	private slots:
 		void playlistSelected(QString name);
