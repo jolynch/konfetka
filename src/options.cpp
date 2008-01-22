@@ -41,7 +41,7 @@ void Options::updateGui(QString name,QVariant value) {
 	}
 	else if(name == "konfetka/stayOnTop") {
 		if(value.toBool())
-		stayOnTop->setCheckState(Qt::Checked);
+		stayOnTop->setCheckState(Qt::Checked); 
 	}
 	else if(name == "konfetka/autoStartXMMS2") {
 		if(value.toBool())
@@ -124,6 +124,10 @@ void Options::constructOptions() {
 
 	//Collections Options
 	collOpt = new QWidget();
+	collImportSortOrder = new ListEditor(conn,"konfetka/collectImportSortOrder");
+	QGridLayout * collGrid = new QGridLayout();
+	collGrid->addWidget(collImportSortOrder);
+	collOpt->setLayout(collGrid);
 	tab->addTab(collOpt,"Collections");
 	//End Collections
 }
@@ -151,6 +155,7 @@ void Options::sendSettings(bool all) {
 	}
 	if (which == 3 || all) {
 	std::cout<<"sending coll"<<std::endl;	
+	collImportSortOrder->saveChanges();
 	}
 }
 

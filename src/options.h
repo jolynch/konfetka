@@ -65,6 +65,7 @@ class Options:public LayoutPanel {
 	
 	//Collections
 	QWidget * collOpt;
+	ListEditor * collImportSortOrder;
 	//End Collections
 
 	void constructOptions();
