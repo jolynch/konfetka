@@ -6,6 +6,7 @@ Main dev: Joe Lynch
 #ifndef OPTIONS_H
 #define OPTIONS_H
 #include "databackend.h"
+#include "databackend/mlibdata.h"
 #include "layoutpanel.h"
 #include <QGridLayout>
 #include <QTabWidget>
@@ -61,12 +62,24 @@ class Options:public LayoutPanel {
 
 	//Media Library
 	QWidget * mlibOpt;
+		
+	QCheckBox * doubleClick;
+	ListEditor * searchTags;
+	ListEditor * quickSearchTags;
+
 	//End Media Library
 	
 	//Collections
 	QWidget * collOpt;
 	ListEditor * collImportSortOrder;
 	//End Collections
+	
+	
+	//XMMS2 
+	QWidget * xmms2Opt;
+	
+	
+	//End XMMS2
 
 	void constructOptions();
 

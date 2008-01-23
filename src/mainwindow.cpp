@@ -146,16 +146,29 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
 	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
 	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
+	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(respondToConfigChange(QString,QVariant)));
 	conn->emitInitialQSettings();
 	conn->emitInitialXmms2Settings();
 	}
 
+void MainWindow::respondToConfigChange(QString name,QVariant value) {
+	if(name!="konfetka/stayOnTop") return;
+	
+	if(value.toBool())
+	setWindowFlags(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+	else
+	setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+	
+	show();
+	setWindowIcon(QIcon(":images/logomini"));
+}
+
 void MainWindow::trayTool() {
-QString info = mainbar->curInfo();
-info = info.remove("Artist: ");
-info = info.remove(info.indexOf("-"),info.lastIndexOf("-")-info.indexOf("-"));
-info = info.remove("Title: ");
-icon->setToolTip(info.trimmed());
+	QString info = mainbar->curInfo();
+	info = info.remove("Artist: ");
+	info = info.remove(info.indexOf("-"),info.lastIndexOf("-")-info.indexOf("-"));
+	info = info.remove("Title: ");
+	icon->setToolTip(info.trimmed());
 }
 
 void MainWindow::slotHide()
@@ -173,14 +186,6 @@ void MainWindow::slotQuit()
 	delete volume;
 	delete volumeLabel;
 	papa->quit();
-	}
-
-void MainWindow::slotStayOnTop(bool state)
-	{
-		if(state)
-		minibar->setWindowFlags(Qt::WindowStaysOnTopHint|Qt::FramelessWindowHint);
-		else
-		minibar->setWindowFlags(Qt::FramelessWindowHint);
 	}
 
 /*void MainWindow::slotPlaylistClicked()

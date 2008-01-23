@@ -65,7 +65,6 @@ class MainWindow:public QWidget
 //		//!Added by Joe to make it easier to get to the playlist and medialib.
 //		MediaLib* theMediaLib(); //! end
 	public slots:
-		void slotStayOnTop(bool);
 		void slotHide();
 		void slotQuit();
 
@@ -80,6 +79,7 @@ class MainWindow:public QWidget
 		void clickResponse(QSystemTrayIcon::ActivationReason reason);
 		//void provideRefresh();
 	
+		void respondToConfigChange(QString name,QVariant value);
 		void trayTool();
 	signals:
 		//void stateChanged(konfetka::windowState,konfetka::windowState);

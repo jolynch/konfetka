@@ -96,12 +96,15 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 
 	connect(searchDialog,SIGNAL(newList(QList< QPair <Xmms::Coll::Coll*,Operator> >)),
 			this,SLOT(recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> >)));
+
+	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(respondToConfigChange(QString,QVariant)));
+
 	visibleMedia = new Xmms::Coll::Universe();
 	baseMedia = visibleMedia;
 	mlib->getListFromServer(visibleMedia,"artist");
 	adding=false;
-
-
+	searchTags<<"artist"<<"album"<<"title"<<"url"<<"genre"<<"id";
+	
 // 	loadFromFile();
 }
 
@@ -414,6 +417,13 @@ bool MediaLib::removeIds(const Xmms::List <uint> &list) {
 	}
 	return true;
 }
+
+void MediaLib::respondToConfigChange(QString name,QVariant value) {
+	if(name == "konfetka/mlibSearchValues") {
+		QStringList temp = value.toStringList();
+		searchTags = temp;
+	}
+}
 	
 void MediaLib::refreshList() {
 	mlib->getListFromServer(visibleMedia,"artist");
@@ -482,11 +492,13 @@ Xmms::Coll::Union* MediaLib::selectedAsColl() {
 		for(int i=0;i<what.size();i++) {
 			switch (getItemType(what.value(i))) {
 				case ARTIST: {
+				std::cout<<"Artist "<<(what.value(i))->text(0).toStdString()<<std::endl;
 				Xmms::Coll::Equals moreItems(*visibleMedia,"artist",(what.value(i))->text(0).toStdString(),true);
 				media->addOperand(moreItems);
 				break;
 				}
 				case ALBUM: {
+				std::cout<<"Album "<<(what.value(i))->text(0).toStdString()<<std::endl;
 				Xmms::Coll::Equals someItems(*visibleMedia,"artist",
 								(what.value(i))->parent()->text(0).toStdString(),true);	
 					if(what.value(i)->text(0)=="Unknown") {
@@ -499,17 +511,20 @@ Xmms::Coll::Union* MediaLib::selectedAsColl() {
 					media->addOperand(songItems);
 					}
 					else {
-					Xmms::Coll::Equals moreItems(someItems,"album",(what.value(i))->text(0).toStdString(),true);
-					media->addOperand(moreItems);
+					Xmms::Coll::Equals moreItems(*visibleMedia,"album",(what.value(i))->text(0).toStdString(),true);
+					Xmms::Coll::Intersection albAndArt;
+					albAndArt.addOperand(someItems);
+					albAndArt.addOperand(moreItems);
+					media->addOperand(albAndArt);
 					}
-// 				std::cout<<"ALBUM"<<std::endl;
+					
 				break;
 				}
 				case SONG: {
+				std::cout<<"Song "<<(what.value(i))->text(0).toStdString()<<std::endl;
 				Xmms::Coll::Idlist moreItems;
 				moreItems.append(idToSongItem.key(what.value(i)));
 				media->addOperand(moreItems);
-// 				std::cout<<"SONG"<<std::endl;
 				break;
 				}
 			}
@@ -519,10 +534,11 @@ Xmms::Coll::Union* MediaLib::selectedAsColl() {
 
 void MediaLib::addFromMlibDrag(QTreeWidgetItem*,int) {
 	urlList.clear();
-	Xmms::Coll::Union * media = selectedAsColl();
+	Xmms::Coll::Union * media = new Xmms::Coll::Union(*selectedAsColl());
 	
 	std::list<std::string> tmp;
  	tmp.push_back("url");
+	tmp.push_back("id");
 	conn->collection.queryInfos(*media,tmp)(Xmms::bind(&MediaLib::addToPlaylistFromCollectionDrag,this));
 }
 
@@ -533,7 +549,13 @@ bool MediaLib::addToPlaylistFromCollectionDrag(const Xmms::List <Xmms::Dict> &li
 		tmpString = list->get<std::string>("url");
 		tmpString = QString::fromUtf8 (xmmsc_result_decode_url (NULL,tmpString.c_str())).toStdString();
 		urlList.append(QUrl(QString(tmpString.c_str())));
+		std::cout<<tmpString<<std::endl;
+		} 
+		if (list->contains("id")) {
+		std::cout<<list->get<int>("id")<<std::endl;
+		
 		}
+		
 	}
 	return true;
 }
@@ -926,6 +948,8 @@ void ComplexSearchDialog::clearItems() {
 
 Xmms::Coll::Coll* ComplexSearchDialog::newColl(QString attr,QString oper,QString val,bool notFlag) {
 	Xmms::Coll::Coll* resultColl;
+	attr = attr.toLower();
+	attr.remove(" ");
 		
 		if(oper == "=") {
 		resultColl = new Xmms::Coll::Equals(*searchMedia,attr.toStdString(),val.toStdString(),true);

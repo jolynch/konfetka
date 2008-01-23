@@ -63,6 +63,7 @@ Q_OBJECT
 	MlibData* mlib;
 	CollData* coll;	
 	bool adding,complexSearch;
+	QList<QString> searchTags;
 	DropTreeWidget * mediaList;
 	QPushButton * loadUniverse;
 	QPushButton * updateAll;
@@ -125,6 +126,8 @@ Q_OBJECT
 	void removeNodes(QList<QTreeWidgetItem*>);
 	bool removeIds(const Xmms::List <uint> &list);
 	
+	void respondToConfigChange(QString name,QVariant value);
+
 	//NEW LISTS
 	void gotNewList(QString property, QList<QString> info);
 	void artistList(QList<QString> info);

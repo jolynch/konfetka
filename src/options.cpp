@@ -39,6 +39,18 @@ void Options::updateGui(QString name,QVariant value) {
 		QStringList temp = value.toStringList();
 		plistHeaders->setList(temp);
 	}
+	else if(name == "konfetka/collectImportSortOrder") {
+		QStringList temp = value.toStringList();
+		collImportSortOrder->setList(temp);
+	}
+	else if(name == "konfetka/mlibComplexValues") {
+		QStringList temp = value.toStringList();
+		searchTags->setList(temp);
+	}
+	else if(name == "konfetka/mlibSearchValues") {
+		QStringList temp = value.toStringList();
+		quickSearchTags->setList(temp);
+	}
 	else if(name == "konfetka/stayOnTop") {
 		if(value.toBool())
 		stayOnTop->setCheckState(Qt::Checked); 
@@ -110,32 +122,78 @@ void Options::constructOptions() {
 
 	//Playlist Options
 	plistOpt = new QWidget();
+
+	QGroupBox * playlistValuesBox = new QGroupBox("Playlist Headers");
+	QGridLayout * playlistValuesLayout = new QGridLayout();
+
 	plistHeaders = new ListEditor(conn,"konfetka/playlistValues");
-	QGridLayout * plistGrid = new QGridLayout();
-	plistGrid->addWidget(plistHeaders);
+	
+	QGridLayout * plistGrid  = new QGridLayout();
+	playlistValuesLayout->addWidget(plistHeaders);
+	playlistValuesBox->setLayout(playlistValuesLayout);
+	plistGrid->addWidget(playlistValuesBox);
 	plistOpt->setLayout(plistGrid);
 	tab->addTab(plistOpt,"Playlist");
 	//End Playlist
 
 	//MediaLib Options
 	mlibOpt = new QWidget();
+	
+	QGridLayout * mlibGrid = new QGridLayout();
+		
+	doubleClick = new QCheckBox("Double Click");
+	doubleClick->setToolTip("Double click on medialib items adds them to the playlist");
+	
+	QGroupBox * searchBox = new QGroupBox("Search Tags");
+	QGridLayout * searchLayout = new QGridLayout();
+	QList<QString> temp;
+	searchTags = new ListEditor(conn,"konfetka/mlibComplexValues");
+	temp = ((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getStandardTags();
+	searchTags->setList(temp);
+	quickSearchTags = new ListEditor(conn,"konfetka/mlibSearchValues");
+	temp.clear();
+	temp<<"Artist"<<"Album"<<"Title"<<"Url"<<"Genre"<<"ID";
+	quickSearchTags->setList(temp);
+	searchLayout->addWidget(new QLabel("Complex Search Tags"),0,0,1,1);
+	searchLayout->addWidget(new QLabel("Quick Search Tags"),0,1,1,1);
+	searchLayout->addWidget(searchTags,1,0,1,1);
+	searchLayout->addWidget(quickSearchTags,1,1,1,1);
+	searchBox->setLayout(searchLayout);
+	
+	mlibGrid->addWidget(doubleClick,0,0,1,2);
+	mlibGrid->addWidget(searchBox,1,0,1,2);
+	mlibOpt->setLayout(mlibGrid);
+	
 	tab->addTab(mlibOpt,"MediaLib");
 	//End MediaLib
 
 	//Collections Options
 	collOpt = new QWidget();
+	
+	QGroupBox * collSortOrderBox = new QGroupBox("Collection Import Sort Order");
+	QGridLayout * collSortOrderLayout = new QGridLayout();
+	
 	collImportSortOrder = new ListEditor(conn,"konfetka/collectImportSortOrder");
+	
 	QGridLayout * collGrid = new QGridLayout();
-	collGrid->addWidget(collImportSortOrder);
+	collSortOrderLayout->addWidget(collImportSortOrder);
+	collSortOrderBox->setLayout(collSortOrderLayout);
+	collGrid->addWidget(collSortOrderBox);
 	collOpt->setLayout(collGrid);
 	tab->addTab(collOpt,"Collections");
 	//End Collections
+	
+	//XMMS2 Options
+	
+	xmms2Opt = new QWidget();;
+	tab->addTab(xmms2Opt,"XMMS2");
+	//End XMMS2 Options
 }
 
 void Options::sendSettings(bool all) {
 	int which = tab->currentIndex();
 	/*
-	0 = General, 1 = Playlist, 2 = MediaLib, 3 = Collections
+	0 = General, 1 = Playlist, 2 = MediaLib, 3 = Collections, 4 = XMMS2
 	*/
 	if(which == 0 || all) {
 	std::cout<<"sending gen"<<std::endl;
@@ -152,10 +210,15 @@ void Options::sendSettings(bool all) {
 	}
 	if (which == 2 || all) {
 	std::cout<<"sending mlib"<<std::endl;
+	searchTags->saveChanges();
+	quickSearchTags->saveChanges();
 	}
 	if (which == 3 || all) {
 	std::cout<<"sending coll"<<std::endl;	
 	collImportSortOrder->saveChanges();
+	}
+	if(which == 4 || all) {
+	std::cout<<"sending xmms2"<<std::endl;	
 	}
 }
 
@@ -183,7 +246,8 @@ ListEditor::ListEditor(DataBackend * c,QString property,QWidget * parent):QWidge
 	layout->addWidget(list,0,0,1,2);
 	addItem=new QComboBox();
 	QStringList labels;
-	labels<<"Custom: edit with property"<<"Title"<<"Artist"<<"Album"<<"Time"<<"Filename"<<"Track"<<"Genre";
+	labels=((MlibData*)(conn->getDataBackendObject(DataBackend::MLIB)))->getStandardTags();
+	labels.prepend("Custom: edit with property");
 	addItem->addItems(labels);
 	addItem->setCurrentIndex(0);
 	addItem->setEditable(true);

@@ -49,11 +49,7 @@ void MediaInfo::setAllInfo(QHash<QString,QVariant> hash) {
 
 MlibData::MlibData(DataBackend * c,QObject * parent):QObject(parent) {
 	conn = c;
-	standardTags<<"artist"<<"album"<<"url"<<"encodedurl"<< "title"<<"genre"<<"duration"<<"timesplayed"<<"rating"<<"laststarted"<<"id";
-	QSettings s;
-	if(s.contains("standardTags"))
-	standardTags = s.value("standardTags").toStringList();
-	s.setValue("standardTags",standardTags);
+	standardTags<<"Album"<<"Duration"<<"Encoded URL"<<"Filename"<<"Genre"<<"ID"<<"Last Started"<<"Rating"<<"Time"<<"Times Played"<<"Title"<<"Track"<<"URL";
 	conn->medialib.broadcastEntryChanged()(Xmms::bind(&MlibData::mlibChanged, this));
 	connect(&changeTimer,SIGNAL(timeout()),this,SIGNAL(updatesDone()));
 	connect(this,SIGNAL(updatesDone()),this,SIGNAL(periodicUpdate()));

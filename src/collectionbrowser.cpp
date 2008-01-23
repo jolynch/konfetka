@@ -332,7 +332,7 @@ void CollTreeWidget::dragEnterEvent(QDragEnterEvent *event) {
 
 QStringList CollTreeWidget::mimeTypes() const {
 	QStringList types;
-	types << "text/uri-list" << "application/x-collname" <<"application/x-collstructure";
+	types << "text/uri-list" << "application/x-collname" <<"application/x-collstruct";
 	return types;
 }
 
