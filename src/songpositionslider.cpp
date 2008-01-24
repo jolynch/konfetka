@@ -60,9 +60,9 @@ void SongPositionSlider::setTimeFromSlider() {
 void SongPositionSlider::setDuration(int id) {
 	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
 	markers.clear();
-	QTime tmp=QTime::fromString(mlib->getInfo(QString("duration"),id).toString(),"mm:ss");
+	QTime tmp=QTime::fromString(mlib->getInfo(QString("time"),id).toString(),"mm:ss");
 	if(!tmp.isValid())
-		tmp=QTime::fromString(mlib->getInfo(QString("duration"),id).toString(),"h:mm:ss");
+		tmp=QTime::fromString(mlib->getInfo(QString("time"),id).toString(),"h:mm:ss");
 	int ms=tmp.msec()+tmp.second()*1000+tmp.minute()*60*1000+tmp.hour()*60*60*1000;
 	duration = ms/MAGFACTOR;
 	if((mlib->getInfo(QString("url"),id).toString().toStdString()).find("file://") == std::string::npos){

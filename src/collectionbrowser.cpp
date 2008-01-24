@@ -82,7 +82,7 @@ void CollectionBrowser::addIdToView(int id, bool isPriority) {
 					newItem->setText(i,(mlib->getInfo(labels[i].toLower(),id)).toString());
 				}	
 				
-				if(mlib->getInfo("status",id).toInt()==3) {
+				if(mlib->getInfo("status",id).toString()=="Broken") {
 				greyItem(newItem);
 				}
 			numFetched+=1;

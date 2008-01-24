@@ -59,6 +59,10 @@ void Options::updateGui(QString name,QVariant value) {
 		if(value.toBool())
 		autoStart->setCheckState(Qt::Checked);
 	}
+	else if(name == "konfetka/mlibDblClick") {
+		if(value.toBool())
+		doubleClick->setCheckState(Qt::Checked);
+	}
 	else if(name == "konfetka/albumArtReflection") {
 		if(value.toBool())
 		albArtReflection->setCheckState(Qt::Checked);
@@ -212,6 +216,7 @@ void Options::sendSettings(bool all) {
 	std::cout<<"sending mlib"<<std::endl;
 	searchTags->saveChanges();
 	quickSearchTags->saveChanges();
+	conn->changeAndSaveQSettings("konfetka/mlibDblClick",QVariant(doubleClick->checkState() == Qt::Checked));
 	}
 	if (which == 3 || all) {
 	std::cout<<"sending coll"<<std::endl;	

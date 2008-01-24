@@ -77,7 +77,9 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 
 	connect(loadUniverse,SIGNAL(clicked()),this,SLOT(loadUniv()));
 	connect(updateAll,SIGNAL(clicked()),this,SLOT(refreshList()));
+	connect(searchLine,SIGNAL(textChanged(QString)),this,SLOT(possiblySearchMlib()));
 	connect(searchLine,SIGNAL(returnPressed()),this,SLOT(searchMlib()));
+	connect(&searchTimer,SIGNAL(timeout()),this,SLOT(searchMlib()));
 	
 	//The pressed really just prepares the urllist, look at DropTreeWidget::mimeData for the actual dragging
 	connect(mediaList,SIGNAL(itemPressed(QTreeWidgetItem *,int)),this,SLOT(addFromMlibDrag(QTreeWidgetItem*,int))); 
@@ -317,7 +319,7 @@ bool MediaLib::gotSongs(QTreeWidgetItem* album,const Xmms::List <uint> &list) {
 			temp->setText(0,title);
 // 			std::cout<<*list << title.toStdString()<<std::endl;
 			idToSongItem.insert(*list,temp);
-			if(title != "" && mlib->getInfo("status",*list).toInt()==3) {
+			if(title != "" && mlib->getInfo("status",*list).toString()=="Broken") {
 				for(int i=0;i<temp->columnCount();i++) {
 				temp->setForeground(i,QBrush(QColor("grey"),Qt::SolidPattern));
 				}
@@ -336,7 +338,7 @@ void MediaLib::infoChanged(int id) {
 	if(idToSongItem.contains(id) && idToSongItem.value(id)!=NULL) {
 		QVariant tmp = mlib->getInfo(QString("title"),id);
 		idToSongItem.value(id)->setText(0,tmp.toString());
-			if(mlib->getInfo("status",id).toInt()==3) {
+			if(mlib->getInfo("status",id).toString() == "Broken") {
 				for(int i=0;i<idToSongItem.value(id)->columnCount();i++) {
 				idToSongItem.value(id)->setForeground(i,QBrush(QColor("grey"),Qt::SolidPattern));
 			}
@@ -423,6 +425,11 @@ void MediaLib::respondToConfigChange(QString name,QVariant value) {
 		QStringList temp = value.toStringList();
 		searchTags = temp;
 	}
+	else if(name == "konfetka/mlibComplexValues") {
+	}
+	else if(name == "konfetka/mlibDblClick") {
+	}
+	
 }
 	
 void MediaLib::refreshList() {
@@ -451,7 +458,15 @@ void MediaLib::loadUniv() {
 	loadUpCollection(temp);
 }
 
+void MediaLib::possiblySearchMlib() {
+	if(searchTimer.isActive()) 
+		searchTimer.stop();
+	
+	searchTimer.start(400);
+}
+
 void MediaLib::searchMlib() {
+	searchTimer.stop();
 	std::string text = searchLine->text().toStdString();
 	Xmms::Coll::Union allMatches;
 		Xmms::Coll::Match matchedArt(*baseMedia,"artist","%"+text+"%");

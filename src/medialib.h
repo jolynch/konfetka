@@ -40,6 +40,7 @@
 #include <QShortcut>
 #include <QSettings>
 #include <QTime>
+#include <QTimer>
 #include <QInputDialog>
 #include <QCheckBox>
 #include <QDialogButtonBox>
@@ -60,9 +61,10 @@ Q_OBJECT
 
 	private:
 	DataBackend * conn;
+	QTimer searchTimer;
 	MlibData* mlib;
 	CollData* coll;	
-	bool adding,complexSearch;
+	bool adding,complexSearch,dblClickAdd;
 	QList<QString> searchTags;
 	DropTreeWidget * mediaList;
 	QPushButton * loadUniverse;
@@ -116,6 +118,7 @@ Q_OBJECT
 	void useSelected();
 	void useVisible();
 	void newColl(SourceType type);
+	void possiblySearchMlib();
 	void searchMlib();
 	void displaySongInfo();
 	

@@ -49,7 +49,7 @@ void MediaInfo::setAllInfo(QHash<QString,QVariant> hash) {
 
 MlibData::MlibData(DataBackend * c,QObject * parent):QObject(parent) {
 	conn = c;
-	standardTags<<"Album"<<"Duration"<<"Encoded URL"<<"Filename"<<"Genre"<<"ID"<<"Last Started"<<"Rating"<<"Time"<<"Times Played"<<"Title"<<"Track"<<"URL";
+	standardTags<<"Album"<<"Duration"<<"Encoded URL"<<"Filename"<<"Genre"<<"ID"<<"Last Started"<<"Rating"<<"Status"<<"Time"<<"Times Played"<<"Title"<<"Track"<<"URL";
 	conn->medialib.broadcastEntryChanged()(Xmms::bind(&MlibData::mlibChanged, this));
 	connect(&changeTimer,SIGNAL(timeout()),this,SIGNAL(updatesDone()));
 	connect(this,SIGNAL(updatesDone()),this,SIGNAL(periodicUpdate()));
@@ -148,10 +148,24 @@ bool MlibData::getAllMediaInfoForId(int id,std::string key,Xmms::Dict::Variant v
 				tmp =foo.toString("h:mm:ss");
 			else
 				tmp =foo.toString("mm:ss");
-			newValue = QVariant(tmp);
+			(cache.value(id))->setInfo("time",QVariant(tmp));			
 			}
-			else {
 			newValue = QVariant(boost::get<int>(val));
+			if(key=="status") {
+				int realVal = boost::get<int>(val);
+				switch (realVal) {
+					case 1:
+						newValue = QVariant("Good");
+						break;
+					case 2:
+						newValue = QVariant("Unknown");
+						break;
+					case 3:	
+						newValue = QVariant("Broken");
+						break;
+					default:
+						newValue = QVariant(realVal);
+				}
 			}
 		}
 		else if(val.type() == typeid(uint32_t)) {
