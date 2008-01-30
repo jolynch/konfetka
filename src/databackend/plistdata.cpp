@@ -106,7 +106,6 @@ void SinglePlaylist::parseHumanReadableHeader()
 		QString lbl=humanReadableHeader[i].toLower();
 		if(lbl=="filename") lbl=QString("url");
 		if(lbl=="track") lbl=QString("tracknr");
-		if(lbl=="time") lbl=QString("duration");
 		header.append(lbl);
 		}
 	this->reset();
