@@ -49,7 +49,7 @@ void MediaInfo::setAllInfo(QHash<QString,QVariant> hash) {
 
 MlibData::MlibData(DataBackend * c,QObject * parent):QObject(parent) {
 	conn = c;
-	standardTags<<"Album"<<"Duration"<<"Encoded URL"<<"Filename"<<"Genre"<<"ID"<<"Last Started"<<"Rating"<<"Status"<<"Time"<<"Times Played"<<"Title"<<"Track"<<"URL";
+	standardTags<<"Album"<<"Artist"<<"Duration"<<"Encoded URL"<<"Filename"<<"Genre"<<"ID"<<"Last Started"<<"Rating"<<"Status"<<"Time"<<"Times Played"<<"Title"<<"Track"<<"URL";
 	conn->medialib.broadcastEntryChanged()(Xmms::bind(&MlibData::mlibChanged, this));
 	connect(&changeTimer,SIGNAL(timeout()),this,SIGNAL(updatesDone()));
 	connect(this,SIGNAL(updatesDone()),this,SIGNAL(periodicUpdate()));

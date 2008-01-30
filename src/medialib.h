@@ -8,6 +8,7 @@
 #ifndef BOOST_BIND
 #define BOOST_BIND
 #include <boost/bind.hpp>
+#include <boost/shared_ptr.hpp>
 #endif
 
 #include "databackend.h"

@@ -156,7 +156,7 @@ void Options::constructOptions() {
 	searchTags->setList(temp);
 	quickSearchTags = new ListEditor(conn,"konfetka/mlibSearchValues");
 	temp.clear();
-	temp<<"Artist"<<"Album"<<"Title"<<"Url"<<"Genre"<<"ID";
+	temp<<"Artist"<<"Album"<<"Title"<<"Url"<<"ID";
 	quickSearchTags->setList(temp);
 	searchLayout->addWidget(new QLabel("Complex Search Tags"),0,0,1,1);
 	searchLayout->addWidget(new QLabel("Quick Search Tags"),0,1,1,1);
