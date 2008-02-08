@@ -23,7 +23,9 @@ Q_OBJECT
 	QTimer timer;
 	QTimeLine timeline;
 	QLinearGradient * linearGrad;
-	
+	QImage fullSpeaker;
+	QImage smallSpeaker;
+
 	private slots:
 	void paintNext(int);
 	void timelineDone();

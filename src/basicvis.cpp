@@ -12,6 +12,9 @@ BasicVis::BasicVis(DataBackend * c,QWidget* parent,Qt::WindowFlags f):QWidget(pa
 	linearGrad->setColorAt(0, QColor( 187,213,225,255 ));
 	linearGrad->setColorAt(1, QColor( 239,239,239,255 ));
 	
+	fullSpeaker = QImage(":images/speaker.png").scaled(150,150, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+	smallSpeaker = fullSpeaker.scaled(145,145, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+	
 	timeline.setFrameRange(0,fps);
 	timeline.setCurveShape(QTimeLine::LinearCurve);
 	connect(&timeline,SIGNAL(frameChanged(int)),this,SLOT(paintNext(int)));
@@ -48,17 +51,13 @@ void BasicVis::respondToConfigChange(QString name,QVariant value) {
 void BasicVis::paintEvent(QPaintEvent * event) {
 	QPainter painter(this);
 	
-	QImage im(":images/speaker.png");
-	im = im.scaled(100,100, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-	QImage c;
 	int x,y;
-	x = 20; y = 20;
+	x = (width()-150)/2; y = (height()-150)/2;
 	painter.eraseRect(geometry());
-		painter.drawImage(x,y,im);
-		if(timeline.currentFrame()%2==0) {
+		painter.drawImage(x,y,fullSpeaker);
+		if(timeline.currentFrame()%3==0) {
 			painter.eraseRect(geometry());
-			c = im.scaled(95,95, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
-			painter.drawImage(x+2,y+2,c);
+			painter.drawImage(x+2,y+2,smallSpeaker);
 		}
 	
 	return;
