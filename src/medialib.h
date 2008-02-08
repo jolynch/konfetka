@@ -16,6 +16,7 @@
 #include "databackend/colldata.h"
 #include "layoutpanel.h"
 #include <QTreeWidget>
+#include <QTableWidget>
 #include <QGridLayout>
 #include <QTreeView>
 #include <QDirModel>
@@ -51,11 +52,19 @@
 //#include <QVariant>
 
 class DropTreeWidget;
-class ComplexSearchDialog;
 
 typedef uint ItemType;
 typedef uint SourceType;
-enum Operator {opor, opand}; 
+typedef uint SearchType;
+
+static const ItemType ARTIST = 0x001;
+static const ItemType ALBUM = 0x010;
+static const ItemType SONG = 0x011;
+static const ItemType INVALID = 0x100;
+static const SourceType SELECTED = 0x01;
+static const SourceType VISIBLE = 0x10;
+static const SearchType SIMPLE= 0;
+static const SearchType PARSE= 1;
 
 class MediaLib:public LayoutPanel{	
 Q_OBJECT
@@ -65,13 +74,13 @@ Q_OBJECT
 	QTimer searchTimer;
 	MlibData* mlib;
 	CollData* coll;	
-	bool adding,complexSearch,dblClickAdd;
+	bool adding,dblClickAdd;
+	SearchType searchType;
 	QList<QString> searchTags;
 	DropTreeWidget * mediaList;
 	QPushButton * loadUniverse;
 	QPushButton * updateAll;
 	QPushButton * makeColl;
-	QPushButton * complexSearchButton;
 	QLineEdit * searchLine;
 	QLabel * searchLabel;
 	QGridLayout * layout;
@@ -79,7 +88,6 @@ Q_OBJECT
 	QList<QUrl> urlList;
 	QShortcut  * delItem;
 	QStack<uint> idStack;
-	ComplexSearchDialog * searchDialog;
 	QMenu * infoMenu;
 	QPoint dragStartPosition;
 	
@@ -87,12 +95,6 @@ Q_OBJECT
 	QHash<uint,QTreeWidgetItem*> idToSongItem;
 	Xmms::Coll::Coll * visibleMedia;
 	Xmms::Coll::Coll * baseMedia;
-	static const ItemType ARTIST = 0x001;
-	static const ItemType ALBUM = 0x010;
-	static const ItemType SONG = 0x011;
-	static const ItemType INVALID = 0x100;
-	static const SourceType SELECTED = 0x01;
-	static const SourceType VISIBLE = 0x10;
 	ItemType getItemType(QTreeWidgetItem*);	
 
 	public:
@@ -140,10 +142,6 @@ Q_OBJECT
 	void getSongInfo(QTreeWidgetItem* item);
 
 	void infoChanged(int id);
-	void toggleComplexSearch();
-	void addAnotherSearchItem();
-	void recievedNewList(QList< QPair <Xmms::Coll::Coll*,Operator> >);
-	
 };
 
 class DropTreeWidget:public QTreeWidget {
@@ -167,53 +165,23 @@ Q_OBJECT
 	QStringList mimeTypes() const;
 	QMimeData* mimeData(const QList<QTreeWidgetItem *> items) const;
 
-	//Adding to Mlib related
-	void recurAdd(QString,bool);
-	void numSongs(QString path);
-	
 	signals:
 	void removeSelected();
 };
 
-class ComplexSearchDialog:public QDialog {
-	Q_OBJECT
-	
-	private:
-	DataBackend* conn;
-	Xmms::Coll::Coll* searchMedia;
-	QList< QPair <Xmms::Coll::Coll*,Operator> > complexSearchItems;
-	QShortcut * delItem;
-	QTreeWidget * itemList;
-	QLabel * tagLabel;
-	QComboBox * tag;
-	QLabel * operLabel;
-	QComboBox * oper;
-	QLabel * valueLabel;
-	QLineEdit * value;
-	QLabel * appendageTypeLabel;
-	QComboBox * appendageType;
-	QPushButton * add;
-	QCheckBox * notCheck;
-	QDialogButtonBox * buttons;
-	QGridLayout * layout;
+class InfoDialog:public QDialog {
+Q_OBJECT
 
+	private:
+	DataBackend * conn;
+	QTableWidget * table;
+	
 	public:
-	ComplexSearchDialog(DataBackend*, Xmms::Coll::Coll*);
-	Xmms::Coll::Coll* newColl(QString attr,QString oper,QString val,bool notFlag);
-	void keyPressEvent(QKeyEvent *event);
+	InfoDialog(DataBackend*, ItemType, QString);
+	
+// 	void keyPressEvent(QKeyEvent *event);
 	
 	public slots:
 	void accept();
-	void addOperand();
-	void removeOperand();
-	void clearItems();
-	
-	signals:
-	void newList(QList< QPair <Xmms::Coll::Coll*,Operator> >);
-	
 };
-
-
-
-
 #endif

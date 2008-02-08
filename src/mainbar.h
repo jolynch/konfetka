@@ -35,7 +35,6 @@ class MainBar:public QWidget
 		QGridLayout * layout;
 		QToolButton * backButton;
 		QToolButton * playButton;
-		QToolButton * pauseButton;
 		QToolButton * stopButton;
 		QToolButton * forwardButton;
 		QToolButton * volumeButton;
@@ -50,14 +49,6 @@ class MainBar:public QWidget
 		QPushButton * optionsButton;
 		QToolButton * quitButton;
 		QTimer * scrollTimer;
-		QIcon * playIcon;
-		QIcon * pauseIcon;
-		QIcon * stopIcon;
-		QIcon * backIcon;
-		QIcon * nextIcon;
-		QIcon * quitIcon;
-		QIcon * volumeIcon;
-		QIcon * muteIcon;
 		QIcon * miniIcon; 
 		Xmms::Playback::Status stat;
 		//~!

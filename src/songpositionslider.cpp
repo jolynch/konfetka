@@ -33,6 +33,7 @@ bool SongPositionSlider::handlePlaytimeSignal(uint newTime) {
 	songEmitted = true;
 	}	
 
+	update();
 	return true;
 }
 
@@ -54,6 +55,7 @@ int SongPositionSlider::getNegativeTime() {
 //actually seek somewhere in the song
 void SongPositionSlider::setTimeFromSlider() {
 	conn->playback.seekMs(value()*MAGFACTOR)(Xmms::bind(&DataBackend::scrapResult, conn));
+	update();
 }
 
 //Sets the duration of the slider, this !!NEEDS!! to be called elsewhere
@@ -104,6 +106,7 @@ void SongPositionSlider::mousePressEvent(QMouseEvent * event) {
 // 	std::cout<<"press"<<std::endl;
 	QSlider::mousePressEvent(event);
 	released = false;
+	update();
 }
 
 // Allows one click seek
@@ -159,6 +162,7 @@ void SongPositionSlider::mouseMoveEvent(QMouseEvent *event) {
 		}
 		else
 		return;
+	update();
 }
 
 void SongPositionSlider::paintEvent(QPaintEvent * event) {

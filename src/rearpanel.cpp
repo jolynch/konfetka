@@ -47,7 +47,7 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 	lyrics=new LyricBrowser(conn);
 	//JOEY MOVED THESE TWO LINES UP FOR OPTIONS
 	//visualization=new Visualization(conn,this, NULL);
-	newVis = new BasicVis(conn,deskRect.height(),deskRect.width(),this, NULL);
+	newVis = new BasicVis(conn,this);
 	//DONE
 
 	netInfo->addTab(info, "About");
@@ -178,7 +178,7 @@ void RearPanel::updateSong(int id)
 //JOEY
 void RearPanel::createNewVis() {
 	delete newVis;
-	newVis = new BasicVis(conn,deskRect.height(),deskRect.width(),this, NULL);
+	newVis = new BasicVis(conn,this);
 	layout->addWidget(newVis,0,2);
 }
 //DONE

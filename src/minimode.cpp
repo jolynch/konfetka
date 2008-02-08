@@ -9,7 +9,7 @@ MiniMode::MiniMode(DataBackend * c,AlbumArt * a,QWidget * p, Qt::WindowFlags f):
 	conn = c;
 	parentAlbArt = a;
 	timeMode = true;
-	miniVis =  new BasicVis(c,height(),width(),this,f,Qt::transparent);
+	miniVis =  new BasicVis(c,this);
 	listOfWidgets.append(miniVis);	
 	setWindowIcon(QIcon(":images/logomini"));
 

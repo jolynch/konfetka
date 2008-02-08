@@ -27,31 +27,20 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 		}
 	channels=0;
 	layout = new QGridLayout();
-
-	playIcon = new QIcon(":images/play_button.png");
-	stopIcon = new QIcon(":images/stop_button.png");
-	pauseIcon = new QIcon(":images/pause_button.png");
-	nextIcon = new QIcon(":images/next_button.png");
-	backIcon = new QIcon(":images/back_button.png");
-	quitIcon = new QIcon(":images/quit_button.png");
-	volumeIcon = new QIcon(":images/volume_button_sound.png");
 	if(mini)
 		miniIcon=new QIcon(":images/un_minimize.png");
 	else
 		miniIcon=new QIcon(":images/minimize.png");
-	muteIcon = new QIcon(":images/volume_button_NOsound.png");
 	stopButton = new QToolButton();
-	stopButton->setIcon(*stopIcon);
+	stopButton->setIcon(QIcon(":images/stop_button.png"));
 	playButton=new QToolButton();
-	playButton->setIcon(*playIcon);
-	pauseButton=new QToolButton;
-	pauseButton->setIcon(*pauseIcon);
+	playButton->setIcon(QIcon(":images/play_button.png"));
 	backButton=new QToolButton();
-	backButton->setIcon(*backIcon);
+	backButton->setIcon(QIcon(":images/back_button.png"));
 	forwardButton=new QToolButton();
-	forwardButton->setIcon(*nextIcon);
+	forwardButton->setIcon(QIcon(":images/next_button.png"));
 	volumeButton = new QToolButton();
-	volumeButton->setIcon(*volumeIcon);
+	volumeButton->setIcon(QIcon(":images/volume_button_sound.png"));
 	miniButton=new QToolButton();
 	miniButton->setIcon(*miniIcon);
 
@@ -87,7 +76,7 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 //	makeSmallButton=new QPushButton("Hide");
 
 	quitButton=new QToolButton();
-	quitButton->setIcon(*quitIcon);
+	quitButton->setIcon(QIcon(":images/quit_button.png"));
 
 // 	conn->playback.getPlaytime()(Xmms::bind(&DataBackend::getCurPlaytime, conn));
 // 	conn->playback.volumeGet()(Xmms::bind(&DataBackend::volumeResponse, conn));
@@ -99,16 +88,15 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 	layout->addWidget(positionTime,0,0,1,1);
 	//layout->setColumnStretch ( 1, 0 );
 	layout->addWidget(volumeButton,1,0,1,1);
-	layout->addWidget(positionSlider,0,1,1,8);
-	layout->addWidget(positionMinusTime,0,9,1,1);
-	layout->addWidget(miniButton,0,10);
+	layout->addWidget(positionSlider,0,1,1,7);
+	layout->addWidget(positionMinusTime,0,8,1,1);
+	layout->addWidget(miniButton,0,9);
 	layout->addWidget(TitleBar,1,3,1,2);
 	layout->addWidget(backButton,1,5);
-	layout->addWidget(pauseButton,1,6);
+	layout->addWidget(stopButton,1,6);
 	layout->addWidget(playButton,1,7);
-	layout->addWidget(stopButton,1,8);
-	layout->addWidget(forwardButton,1,9);
-	layout->addWidget(quitButton,1,10);
+	layout->addWidget(forwardButton,1,8);
+	layout->addWidget(quitButton,1,9);
 
 	layout->setColumnMinimumWidth(0,30);
 	layout->setColumnMinimumWidth(9,30);
@@ -121,8 +109,6 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 //	QObject::connect(shortcut, SIGNAL(activated()), this, SLOT(slotHide()));
 
 	QObject::connect(playButton, SIGNAL(clicked()), this, SLOT(slotPlay()));
-
-	QObject::connect(pauseButton, SIGNAL(clicked()), this, SLOT(slotPause()));
 
 	QObject::connect(stopButton, SIGNAL(clicked()), this, SLOT(slotStop()));
 
@@ -153,7 +139,6 @@ MainBar::~MainBar()
 	{
 	delete backButton;
 	delete playButton;
-	delete pauseButton;
 	delete stopButton;
 	delete forwardButton;
 	delete positionSlider;
@@ -171,10 +156,12 @@ MainBar::~MainBar()
 // 	conn->playback.tickle()(Xmms::bind(&DataBackend::scrapResult, conn));
 	}*/
 
-void MainBar::slotPlay()
-	{
+void MainBar::slotPlay() {
+	if(stat == XMMS_PLAYBACK_STATUS_PLAY)
+	conn->playback.pause()(Xmms::bind(&DataBackend::scrapResult, conn));
+	else
 	conn->playback.start()(Xmms::bind(&DataBackend::scrapResult, conn));
-	}
+}
 
 void MainBar::slotPause()
 	{
@@ -275,15 +262,22 @@ for(int i=scrollInfo.length();i < TitleBar->width()/5;i++)
 {scrollInfo+=" ";}
 
 display.append(QString::fromUtf8(scrollInfo.c_str()));
-TitleBar->setAlignment ( Qt::AlignCenter );
-TitleBar -> setPalette(temp);
-TitleBar->setMaximumSize(TitleBar->width(),50);
-TitleBar -> setText(display);
-emit infoChanged();
+	TitleBar->setAlignment ( Qt::AlignCenter );
+	TitleBar -> setPalette(temp);
+	TitleBar->setMaximumSize(TitleBar->width(),50);
+	TitleBar -> setText(display);
+	emit infoChanged();
 }
 
 void MainBar::newStatus(Xmms::Playback::Status s) {
-stat = s;
+	stat = s;
+	switch(stat) {
+		case XMMS_PLAYBACK_STATUS_PLAY:
+		playButton->setIcon(QIcon(":images/pause_button.png"));
+		break;
+		default:
+		playButton->setIcon(QIcon(":images/play_button.png"));
+	}
 }
 
 void MainBar::slotScroll()
@@ -297,19 +291,18 @@ TitleBar -> setText(QString::fromUtf8(scrollInfo.c_str()));
 
 void MainBar::slotMute()
 {
-if(muted) {
-volumeButton->setIcon(*volumeIcon);
-slotSetVolume(volVal);
-muted=false;
-}
-else
-{
-volVal=volumeSlider->value();
-volumeButton->setIcon(*muteIcon);
-slotSetVolume(0);
-volumeSlider->setValue(volVal);
-muted=true;
-}
+	if(muted) {
+	volumeButton->setIcon(QIcon(":images/volume_button_sound.png"));
+	slotSetVolume(volVal);
+	muted=false;
+	}
+	else {
+	volVal=volumeSlider->value();
+	volumeButton->setIcon(QIcon(":images/volume_button_NOsound.png"));
+	slotSetVolume(0);
+	volumeSlider->setValue(volVal);
+	muted=true;
+	}
 }
 
 /*void MainBar::slotHide()

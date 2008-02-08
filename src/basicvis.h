@@ -8,57 +8,36 @@
 #include "databackend.h"
 #include <QWidget>
 #include <QGridLayout>
-#include <QGraphicsView>
-#include <QGraphicsScene>
-#include <QGraphicsRectItem>
 #include <QRectF>
 #include <QTimer>
-#include <QList>
-#include <QSettings>
-#include <QtAlgorithms>
-#include <QStyleOption>
+#include <QTimeLine>
+#include <QPainter>
+#include <QLinearGradient>
+#include <QMouseEvent>
 
-class MyScene;
 class BasicVis:public QWidget {
-	Q_OBJECT
+Q_OBJECT
 	private:
 	DataBackend * conn;
-	QGridLayout * layout;
-	MyScene * scene;
-	QGraphicsView * view;
-	//QGraphicsItem * item;
-	QGraphicsRectItem * thing;
-	int height;
-	int width;
-	int numBars;
-	int timerLength;
-	int time;
-	QTimer * timer;
-	QTimer * waitTimer;
+	int numBars; int fps; int secondsRunning; int initY;
+	QTimer timer;
+	QTimeLine timeline;
 	QLinearGradient * linearGrad;
-	QColor color;
-	//QList<QGraphicsRectItem *> bars;
-
+	
+	private slots:
+	void paintNext(int);
+	void timelineDone();
+	
 	public:
-	BasicVis(DataBackend * c,int h,int w,QWidget * parent = 0, Qt::WindowFlags f = 0, QColor col = Qt::black);
-	~BasicVis();
-
+	BasicVis(DataBackend * c,QWidget * parent = 0, Qt::WindowFlags f = 0);
+	void mousePressEvent(QMouseEvent * event);
+	
 	public slots:
-	void updateItem(int);
 	void setNumAndLen(int,int);
-	void doAnimation();
-	void toggleAnimation();
 	void paintEvent(QPaintEvent *);
-	void processSettingsUpdate(QString,QVariant);
-	};
-class MyScene:public QGraphicsScene
-	{	Q_OBJECT
-	private:
-	BasicVis * parentVis;
-	public:
-	void setVis(BasicVis*);
-	MyScene( qreal x, qreal y, qreal width, qreal height, QObject * parent = 0 );
-	void mouseReleaseEvent(QGraphicsSceneMouseEvent * mouseEvent);
-	};
+	void respondToConfigChange(QString,QVariant);
+	void doAnimation();
+};
+
 
 #endif

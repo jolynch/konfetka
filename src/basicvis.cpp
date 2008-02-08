@@ -3,158 +3,98 @@
 #include "basicvis.h"
 
 
-BasicVis::BasicVis(DataBackend * c,int h,int w,QWidget* parent, Qt::WindowFlags f, QColor col):QWidget(parent, f) {
+BasicVis::BasicVis(DataBackend * c,QWidget* parent,Qt::WindowFlags f):QWidget(parent, f) {
 	conn = c;
-	height=180;
-	width=(int)(w*(2.0/7));
-	time = 0;
-	color = col;
-	
 	numBars = 20;
-	timerLength = 100;
-// 	QSettings s;
-// 		if(s.contains("visNumBars") && s.value("visNumBars").toInt()==0)
-// 		numBars=0;
-// 		else if(s.contains("visNumBars"))
-// 		numBars = s.value("visNumBars").toInt();
-// 		if(s.contains("visFps") && s.value("visFps").toInt()==0)
-// 		timerLength = 0;
-// 		else if(s.contains("visFps"))
-// 		timerLength = 1000/ s.value("visFps").toInt();
-	
-	layout = new QGridLayout();
-	
-	scene = new MyScene(0,0,width,height,this);
+	fps = 30;
+	secondsRunning = 1; initY = 0;
 	linearGrad = new QLinearGradient(QPointF(0,0), QPointF(10,180));
 	linearGrad->setColorAt(0, QColor( 187,213,225,255 ));
 	linearGrad->setColorAt(1, QColor( 239,239,239,255 ));
 	
-	//scene->addText("Visualizer will go here");
-	waitTimer = new QTimer(this);
-	waitTimer->start(30000);
-	QObject::connect(waitTimer, SIGNAL(timeout()), this, SLOT(toggleAnimation()));
+	timeline.setFrameRange(0,fps);
+	timeline.setCurveShape(QTimeLine::LinearCurve);
+	connect(&timeline,SIGNAL(frameChanged(int)),this,SLOT(paintNext(int)));
+// 	timeline.start();
+	connect(&timeline,SIGNAL(finished()),this,SLOT(timelineDone()));
+	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(respondToConfigChange(QString,QVariant)));
 	
-	
-	view = new QGraphicsView(scene);
-	view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-	
-	if(col != Qt::black) {
-	QPalette pal = view->palette();
-	pal.setBrush(QPalette::Window,QBrush(col));
-	view->setPalette(pal);
-	linearGrad->setColorAt(0, QColor( 130,170,188,255 ));
-	linearGrad->setColorAt(1, QColor( 157,160,162,255 ));
-	}
-	view->setBackgroundRole(QPalette::Window);
-	
-	timer = new QTimer(this);
-	
-	layout->addWidget(view);
-	layout->setMargin(0);
-	this->setLayout(layout);
-	connect(timer, SIGNAL(timeout()), this, SLOT(doAnimation()));
-	connect(conn,SIGNAL(qsettingsValueChanged(QString, QVariant)),this,SLOT(processSettingsUpdate(QString,QVariant)));
-	setNumAndLen(numBars,timerLength);
 }
 
-BasicVis::~BasicVis() {
-	delete layout;
-	delete scene;
-	delete view;
-	delete timer;
-	delete waitTimer;
-	delete linearGrad;
+void BasicVis::paintNext(int val) {
+	update();
 }
 
-void BasicVis::processSettingsUpdate(QString name,QVariant value) {
-	if(name == "konfetka/visFps") {
-		if(value.toInt()!=0)
-		timerLength = 1000/value.toInt();
-		else
-		timerLength = 0;
-	timer->stop();
-	timer->start(timerLength);
-	}
-	else if(name == "konfetka/visNumBars") {
-		numBars = value.toInt();
-		setNumAndLen(numBars,timerLength);
-	}
-	
-	if (timerLength == 0 || numBars == 0)
-	timer->stop();
-}
-
-void BasicVis::paintEvent(QPaintEvent * event) {
-QPainter painter(this);
-
-	QStyleOption opt;
-	opt.init(this);
-	style()->drawPrimitive(QStyle::PE_Widget, &opt, &painter, this);
-}
-
-void BasicVis::updateItem(int) {
+void BasicVis::timelineDone() {
+	secondsRunning += 1;
+	if(secondsRunning <= 10){
+		timeline.start();
+	} else { secondsRunning = 0; update();}
 }
 
 void BasicVis::doAnimation() {
-if(numBars == 0 || timerLength == 0) return;
-time=(time+1)%180; 
-QList<QGraphicsItem *> list =scene->items();
-int step = 180 / numBars;
-	for(int i=0;i<list.size();i++) {
-// 	//std::cout<<(time+(180-(i*step))) % 180<<std::endl;
-	list.value(i)->setPos(QPointF(list.value(i)->x(),(time+(180-(i*step))) % 180));
+	timeline.start();
+}
+
+void BasicVis::respondToConfigChange(QString name,QVariant value) {
+	if(name == "konfetka/visFps") {
+	fps = value.toInt();
+	}
+	else if(name == "konfetka/visNumBars") {
+	numBars = value.toInt();
 	}
 }
 
-void BasicVis::setNumAndLen(int num,int len) {
-if(timer->isActive())
-timer->stop();
-numBars = num;
-timerLength = len;
-// //std::cout<<num<<" "<<timerLength<<std::endl;
-int q = 0;
-time = 0;
-
-qDeleteAll( scene->items() );
-
-if(num == 0 || len == 0) return;
-QGraphicsRectItem * it;
-	for(int i=0;i<num;i++,q+=(width/num+1)) {
-	it = scene->addRect(QRectF(q,0,width/num,180) );
-	it->setBrush(QBrush(*linearGrad));
+void BasicVis::paintEvent(QPaintEvent * event) {
+	QPainter painter(this);
 	
-	if(color!=Qt::black) {
-	it->setPen(QPen(Qt::transparent));
+	QImage im(":images/speaker.png");
+	im = im.scaled(100,100, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+	QImage c;
+	int x,y;
+	x = 20; y = 20;
+	painter.eraseRect(geometry());
+		painter.drawImage(x,y,im);
+		if(timeline.currentFrame()%2==0) {
+			painter.eraseRect(geometry());
+			c = im.scaled(95,95, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
+			painter.drawImage(x+2,y+2,c);
+		}
+	
+	return;
+
+	if(secondsRunning == 0 || numBars == 0 || fps == 0) {
+		if(numBars == 0 || fps == 0)
+			timeline.stop();
+		painter.eraseRect(geometry());
+		return;
 	}
-	else
-	it->setPen(QPen(QColor(255,255,255,255)));
+	
+	painter.setBrush(*linearGrad);
+	painter.setPen(QPen(Qt::white));
+	int w = width() / numBars;
+	int step = height() / numBars;
+	int tmp = initY;
+	initY = initY + 1; 
+	if(initY> height()) initY = (initY-height());
+		
+	for(int i = 0; i < numBars;i++) {
+		tmp = tmp + step; 
+		if(tmp> height()) tmp = (tmp-height());
+		painter.drawRect(i*w,tmp,w,height());
 	}
-timer->start(len);
 }
 
-void BasicVis::toggleAnimation() {
-qDeleteAll( scene->items() );
+void BasicVis::setNumAndLen(int num,int len) {fps = len; numBars = num;}
 
-if(timer->isActive())
-timer->stop();
-else
-setNumAndLen(numBars,timerLength);
-
+void BasicVis::mousePressEvent(QMouseEvent * event) {
+	if(event->button() == Qt::LeftButton) {
+		if((timeline.state()==QTimeLine::NotRunning)) {
+		secondsRunning = 1;
+		timeline.start();
+		} else {timeline.stop();}
+	}
+	
 }
-
-
-MyScene::MyScene(qreal x, qreal y, qreal width, qreal height,QObject * parent):QGraphicsScene(x,y,width,height,parent) {
-parentVis=(BasicVis*)parent;
-}
-
-void MyScene::mouseReleaseEvent(QGraphicsSceneMouseEvent * mouseEvent) {
-parentVis->toggleAnimation();
-}
-
-void MyScene::setVis(BasicVis* vis) {
-parentVis = vis;
-}
-
 #endif
 
