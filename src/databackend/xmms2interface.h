@@ -46,6 +46,7 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		QString encodeUrl(QString,UrlType toXmms2 = XMMS2);
 
 		void emitInitialXmms2Settings();
+		void changeAndSaveXMMS2Settings(const std::string &key, const std::string &val);
 		static const UrlType WIKI = 0x001;
 		static const UrlType XMMS2 = 0x010;
 // 	public slots:

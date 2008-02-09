@@ -27,7 +27,7 @@ Options::Options(DataBackend * c, QWidget * parent,Qt::WindowFlags f):LayoutPane
 	setLayout(layout);	
 	
 	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(updateGui(QString,QVariant)));
-
+	connect(conn,SIGNAL(configValChanged(Xmms::Dict)),this,SLOT(updateXmms2Opts(Xmms::Dict)));
 }
 
 Options::~Options() {
@@ -78,8 +78,39 @@ void Options::updateGui(QString name,QVariant value) {
 	}
 }
 
+void Options::updateXmms2Opts(const Xmms::Dict &val) {
+	val.each(boost::bind(&Options::updateXmms2OptsForeach, this, _1, _2));
+}
+void Options::updateXmms2OptsForeach(const std::string &key, const Xmms::Dict::Variant &val) {
+	//std::cout << key << ": " << val << std::endl;
+	//std::cout << key << " = " << val << std::endl;
+	QString keyQStr = QString::fromStdString(key);
+	QString valQStr = QString::fromStdString(boost::get<std::string>(val));
+	QList<QTreeWidgetItem*> matchItems = xmms2Tree->findItems(keyQStr, Qt::MatchExactly);
+	QTreeWidgetItem *curItem;
+	if (matchItems.count() == 0) {
+		curItem = new QTreeWidgetItem(xmms2Tree);
+		curItem->setText(0, keyQStr);
+		curItem->setFlags(Qt::ItemIsEnabled);
+	} else {
+		curItem = matchItems[0];
+	}
+	curItem->setText(1, valQStr);
+	xmms2Tree->sortItems(0, Qt::AscendingOrder);
+}
+
 void Options::setLayoutSide(bool right_side){//true=right, false=left
 return;
+}
+
+void Options::xmms2TreeStartEdit(QTreeWidgetItem* item, int col) {
+	if (col == 0) {
+		item->setFlags(Qt::ItemIsEnabled);
+	}
+	else if (col == 1) {
+		item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsEditable);
+		xmms2Tree->editItem(item, 1);
+	}
 }
 
 //Sets up all the widgets and such
@@ -188,8 +219,20 @@ void Options::constructOptions() {
 	//End Collections
 	
 	//XMMS2 Options
-	
 	xmms2Opt = new QWidget();;
+	QGridLayout * xmms2Grid = new QGridLayout();
+	
+	xmms2Search = new QLineEdit();
+	xmms2Grid->addWidget(xmms2Search, 0,0,1,1);
+	
+	QStringList xmms2TreeHeaders;
+	xmms2Tree = new QTreeWidget();
+	xmms2TreeHeaders << "Key" << "Value";
+	xmms2Tree->setHeaderLabels(xmms2TreeHeaders);
+	connect(xmms2Tree,SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),this,SLOT(xmms2TreeStartEdit(QTreeWidgetItem*,int)));
+	xmms2Grid->addWidget(xmms2Tree, 1,0,1,1);
+	
+	xmms2Opt->setLayout(xmms2Grid);
 	tab->addTab(xmms2Opt,"XMMS2");
 	//End XMMS2 Options
 }
@@ -223,7 +266,10 @@ void Options::sendSettings(bool all) {
 	collImportSortOrder->saveChanges();
 	}
 	if(which == 4 || all) {
-	std::cout<<"sending xmms2"<<std::endl;	
+	std::cout<<"sending xmms2"<<std::endl;
+	QList<QTreeWidgetItem*> items = xmms2Tree->findItems("*", Qt::MatchWildcard);
+	for (int i=0; i<items.count(); i++)
+		conn->changeAndSaveXMMS2Settings(items[i]->text(0).toStdString(), items[i]->text(1).toStdString());
 	}
 }
 
