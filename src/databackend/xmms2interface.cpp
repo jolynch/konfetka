@@ -78,7 +78,7 @@ void XMMS2Interface::emitInitialXmms2Settings()
 	this->playback.getPlaytime()(Xmms::bind(&XMMS2Interface::getCurPlaytime, this));
 	this->playback.volumeGet()(Xmms::bind(&XMMS2Interface::volumeResponse, this));
 	this->playlist.currentPos()(Xmms::bind(&XMMS2Interface::curPos,this));
-	this->config.valueList()(Xmms::bind(&XMMS2Interface::configResponse, this));
+	this->config.valueList()(Xmms::bind(&XMMS2Interface::configValueList, this));
 	}
 
 void XMMS2Interface::changeAndSaveXMMS2Settings(const std::string &key, const std::string &val) {
@@ -123,6 +123,12 @@ bool XMMS2Interface::configResponse(const Xmms::Dict& val)
 	{
 	if(quitting) return false;
 	emit (configValChanged(val));
+	return true;
+	}
+
+bool XMMS2Interface::configValueList(const Xmms::Dict& val)
+	{
+	emit (configValList(val));
 	return true;
 	}
 

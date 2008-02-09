@@ -27,6 +27,7 @@ Options::Options(DataBackend * c, QWidget * parent,Qt::WindowFlags f):LayoutPane
 	setLayout(layout);	
 	
 	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(updateGui(QString,QVariant)));
+	connect(conn,SIGNAL(configValList(Xmms::Dict)),this,SLOT(updateXmms2Opts(Xmms::Dict)));
 	connect(conn,SIGNAL(configValChanged(Xmms::Dict)),this,SLOT(updateXmms2Opts(Xmms::Dict)));
 }
 
@@ -80,9 +81,10 @@ void Options::updateGui(QString name,QVariant value) {
 
 void Options::updateXmms2Opts(const Xmms::Dict &val) {
 	val.each(boost::bind(&Options::updateXmms2OptsForeach, this, _1, _2));
+	xmms2Tree->sortItems(0, Qt::AscendingOrder);
+	xmms2Tree->resizeColumnToContents(0);
 }
 void Options::updateXmms2OptsForeach(const std::string &key, const Xmms::Dict::Variant &val) {
-	//std::cout << key << ": " << val << std::endl;
 	//std::cout << key << " = " << val << std::endl;
 	QString keyQStr = QString::fromStdString(key);
 	QString valQStr = QString::fromStdString(boost::get<std::string>(val));
@@ -96,7 +98,6 @@ void Options::updateXmms2OptsForeach(const std::string &key, const Xmms::Dict::V
 		curItem = matchItems[0];
 	}
 	curItem->setText(1, valQStr);
-	xmms2Tree->sortItems(0, Qt::AscendingOrder);
 }
 
 void Options::setLayoutSide(bool right_side){//true=right, false=left
@@ -229,7 +230,7 @@ void Options::constructOptions() {
 	xmms2Tree = new QTreeWidget();
 	xmms2TreeHeaders << "Key" << "Value";
 	xmms2Tree->setHeaderLabels(xmms2TreeHeaders);
-	connect(xmms2Tree,SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),this,SLOT(xmms2TreeStartEdit(QTreeWidgetItem*,int)));
+	connect(xmms2Tree,SIGNAL(itemClicked(QTreeWidgetItem*,int)),this,SLOT(xmms2TreeStartEdit(QTreeWidgetItem*,int)));
 	xmms2Grid->addWidget(xmms2Tree, 1,0,1,1);
 	
 	xmms2Opt->setLayout(xmms2Grid);

@@ -35,6 +35,7 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		bool getstatus(const Xmms::Playback::Status& status);
 		bool getCurPlaytime(int);
 		bool configResponse(const Xmms::Dict& val);
+		bool configValueList(const Xmms::Dict& val);
 		bool volumeResponse(const Xmms::Dict& val);
 		bool plistChangeResponse(const Xmms::Dict& val);
 		bool curPos(const unsigned int& val);
@@ -56,6 +57,7 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		void currentId(int);
 		void currentPlaytime(int);
 		void configValChanged(const Xmms::Dict& val);
+		void configValList(const Xmms::Dict& val);
 		void volumeChanged(const Xmms::Dict& val);
 		void playlistChanged(const Xmms::Dict& val);
 		void currentPos(const unsigned int& pos);
