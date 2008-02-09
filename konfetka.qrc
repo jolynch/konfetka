@@ -62,6 +62,7 @@
 	<file>images/xmms2Logo.png</file>
 	<file>images/speaker.png</file>
 	<file alias="weirdline">data/weirdline</file>
+
 </qresource>
 </RCC>
 

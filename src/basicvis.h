@@ -7,7 +7,7 @@
 #define BASICVIS_H
 #include "databackend.h"
 #include <QWidget>
-#include <QGridLayout>
+#include <QPixmap>
 #include <QRectF>
 #include <QTimer>
 #include <QTimeLine>
@@ -15,9 +15,13 @@
 #include <QLinearGradient>
 #include <QMouseEvent>
 
+enum VisType { SPEAKER, SPECTRUM };
+class Speaker;
+
 class BasicVis:public QWidget {
 Q_OBJECT
 	private:
+	VisType type;
 	DataBackend * conn;
 	int numBars; int fps; int secondsRunning; int initY;
 	QTimer timer;
@@ -26,6 +30,13 @@ Q_OBJECT
 	QImage fullSpeaker;
 	QImage smallSpeaker;
 
+	//For Speaker vis
+	Speaker * t1;
+	Speaker * t2;
+	Speaker * t3;
+	Speaker * t4;
+	Speaker * sub;
+
 	private slots:
 	void paintNext(int);
 	void timelineDone();
@@ -33,13 +44,32 @@ Q_OBJECT
 	public:
 	BasicVis(DataBackend * c,QWidget * parent = 0, Qt::WindowFlags f = 0);
 	void mousePressEvent(QMouseEvent * event);
-	
+	void paintEvent(QPaintEvent *);
+	void resizeEvent(QResizeEvent *);
+	void wheelEvent(QWheelEvent * event);
+
 	public slots:
 	void setNumAndLen(int,int);
-	void paintEvent(QPaintEvent *);
 	void respondToConfigChange(QString,QVariant);
 	void doAnimation();
 };
+
+class Speaker:public QWidget {
+Q_OBJECT
+	private:
+	DataBackend * conn;
+	QImage fullSpeaker;
+	QImage smallSpeaker;
+	int frequency;
+	int value; int delta;
+	bool draw;
+
+	public: 
+	Speaker(DataBackend * c,int w, int h,int freq,int delta,QWidget * parent = 0, Qt::WindowFlags f = 0);
+	void paintEvent(QPaintEvent *);
+	void updateSpeaker();
+};
+
 
 
 #endif
