@@ -10,7 +10,7 @@ BasicVis::BasicVis(DataBackend * c,QWidget* parent,Qt::WindowFlags f):QWidget(pa
 	secondsRunning = 1; initY = 0;
 	linearGrad = new QLinearGradient(QPointF(0,0), QPointF(10,180));
 	linearGrad->setColorAt(0, QColor( 187,213,225,255 ));
-	linearGrad->setColorAt(1, QColor( 239,239,239,255 ));
+	linearGrad->setColorAt(1, QColor("lightgray"));
 	
 	fullSpeaker = QImage(":images/speaker.png").scaled(150,150, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
 	smallSpeaker = fullSpeaker.scaled(145,145, Qt::IgnoreAspectRatio,Qt::SmoothTransformation);
@@ -33,6 +33,10 @@ BasicVis::BasicVis(DataBackend * c,QWidget* parent,Qt::WindowFlags f):QWidget(pa
 }
 
 void BasicVis::paintNext(int val) {
+	if(type == SCOPE && val%5==0) {
+	update();
+	return;
+	}
 	update();
 	if(t1 && t2 && t3 && t4 && sub) {
 		srand(time(NULL));
@@ -109,17 +113,47 @@ void BasicVis::paintEvent(QPaintEvent * event) {
 		
 		painter.setBrush(*linearGrad);
 		painter.setPen(QPen(Qt::white));
-		int w = width() / numBars;
+		int w =qRound((qreal)width() / (qreal)numBars);
 		int step = height() / numBars;
 		int tmp = initY;
-		initY = initY + 1; 
-		if(initY> height()) initY = (initY-height());
 		
+		srand(time(NULL));
 		for(int i = 0; i < numBars;i++) {
 			tmp = tmp + step; 
 			if(tmp> height()) tmp = (tmp-height());
 			painter.drawRect(i*w,tmp,w,height());
 		}
+		tmp = initY;
+		painter.setBrush(QBrush(Qt::gray));
+		painter.setPen(QPen(Qt::transparent));
+		for(int i = 0; i < numBars;i++) {
+			tmp = tmp + step; 
+			if(tmp> height()) tmp = (tmp-height());
+			painter.drawRect(i*w+1,tmp-2,w-1,2);
+		}
+		initY = initY + 1; 
+		if(initY> height()) initY = (initY-height());
+	}
+	else if(type == SCOPE) {
+		if(timeline.state() != QTimeLine::Running) {
+			painter.setRenderHint(QPainter::Antialiasing);
+			painter.setPen(QPen(QBrush(QColor("#696969")),3.5));
+			painter.drawPath(path);
+			return;
+		}
+		painter.setRenderHint(QPainter::Antialiasing);
+		painter.setPen(QPen(QBrush(QColor("#696969")),3.5));
+		qreal mid = height()/2.0;
+		path = QPainterPath();
+		path.moveTo(0.0,mid);
+		int delta = 0;
+		srand(time(NULL));
+		for(int i =0;i<width();i+=15) {
+			delta =(int)(1+sqrt(rand()))*(int)(log((rand()+1)*(i+1)*(timeline.currentFrame()+1)));
+			if(timeline.currentFrame()%2 == 0) delta = delta*-1;
+			path.quadTo(i-7.5,mid,(qreal)i,mid-((mid/1.5)*(cos(delta))));
+		}
+		painter.drawPath(path);
 	}
 }
 
@@ -139,12 +173,14 @@ void BasicVis::wheelEvent(QWheelEvent * event){
 	int t;
 	if(event->delta()>0) t = type + 1;
 	if(event->delta()<0) t = type - 1;
-		if(t>1 || t ==0) {
+		if(t>2 || t ==0) {
 		type = SPEAKER;
 		}
-		else {
+		else if(t==1){
 		type = SPECTRUM;
 		}
+		else
+		type = SCOPE;
 }
 
 /***********************************- Speaker- *****************************************/ 
@@ -163,10 +199,7 @@ void Speaker::paintEvent(QPaintEvent * ev) {
 	QPainter painter(this);
 	painter.drawImage(0,0,fullSpeaker);
 	if(draw) {
-// 	painter.eraseRect(0,0,width(),height());
-// 		std::cout<<"drawing "<<this<<std::endl;
 		if(value%2==0) {
-// 			painter.eraseRect(0,0,width(),height());
 			painter.drawImage(delta/2,delta/2,smallSpeaker);
 		}
 	draw = false;

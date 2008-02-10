@@ -6,6 +6,7 @@
 #ifndef BASICVIS_H
 #define BASICVIS_H
 #include "databackend.h"
+#include <math.h>
 #include <QWidget>
 #include <QPixmap>
 #include <QRectF>
@@ -14,8 +15,9 @@
 #include <QPainter>
 #include <QLinearGradient>
 #include <QMouseEvent>
+#include <QPainterPath>
 
-enum VisType { SPEAKER, SPECTRUM };
+enum VisType { SPEAKER, SPECTRUM, SCOPE};
 class Speaker;
 
 class BasicVis:public QWidget {
@@ -36,6 +38,9 @@ Q_OBJECT
 	Speaker * t3;
 	Speaker * t4;
 	Speaker * sub;
+	
+	//For Scope vis
+	QPainterPath path;
 
 	private slots:
 	void paintNext(int);

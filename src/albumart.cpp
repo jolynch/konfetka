@@ -42,6 +42,7 @@ void AlbumArt::fetchXML(int newId) {
 	if(tmpQuery!=query)
 	query = tmpQuery;
 	std::cout<<"Looking for:"<<query.toStdString()<<std::endl;
+	allCovers = QDomNodeList();
 	//Thanks amarok for the D1URM... code thing
 	QString toUrl;
 	toUrl.append("http://xml.amazon.com/onca/xml3?t=webservices-20&dev-t=D1URM11J3F2CEH&KeywordSearch=");
@@ -62,7 +63,6 @@ void AlbumArt::fetchXML(int newId) {
 		}
 			
 	httpGetId = http->get(conn->encodeUrl(toUrl), &xmlBuffer);
-	std::cout<<httpGetId<<std::endl;
 	connect(&timeout, SIGNAL(timeout()), this, SLOT(fetchImage()));
 // 	timeout.start(5000); //TODO let people change the timeout time
 	connect(http, SIGNAL(done(bool)), this, SLOT(fetchImage(bool)));
@@ -83,7 +83,6 @@ void AlbumArt::fetchImage(bool err,bool force) {
 
 		if(imageBuffer.isOpen())
 		imageBuffer.close();
-	
 	QDomDocument doc("art");
 	QDomNode details;
 	if(!force && doc.setContent(xmlBuffer.data())) { // Hope that this succeeds

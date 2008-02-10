@@ -14,7 +14,8 @@ Joe:
  o Make it so that if a song was not found (i.e. status==3), then konfetka will provide the
    option to find the song, and even failing to do that, delete it from the mlib.
  
- o Actually use the bindata api instead of just directly writing to a file in the directory.
+ - Actually use the bindata api instead of just directly writing to a file in the directory.
+
 
 Anton:
 
