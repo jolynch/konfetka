@@ -90,7 +90,7 @@ Equalizer::Equalizer(DataBackend * c,int width,QWidget * parent, Qt::WindowFlags
 	//layout->addWidget(load,1,1,1,1);
 	//layout->addWidget(save,2,1,1,1);
 	layout->addWidget(s0,1,3,3,1);
-	layout->addWidget(s1,1,4,3,1);
+	layout->addWidget(s1,1,4,3,1);					
 	layout->addWidget(s2,1,5,3,1);
 	layout->addWidget(s3,1,6,3,1);
 	layout->addWidget(s4,1,7,3,1);
@@ -99,7 +99,11 @@ Equalizer::Equalizer(DataBackend * c,int width,QWidget * parent, Qt::WindowFlags
 	layout->addWidget(s7,1,10,3,1);
 	layout->addWidget(s8,1,11,3,1);
 	layout->addWidget(s9,1,12,3,1);
-	layout->setHorizontalSpacing((2*width)/35-10);
+	for(int i=0;i<layout->columnCount();i++) {
+	layout->setColumnStretch(i,10);
+	}
+	layout->setColumnStretch(1,1);layout->setColumnStretch(2,1);
+// 	layout->setHorizontalSpacing((2*width)/35-10);
  	layout->setRowMinimumHeight(0,50);
 	this->setLayout(layout);
 	conn->config.valueSet("equalizer.use_legacy","1")

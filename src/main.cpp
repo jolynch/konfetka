@@ -12,7 +12,6 @@ int main(int argc, char *argv[])
 
 	QPixmap pixmap(":images/logo.png");
 	QSplashScreen splash(pixmap);
-	app.setStyle(new QPlastiqueStyle());
 	splash.show();
 	splash.showMessage("Welcome To Konfetka",Qt::AlignRight | Qt::AlignBottom,Qt::black );
 

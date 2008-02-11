@@ -197,6 +197,7 @@ Speaker::Speaker(DataBackend * c,int w, int h,int freq,int delta,QWidget * paren
 
 void Speaker::paintEvent(QPaintEvent * ev) {
 	QPainter painter(this);
+	painter.eraseRect(0,0,width(),height());
 	painter.drawImage(0,0,fullSpeaker);
 	if(draw) {
 		if(value%2==0) {
