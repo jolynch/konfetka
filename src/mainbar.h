@@ -21,9 +21,11 @@
 #include <QShortcut>
 #include <iostream>
 #include <string>
+#include <QFontMetrics>
 
-class MainBar:public QWidget
-	{	Q_OBJECT
+class NiceLabel;
+class MainBar:public QWidget{	
+Q_OBJECT
 	private:
 		std::string scrollInfo;
 		int volVal;bool muted;
@@ -44,7 +46,7 @@ class MainBar:public QWidget
 		QLabel * positionTime;
 		QLabel * positionMinusTime;
 		QLabel * volume;
-		QLabel * TitleBar;
+		NiceLabel * infoBar;
 //		QPushButton * makeSmallButton;
 		QPushButton * optionsButton;
 		QToolButton * quitButton;
@@ -61,7 +63,6 @@ class MainBar:public QWidget
 		void slotStop();
 //		void slotForward();
 		void slotUpdateInfo(int id);
-		void slotScroll();
 		void slotSetVolume(int);
 		void slotGetVolume(const Xmms::Dict&);
 //		void slotHide();
@@ -78,6 +79,26 @@ class MainBar:public QWidget
 		void infoChanged();
 		void volumeChanged(int);
 //		void changeSongRel(int);
-	};
+};
+
+class NiceLabel:public QLabel{	
+Q_OBJECT
+	private:
+	int x; bool pressed; int pressPos; int id;
+
+	public:
+	NiceLabel(QWidget * parent = 0, Qt::WindowFlags f = 0);
+	void mousePressEvent(QMouseEvent * event);
+	void mouseReleaseEvent(QMouseEvent * event);
+	void mouseMoveEvent(QMouseEvent * event);
+	void paintEvent(QPaintEvent *);
+	void resizeEvent(QResizeEvent *);
+	void timerEvent(QTimerEvent* event);
+	void showEvent(QShowEvent * event);
+	void hideEvent(QHideEvent * event);
+	
+	public slots:
+	void slotScroll(int amount = -1);
+};
 
 #endif

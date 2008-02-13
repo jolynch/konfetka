@@ -56,15 +56,14 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 	volume = new QLabel();
 	volume->setText("Volume");
 
-	TitleBar = new QLabel();
-	TitleBar -> setText("This will be replaced");
-	TitleBar->setObjectName("titleBar");
+	infoBar = new NiceLabel();
+	infoBar -> setText("This will be replaced");
+	infoBar -> setObjectName("infoBar");
 
-	TitleBar->setFrameStyle(QFrame::StyledPanel);
+	infoBar->setFrameStyle(QFrame::StyledPanel);
 	positionTime->setAlignment(Qt::AlignCenter);
 	positionMinusTime->setAlignment(Qt::AlignCenter);
 	volume->setAlignment(Qt::AlignCenter);
-	TitleBar->setAlignment(Qt::AlignCenter);
 
 	volumeSlider = new QSlider(Qt::Horizontal);
 	volumeSlider->setRange(0, 100);
@@ -81,9 +80,6 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 // 	conn->playback.getPlaytime()(Xmms::bind(&DataBackend::getCurPlaytime, conn));
 // 	conn->playback.volumeGet()(Xmms::bind(&DataBackend::volumeResponse, conn));
 
-	scrollTimer = new QTimer(this);
-	scrollTimer->start(500);
-
 	layout->addWidget(volumeSlider,1,1,1,2);
 	layout->addWidget(positionTime,0,0,1,1);
 	//layout->setColumnStretch ( 1, 0 );
@@ -91,7 +87,7 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 	layout->addWidget(positionSlider,0,1,1,7);
 	layout->addWidget(positionMinusTime,0,8,1,1);
 	layout->addWidget(miniButton,0,9);
-	layout->addWidget(TitleBar,1,3,1,2);
+	layout->addWidget(infoBar,1,3,1,2);
 	layout->addWidget(backButton,1,5);
 	layout->addWidget(stopButton,1,6);
 	layout->addWidget(playButton,1,7);
@@ -119,8 +115,6 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 	connect(positionSlider,SIGNAL(timeChanged(int)),this,SLOT(updateTime()));
 
 	QObject::connect(volumeSlider,SIGNAL(valueChanged(int)),this,SLOT(slotSetVolume(int)));
-
-	QObject::connect(scrollTimer, SIGNAL(timeout()), this, SLOT(slotScroll()));
 
 	QObject::connect(conn,SIGNAL(currentId(int)),this,SLOT(slotUpdateInfo(int)));
 	QObject::connect(conn,SIGNAL(volumeChanged(Xmms::Dict)),
@@ -258,14 +252,9 @@ temp.setColor(QPalette::Window, QColor(0, 0, 0));
 	scrollInfo+="Album: ";
 	scrollInfo+=(mlib->getInfo(QString("album"),id).toString().toUtf8().data());
 	scrollInfo+="     ";
-for(int i=scrollInfo.length();i < TitleBar->width()/5;i++)
-{scrollInfo+=" ";}
 
 display.append(QString::fromUtf8(scrollInfo.c_str()));
-	TitleBar->setAlignment ( Qt::AlignCenter );
-	TitleBar -> setPalette(temp);
-	TitleBar->setMaximumSize(TitleBar->width(),50);
-	TitleBar -> setText(display);
+	infoBar->setText(display);
 	emit infoChanged();
 }
 
@@ -278,15 +267,6 @@ void MainBar::newStatus(Xmms::Playback::Status s) {
 		default:
 		playButton->setIcon(QIcon(":images/play_button.png"));
 	}
-}
-
-void MainBar::slotScroll()
-{
-string var;
-var=scrollInfo.substr(0,1);
-scrollInfo.erase(0,1);
-scrollInfo+=var;
-TitleBar -> setText(QString::fromUtf8(scrollInfo.c_str()));
 }
 
 void MainBar::slotMute()
@@ -305,20 +285,6 @@ void MainBar::slotMute()
 	}
 }
 
-/*void MainBar::slotHide()
-{
-if(this-> isVisible()) {
-cout<<"yeha"<<endl;
-this->hide();
-}
-else
-{
-
-cout<<"yeha"<<endl;
-this->show();
-}
-}*/
-
 void MainBar::slotMini()
 	{
 	p->show();
@@ -327,6 +293,68 @@ void MainBar::slotMini()
 
 QString MainBar::curInfo() {
 return QString::fromUtf8(scrollInfo.c_str());
+}
+/**************************NiceLabel**************************************/
+NiceLabel::NiceLabel(QWidget * parent, Qt::WindowFlags f):QLabel(parent,f) {
+	pressed = false;
+	pressPos = 0;
+}
+
+void NiceLabel::slotScroll(int amount) {
+	x += amount;
+	update();
+}
+
+void NiceLabel::mousePressEvent(QMouseEvent * event) {
+	pressed = true;
+	pressPos = event->x();
+	killTimer(id);
+}
+
+void NiceLabel::mouseReleaseEvent(QMouseEvent * event) {
+	pressed = false;
+	id = startTimer(250);
+}
+
+void NiceLabel::mouseMoveEvent(QMouseEvent * event){
+	if(pressed) {
+		slotScroll(event->x()-pressPos);
+		pressPos = event->x();
+	}
+}
+
+void NiceLabel::resizeEvent(QResizeEvent * event) {
+	x = rect().x();
+}
+
+void NiceLabel::paintEvent(QPaintEvent * event) {
+	QPainter painter(this);
+	QFont f ("courier",10);
+	painter.setFont(f);
+	painter.setPen(QColor(90,130,150,255));
+	QFontMetrics fm(f);
+	int widthOfText = fm.width(text());
+	if(abs(x)>widthOfText) x = 0;
+		for(int i = x; i<width(); i+=widthOfText) {
+// 		std::cout<<i<<std::endl;
+		painter.drawText(i,0,widthOfText,height(),Qt::AlignLeft | Qt::AlignVCenter,text());
+		}
+}
+
+void NiceLabel::timerEvent(QTimerEvent* event) {
+	if(event->timerId()==id) {
+		slotScroll();
+	}
+	else
+	QLabel::timerEvent(event);
+}
+
+void NiceLabel::showEvent(QShowEvent * event) {
+	id = startTimer(250);
+}
+
+void NiceLabel::hideEvent(QHideEvent * event) {
+	killTimer(id);
 }
 
 #endif

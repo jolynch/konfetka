@@ -31,6 +31,7 @@ Q_OBJECT
 	QLinearGradient * linearGrad;
 	QImage fullSpeaker;
 	QImage smallSpeaker;
+	short lastChunk;
 
 	//For Speaker vis
 	Speaker * t1;
@@ -52,6 +53,7 @@ Q_OBJECT
 	void paintEvent(QPaintEvent *);
 	void resizeEvent(QResizeEvent *);
 	void wheelEvent(QWheelEvent * event);
+	int dummyGetChunk(short *buffer, int drawtime,unsigned int blocking);
 
 	public slots:
 	void setNumAndLen(int,int);

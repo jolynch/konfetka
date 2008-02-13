@@ -45,6 +45,8 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 
 	searchLine = new QLineEdit();
 	searchLabel = new QLabel("Search");
+	searchLabel->setToolTip(QString("Search your medialib by either typing in you keywords\nor typing in")+
+	QString(" \"Parse:<query>\" and pressing enter. <query> is\nof the same syntax as cli: \"xmms2 mlib search <query>\""));
 	
 	infoMenu = new QMenu("Media Information");
 	infoMenu->addAction("View Media Information",this,SLOT(displaySongInfo()));

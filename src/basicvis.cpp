@@ -2,11 +2,12 @@
 #define BASICVIS_CPP
 #include "basicvis.h"
 
-
+#include <bitset>
+#include <limits>
 BasicVis::BasicVis(DataBackend * c,QWidget* parent,Qt::WindowFlags f):QWidget(parent, f) {
 	conn = c;
 	numBars = 20;
-	fps = 30;
+	fps = 30; lastChunk = 0;
 	secondsRunning = 1; initY = 0;
 	linearGrad = new QLinearGradient(QPointF(0,0), QPointF(10,180));
 	linearGrad->setColorAt(0, QColor( 187,213,225,255 ));
@@ -33,6 +34,13 @@ BasicVis::BasicVis(DataBackend * c,QWidget* parent,Qt::WindowFlags f):QWidget(pa
 }
 
 void BasicVis::paintNext(int val) {
+	srand(time(NULL));
+	dummyGetChunk(&lastChunk,25,40);
+	
+	for(int i=0;i<16;i++) {
+	
+	}
+	
 	if(type == SCOPE && val%5==0) {
 	update();
 	return;
@@ -50,6 +58,23 @@ void BasicVis::paintNext(int val) {
 		t4->updateSpeaker();
 		sub->updateSpeaker();
 	}
+}
+
+int BasicVis::dummyGetChunk(short *buffer, int drawtime,unsigned int blocking) {
+	short r = (short)rand();
+	if(r%2==0)
+	*buffer = lastChunk + ((short)(rand()))%5;
+	else
+	*buffer = lastChunk - ((short)(rand()))%5;
+// 	std::cout<<*buffer<<" ";
+// 	std::cout<<"Value: "<<std::bitset<std::numeric_limits<short>::digits>(*buffer)<<std::endl;
+	unsigned short mask = 0x8000;
+	for(short i=0;i<15;i++) {
+// 		std::cout<<"MASK: "<< std::bitset<std::numeric_limits<unsigned short>::digits>(mask)<<std::endl;
+// 		std::cout<<"Shift: "<< std::bitset<std::numeric_limits<short>::digits>(*buffer & mask)<<std::endl;
+		mask = mask>>1;
+	}
+	return 8;
 }
 
 void BasicVis::resizeEvent(QResizeEvent * event) {
@@ -137,24 +162,52 @@ void BasicVis::paintEvent(QPaintEvent * event) {
 	else if(type == SCOPE) {
 		if(timeline.state() != QTimeLine::Running) {
 			painter.setRenderHint(QPainter::Antialiasing);
-			painter.setPen(QPen(QBrush(QColor("#696969")),3.5));
+			painter.setPen(QPen(QBrush(QColor("#696969")),.5));
 			painter.drawPath(path);
+			painter.setPen(Qt::blue);
+			painter.setFont(QFont("courier",25, QFont::Bold ));
+			painter.drawText(rect(), Qt::AlignCenter,"DEMO ONLY");
 			return;
 		}
+		
 		painter.setRenderHint(QPainter::Antialiasing);
-		painter.setPen(QPen(QBrush(QColor("#696969")),3.5));
+		painter.setPen(QPen(QBrush(QColor("#696969")),.5));
 		qreal mid = height()/2.0;
+		lastChunk = lastChunk%((int)mid/2);
+// 		std::cout<<"SCOPE: "<<lastChunk<<std::endl;
 		path = QPainterPath();
-		path.moveTo(0.0,mid);
-		int delta = 0;
 		srand(time(NULL));
-		for(int i =0;i<width();i+=15) {
-			delta =(int)(1+sqrt(rand()))*(int)(log((rand()+1)*(i+1)*(timeline.currentFrame()+1)));
-			if(timeline.currentFrame()%2 == 0) delta = delta*-1;
-			path.quadTo(i-7.5,mid,(qreal)i,mid-((mid/1.5)*(cos(delta))));
+		double delta = 0.0; int dis = 6; int step = 1;
+		for(int j = 0;j<3;j++) {
+		path.moveTo(0.0,mid-20 + j*(20));
+		QPointF curPos = path.currentPosition();
+		for(int i =0;i<width()-dis*5;i+=dis) {
+			curPos.setX(i);
+			path.lineTo(curPos);
+			delta = rand() % 5;
+			if(rand()%2 == 0) delta *= -1;
+			delta = 5.0 * cos(sqrt(pow(sin((i+1)*lastChunk)+ 1 + timeline.currentFrame(),3)) * delta * (360 / (int)(mid/2)));
+			curPos.setY(curPos.y()+delta - .5);
+			path.lineTo(curPos);
+		}
+		step = (int)((mid-20 + j*(20)) - curPos.y()) / 5;
+			for(int u=width()-dis*5;u<width();u+=dis) {
+				curPos.setX(u);
+				path.lineTo(curPos);
+				curPos.setY(curPos.y()+step);
+				path.lineTo(curPos);
+			}
+		
+// 		path.lineTo(curPos);
+// 		path.lineTo(width(),mid);
 		}
 		painter.drawPath(path);
 	}
+	painter.setPen(Qt::blue);
+	painter.setFont(QFont("courier",25, QFont::Bold ));
+	painter.drawText(rect(), Qt::AlignCenter,"DEMO ONLY");
+	painter.setFont(QFont("courier",7));
+	painter.drawText(rect(), Qt::AlignBottom | Qt::AlignHCenter,"OHAI XMMS2! CAN WE HAS VISUALISATION NOW PLZ? KTHXBAI!");
 }
 
 void BasicVis::setNumAndLen(int num,int len) {fps = len; numBars = num;}
