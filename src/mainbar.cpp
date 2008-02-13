@@ -298,6 +298,7 @@ return QString::fromUtf8(scrollInfo.c_str());
 NiceLabel::NiceLabel(QWidget * parent, Qt::WindowFlags f):QLabel(parent,f) {
 	pressed = false;
 	pressPos = 0;
+	ms = 50;
 }
 
 void NiceLabel::slotScroll(int amount) {
@@ -313,7 +314,7 @@ void NiceLabel::mousePressEvent(QMouseEvent * event) {
 
 void NiceLabel::mouseReleaseEvent(QMouseEvent * event) {
 	pressed = false;
-	id = startTimer(250);
+	id = startTimer(ms);
 }
 
 void NiceLabel::mouseMoveEvent(QMouseEvent * event){
@@ -329,16 +330,20 @@ void NiceLabel::resizeEvent(QResizeEvent * event) {
 
 void NiceLabel::paintEvent(QPaintEvent * event) {
 	QPainter painter(this);
-	QFont f ("courier",10);
+	QFont f = qApp->font();
 	painter.setFont(f);
 	painter.setPen(QColor(90,130,150,255));
 	QFontMetrics fm(f);
 	int widthOfText = fm.width(text());
 	if(abs(x)>widthOfText) x = 0;
-		for(int i = x; i<width(); i+=widthOfText) {
-// 		std::cout<<i<<std::endl;
+	//If we go too far right make sure the text wraps
+	if(x>10 && pressed && (x + widthOfText) > width()) {
+		x = -1*widthOfText + x;
+	}
+		//Paint the text enough to get the complete scroll feel
+	for(int i = x; i<width(); i+=widthOfText) {
 		painter.drawText(i,0,widthOfText,height(),Qt::AlignLeft | Qt::AlignVCenter,text());
-		}
+	}
 }
 
 void NiceLabel::timerEvent(QTimerEvent* event) {
@@ -350,7 +355,7 @@ void NiceLabel::timerEvent(QTimerEvent* event) {
 }
 
 void NiceLabel::showEvent(QShowEvent * event) {
-	id = startTimer(250);
+	id = startTimer(ms);
 }
 
 void NiceLabel::hideEvent(QHideEvent * event) {

@@ -84,8 +84,9 @@ Q_OBJECT
 class NiceLabel:public QLabel{	
 Q_OBJECT
 	private:
-	int x; bool pressed; int pressPos; int id;
-
+	int x; int pressPos; int id; int ms;
+	bool pressed;
+	
 	public:
 	NiceLabel(QWidget * parent = 0, Qt::WindowFlags f = 0);
 	void mousePressEvent(QMouseEvent * event);
