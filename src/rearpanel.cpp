@@ -82,6 +82,7 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 
 QLabel * RearPanel::getRandom(bool fortune)
 	{
+	return new QLabel("Weirdline disabled as self-punishment for not having released yet.");
 	QTextStream textstream;
 	QLabel * out;
 	//srand ( time(NULL) );

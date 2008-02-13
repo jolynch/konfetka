@@ -12,6 +12,12 @@
 #include <QString>
 #include <QStringList>
 #include <QVariant>
+#include <QQueue>
+#include <QStack>
+#include <cstdlib>
+#include <iostream>
+
+#define UPCOMING 10
 
 typedef uint DataBackendType;
 
@@ -21,23 +27,37 @@ class DataBackend:public XMMS2Interface//, public QObject
 	QObject * mlibData;
 	QObject * plistData;
 	QObject * collData;
+	QObject * panelController;
 	bool random;
 	
 	public:
-	static const DataBackendType COLL	=0x001;
-	static const DataBackendType PLIST	=0x010;
-	static const DataBackendType MLIB	=0x100;
+	static const DataBackendType COLL	=0x0001;
+	static const DataBackendType PLIST	=0x0010;
+	static const DataBackendType MLIB	=0x0100;
+	static const DataBackendType PANEL      =0x1000;
 	
 	DataBackend(QObject * parent, std::string name);
 	QObject * getDataBackendObject(DataBackendType type);
 
 
 ///FORWARD/BACKWARD
+	private:
+	uint curr;
+	QStack <uint> history;
+	QQueue <uint> upcoming;
+
+	void addSongIdToQueue();
+	void fillUpcoming();
+	void clearRandomData();
+	void checkValidity(QQueue <uint> v);
+	void checkValidity(QStack <uint> v);
 	public slots:
 	void playNextSong();
 	void playPreviousSong();
+	void currentPosChanged(uint);
 	private slots:
 	void getRandom(QString name, QVariant newValue);
+	void playlistChanged(QString name);
 	
 ///SETTINGS
 	/**

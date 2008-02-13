@@ -7,6 +7,10 @@
 #include <QBrush>
 #include <QFont>
 #include <QRectF>
+#include <QFrame>
+#include <QGridLayout>
+#include <QMouseEvent>
+#include <QPainter>
 
 ///CONSTANTS
 #define PBG_WIDTH 20
@@ -20,14 +24,18 @@ class Panel_:public QWidget
 	{	Q_OBJECT
 	private:
 		bool rightSide,clicked,dragging,locked;
+		int vposition;
 		int position; //rightbound=PBG_WIDTH/2+position
 		QString name;
 		QWidget * attached;
 		QTimer * clickTimer;
-		QMouseEvent * lastClick
+		QMouseEvent * lastClick;
+		QFrame * aFrame;
 	public:
-		Panel_(QWidget parrent, QString text, QWidget a);
+		Panel_(QWidget * parent, QString text, QWidget * a);
+		void init(int pos, bool side);
 		int getPosition();
+		int getVPosition();
 		bool isRightSide();
 		bool isLocked();
 		void mouseDoubleClickEvent ( QMouseEvent * event );
@@ -46,9 +54,11 @@ class Panel_:public QWidget
 		void resizeAttached();
 		void clickTimeout();
 	signals:
-		void handleDraggedTo(Panel *,bool,int,int);
-		void clicked(Panel *,bool,int,int);
-		void rightClicked(Panel *,bool,int,int);
-	}
+		void handleDraggedTo(Panel_ *,int);
+		void timerClicked(Panel_ *);
+		void rightClicked(Panel_ *,int,int);
+		void scrolledUp(Panel_ *);
+		void scrolledDown(Panel_ *);
+	};
 
 #endif
