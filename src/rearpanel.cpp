@@ -9,12 +9,7 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 	this->deskRect = deskRect;
 	infoeditor=new InfoEditor(conn);
 	int wid = deskRect.width();
-	songInfo=new QLabel(this);
-	songInfo->setFrameStyle(QFrame::StyledPanel|QFrame::Sunken);
-	songInfo->setAlignment(Qt::AlignCenter);
-	songInfo->setObjectName("songInfo");
-	statusString="";
-	infoString="";
+	contextInfo=new ContextInfo(conn);
 	finalString=new QString();
 	albumArt=new AlbumArt(conn);
 	netInfo=new QTabWidget();
@@ -56,8 +51,8 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 	netInfo->addTab(lyrics, "Lyrics");
 	equalizer=new Equalizer(conn,(int)(wid*(2.0/7)),this,NULL);
 	layout=new QGridLayout();
-	layout->addWidget(songInfo,0,0);
-	layout->addWidget(albumArt,1,0);
+	layout->addWidget(albumArt,0,0);
+	layout->addWidget(contextInfo,1,0);
 	layout->addWidget(netInfo,0,1,2,1);
  	//layout->addWidget(view,0,2);
 	layout->addWidget(newVis,0,2);
@@ -114,7 +109,7 @@ QLabel * RearPanel::getRandom(bool fortune)
 
 RearPanel::~RearPanel()
 	{
-	delete songInfo;
+// 	delete contextInfo;
 	delete albumArt;
 	delete netInfo;
 // 	delete visualization;
@@ -137,40 +132,40 @@ return albumArt;
 
 void RearPanel::updateStatus(Xmms::Playback::Status status)
 	{
-	{using namespace std;
-	switch(status)
-		{
-		case Xmms::Playback::STOPPED:
-		statusString="Stopped:\n";
-		break;
-		case Xmms::Playback::PLAYING:
-		statusString="Playing:\n";
-		break;
-		case Xmms::Playback::PAUSED:
-		statusString="Paused:\n";
-		break;
-		}}
-	//delete finalString;
-	if(finalString==NULL) finalString=new QString();
-	finalString->clear();
-	finalString->append(statusString.c_str());
-	finalString->append(infoString);
-	songInfo->setText(*finalString);
+// 	{using namespace std;
+// 	switch(status)
+// 		{
+// 		case Xmms::Playback::STOPPED:
+// 		statusString="Stopped:\n";
+// 		break;
+// 		case Xmms::Playback::PLAYING:
+// 		statusString="Playing:\n";
+// 		break;
+// 		case Xmms::Playback::PAUSED:
+// 		statusString="Paused:\n";
+// 		break;
+// 		}}
+// 	//delete finalString;
+// 	if(finalString==NULL) finalString=new QString();
+// 	finalString->clear();
+// 	finalString->append(statusString.c_str());
+// 	finalString->append(infoString);
+// 	songInfo->setText(*finalString);
 	}
 
 void RearPanel::updateSong(int id)
 	{
-	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
-	infoString=mlib->getInfo(QString("artist"),id).toString();
-	infoString.append("\n");
-	infoString.append(mlib->getInfo(QString("title"),id).toString());
-	infoString.append("\n");
-	infoString.append(mlib->getInfo(QString("album"),id).toString());
-	infoString.append("\n");
-	finalString->clear();
-	finalString->append(statusString.c_str());
-	finalString->append(infoString);
-	songInfo->setText(*finalString);
+// 	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
+// 	infoString=mlib->getInfo(QString("artist"),id).toString();
+// 	infoString.append("\n");
+// 	infoString.append(mlib->getInfo(QString("title"),id).toString());
+// 	infoString.append("\n");
+// 	infoString.append(mlib->getInfo(QString("album"),id).toString());
+// 	infoString.append("\n");
+// 	finalString->clear();
+// 	finalString->append(statusString.c_str());
+// 	finalString->append(infoString);
+// 	songInfo->setText(*finalString);
 	wiki->myWiki->parseUrl(id);
 	wiki->setHome(id);
 	lyrics->parseUrl(id);

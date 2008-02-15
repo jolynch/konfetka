@@ -44,9 +44,6 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 	miniButton=new QToolButton();
 	miniButton->setIcon(*miniIcon);
 
-
-	//forwardButton=new QPushButton("Forward");
-
 	positionSlider = new SongPositionSlider(conn,Qt::Horizontal,this);
 
 	positionTime=new QLabel();
@@ -57,8 +54,9 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 	volume->setText("Volume");
 
 	infoBar = new NiceLabel();
-	infoBar -> setText("This will be replaced");
-	infoBar -> setObjectName("infoBar");
+	infoBar->setText("This will be replaced");
+	infoBar->setObjectName("infoBar");
+	infoBar->setFixedWidth(500);
 
 	infoBar->setFrameStyle(QFrame::StyledPanel);
 	positionTime->setAlignment(Qt::AlignCenter);
@@ -72,17 +70,11 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 
 	optionsButton=new QPushButton("Options");
 
-//	makeSmallButton=new QPushButton("Hide");
-
 	quitButton=new QToolButton();
 	quitButton->setIcon(QIcon(":images/quit_button.png"));
 
-// 	conn->playback.getPlaytime()(Xmms::bind(&DataBackend::getCurPlaytime, conn));
-// 	conn->playback.volumeGet()(Xmms::bind(&DataBackend::volumeResponse, conn));
-
 	layout->addWidget(volumeSlider,1,1,1,2);
 	layout->addWidget(positionTime,0,0,1,1);
-	//layout->setColumnStretch ( 1, 0 );
 	layout->addWidget(volumeButton,1,0,1,1);
 	layout->addWidget(positionSlider,0,1,1,7);
 	layout->addWidget(positionMinusTime,0,8,1,1);
@@ -99,33 +91,32 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 
 	this->setLayout(layout);
 
-	QObject::connect(backButton, SIGNAL(clicked()), conn, SLOT(playPreviousSong()));
+	connect(backButton, SIGNAL(clicked()), conn, SLOT(playPreviousSong()));
 
-	QObject::connect(volumeButton, SIGNAL(clicked()),this, SLOT(slotMute()));
+	connect(volumeButton, SIGNAL(clicked()),this, SLOT(slotMute()));
 //	QObject::connect(shortcut, SIGNAL(activated()), this, SLOT(slotHide()));
 
-	QObject::connect(playButton, SIGNAL(clicked()), this, SLOT(slotPlay()));
+	connect(playButton, SIGNAL(clicked()), this, SLOT(slotPlay()));
 
-	QObject::connect(stopButton, SIGNAL(clicked()), this, SLOT(slotStop()));
+	connect(stopButton, SIGNAL(clicked()), this, SLOT(slotStop()));
 
-	QObject::connect(forwardButton, SIGNAL(clicked()), conn, SLOT(playNextSong()));
+	connect(forwardButton, SIGNAL(clicked()), conn, SLOT(playNextSong()));
 
-	QObject::connect(quitButton, SIGNAL(clicked()), p, SLOT(slotQuit()));
+	connect(quitButton, SIGNAL(clicked()), p, SLOT(slotQuit()));
 
 	connect(positionSlider,SIGNAL(timeChanged(int)),this,SLOT(updateTime()));
 
-	QObject::connect(volumeSlider,SIGNAL(valueChanged(int)),this,SLOT(slotSetVolume(int)));
+	connect(volumeSlider,SIGNAL(valueChanged(int)),this,SLOT(slotSetVolume(int)));
 
-	QObject::connect(conn,SIGNAL(currentId(int)),this,SLOT(slotUpdateInfo(int)));
-	QObject::connect(conn,SIGNAL(volumeChanged(Xmms::Dict)),
+	connect(conn,SIGNAL(currentId(int)),this,SLOT(slotUpdateInfo(int)));
+	connect(conn,SIGNAL(volumeChanged(Xmms::Dict)),
 					this,SLOT(slotGetVolume(Xmms::Dict)));
 	if(mini)
-		QObject::connect(miniButton,SIGNAL(clicked()),this,SLOT(slotMini()));
+		connect(miniButton,SIGNAL(clicked()),this,SLOT(slotMini()));
 	else
-		QObject::connect(miniButton,SIGNAL(clicked()),p,SLOT(slotHide()));
-	QObject::connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),
+		connect(miniButton,SIGNAL(clicked()),p,SLOT(slotHide()));
+	connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),
 				this,SLOT(newStatus(Xmms::Playback::Status)));
-//	connect(this,SIGNAL(changeSongRel(int)),conn,SIGNAL(changeSong(int)));
 }
 	
 
@@ -137,18 +128,10 @@ MainBar::~MainBar()
 	delete forwardButton;
 	delete positionSlider;
 	delete optionsButton;
-//	delete makeSmallButton;
 	delete positionTime;
 	delete quitButton;
 	delete volumeSlider;
 	}
-
-/*void MainBar::slotBack()
-	{
-	emit changeSongRel(-1);
-// 	conn->playlist.setNextRel(-1)(Xmms::bind(&DataBackend::scrapResultI, conn));
-// 	conn->playback.tickle()(Xmms::bind(&DataBackend::scrapResult, conn));
-	}*/
 
 void MainBar::slotPlay() {
 	if(stat == XMMS_PLAYBACK_STATUS_PLAY)
@@ -166,18 +149,6 @@ void MainBar::slotStop()
 	{
 	conn->playback.stop()(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
-
-/*void MainBar::slotForward()
-	{
-	emit changeSongRel(1);
-// 	conn->playlist.setNextRel(1)(Xmms::bind(&DataBackend::scrapResultI, conn));
-// 	conn->playback.tickle()(Xmms::bind(&DataBackend::scrapResult, conn));
-	}*/
-
-/*All stuff to do with seeking and timing of the song*/
-
-
-//Volume
 
 void MainBar::slotSetVolume(int vol)
 	{
@@ -237,24 +208,12 @@ void MainBar::updateTime() {
 
 void MainBar::slotUpdateInfo(int id)
 {
-QString display;
-
-QPalette temp;
-temp.setColor(QPalette::WindowText, QColor(150, 150, 200));
-temp.setColor(QPalette::Window, QColor(0, 0, 0));
 	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
-	scrollInfo="Artist: ";
-	scrollInfo+=(mlib->getInfo(QString("artist"),id).toString().toUtf8().data());
-	scrollInfo+="  -  ";
-	scrollInfo+="Title: ";
-	scrollInfo+=(mlib->getInfo(QString("title"),id).toString().toUtf8().data());
-	scrollInfo+="  -  ";
-	scrollInfo+="Album: ";
-	scrollInfo+=(mlib->getInfo(QString("album"),id).toString().toUtf8().data());
-	scrollInfo+="     ";
-
-display.append(QString::fromUtf8(scrollInfo.c_str()));
-	infoBar->setText(display);
+	scrollInfo=(mlib->getInfo(QString("artist"),id).toString())+"  -  ";
+	scrollInfo+=(mlib->getInfo(QString("album"),id).toString())+"  -  ";
+	scrollInfo+=(mlib->getInfo(QString("title"),id).toString());
+	scrollInfo+=" (";scrollInfo+=(mlib->getInfo(QString("time"),id).toString());scrollInfo+=")";
+	infoBar->setText(scrollInfo);
 	emit infoChanged();
 }
 
@@ -292,74 +251,7 @@ void MainBar::slotMini()
 	}
 
 QString MainBar::curInfo() {
-return QString::fromUtf8(scrollInfo.c_str());
-}
-/**************************NiceLabel**************************************/
-NiceLabel::NiceLabel(QWidget * parent, Qt::WindowFlags f):QLabel(parent,f) {
-	pressed = false;
-	pressPos = 0;
-	ms = 50;
-}
-
-void NiceLabel::slotScroll(int amount) {
-	x += amount;
-	update();
-}
-
-void NiceLabel::mousePressEvent(QMouseEvent * event) {
-	pressed = true;
-	pressPos = event->x();
-	killTimer(id);
-}
-
-void NiceLabel::mouseReleaseEvent(QMouseEvent * event) {
-	pressed = false;
-	id = startTimer(ms);
-}
-
-void NiceLabel::mouseMoveEvent(QMouseEvent * event){
-	if(pressed) {
-		slotScroll(event->x()-pressPos);
-		pressPos = event->x();
-	}
-}
-
-void NiceLabel::resizeEvent(QResizeEvent * event) {
-	x = rect().x();
-}
-
-void NiceLabel::paintEvent(QPaintEvent * event) {
-	QPainter painter(this);
-	QFont f = qApp->font();
-	painter.setFont(f);
-	painter.setPen(QColor(90,130,150,255));
-	QFontMetrics fm(f);
-	int widthOfText = fm.width(text());
-	if(abs(x)>widthOfText) x = 0;
-	//If we go too far right make sure the text wraps
-	if(x>10 && pressed && (x + widthOfText) > width()) {
-		x = -1*widthOfText + x;
-	}
-		//Paint the text enough to get the complete scroll feel
-	for(int i = x; i<width(); i+=widthOfText) {
-		painter.drawText(i,0,widthOfText,height(),Qt::AlignLeft | Qt::AlignVCenter,text());
-	}
-}
-
-void NiceLabel::timerEvent(QTimerEvent* event) {
-	if(event->timerId()==id) {
-		slotScroll();
-	}
-	else
-	QLabel::timerEvent(event);
-}
-
-void NiceLabel::showEvent(QShowEvent * event) {
-	id = startTimer(ms);
-}
-
-void NiceLabel::hideEvent(QHideEvent * event) {
-	killTimer(id);
+	return scrollInfo;
 }
 
 #endif

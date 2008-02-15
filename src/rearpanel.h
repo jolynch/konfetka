@@ -14,6 +14,7 @@
 #include "albumart.h"
 #include "infoeditor.h"
 #include "basicvis.h"
+#include "contextinfo.h"
 #include <string>
 #include <cstdlib>
 #include <QWidget>
@@ -34,8 +35,7 @@ class RearPanel: public QWidget
 		/*JOEY*/QRect deskRect;/*DONE*/
 		QWidget * p;
 		DataBackend * conn;
-		std::string statusString;
-		QString infoString;
+		ContextInfo * contextInfo;
 		QString * finalString;
 		QLabel * songInfo;
 		AlbumArt * albumArt;

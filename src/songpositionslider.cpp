@@ -2,8 +2,7 @@
 #define SONGPOSITIONSLIDER_CPP
 #include "songpositionslider.h"
 
-//How sensitive do we want the slider to be.
-//#define MAGFACTOR 1000
+
 
 /******** SongPositionSlider - Allows one to create a functioning seekBar by just constructing the object *****/
 SongPositionSlider::SongPositionSlider(DataBackend * c,Qt::Orientation o, QWidget* p):QSlider(o,p) {
@@ -13,6 +12,7 @@ SongPositionSlider::SongPositionSlider(DataBackend * c,Qt::Orientation o, QWidge
 	released = false;
 	songEmitted = false;
 	allowUpdates =  true;
+	//How sensitive do we want the slider to be. A MAGFACTOR of 1000 indicates that the ms values will be divided into seconds (/1000)
 	MAGFACTOR = 1000;
 	GRACE_DISTANCE = 10;
 	CUEGRACE_DISTANCE = 2;
@@ -24,9 +24,13 @@ SongPositionSlider::SongPositionSlider(DataBackend * c,Qt::Orientation o, QWidge
 }
 
 bool SongPositionSlider::handlePlaytimeSignal(uint newTime) {
+	if(isSliderDown() && !released && !allowUpdates) {
+	time = newTime/MAGFACTOR;
+	setValue(time);
+	}
 	if(isSliderDown() && !released || duration==0 || curType != FILE) return true;
 	newTime = newTime/MAGFACTOR;
-	setValue(newTime);
+	setValue(newTime);                    
 	
 	if(getNegativeTime()-2<0 && !songEmitted) {
 	//conn->emitSongAboutToChange();
@@ -103,15 +107,14 @@ void SongPositionSlider::setInitTime(int time) {
 void SongPositionSlider::mousePressEvent(QMouseEvent * event) {
 	time = value();
 	timer.stop();
-// 	std::cout<<"press"<<std::endl;
-	QSlider::mousePressEvent(event);
 	released = false;
+	setSliderDown(1);
 	update();
 }
 
 // Allows one click seek
 void SongPositionSlider::mouseReleaseEvent(QMouseEvent * event) {
-	
+	setSliderDown(0);
 	if(event->button()==Qt::LeftButton) {
 		if(allowUpdates) {
 		time = -1;
@@ -150,18 +153,14 @@ void SongPositionSlider::mouseMoveEvent(QMouseEvent *event) {
 	x = event->x();	y = event->y();
 	w = width(); h = height();
 	gd = GRACE_DISTANCE; //How far can you stray from the widget before you have 'left' the widget
-		if(x + gd > 0 && x - gd < w && y + gd > 0 && y - gd < h) {
-			if(!allowUpdates) allowUpdates = true;
-			if(!isSliderDown()) setSliderDown(1);
-		QSlider::mouseMoveEvent(event);
+		if(x + gd > 0 && x - gd < w && y + gd > 0 && y - gd < h && isSliderDown()) {
+		setValue(QStyle::sliderValueFromPosition(0,duration,event->x(),width(),0));
+		allowUpdates = true;
 		}
-		else if(allowUpdates){
-		allowUpdates = false;
+		else if(isSliderDown()){
 		setValue(time);
-		setSliderDown(0);
+		allowUpdates = false;
 		}
-		else
-		return;
 	update();
 }
 

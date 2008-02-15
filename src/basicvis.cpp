@@ -123,7 +123,8 @@ void BasicVis::paintEvent(QPaintEvent * event) {
 		painter.drawPixmap(width()-height()/2,0,QPixmap::grabWidget(t2));
 		painter.drawPixmap(0,height()/2,QPixmap::grabWidget(t3));
 		painter.drawPixmap(width()-height()/2,height()/2,QPixmap::grabWidget(t4));
-			if(subX > 0) {
+			//Sometimes the sub gets "squeezed out"
+			if(subX > 5) {
 			painter.drawPixmap(subX,0,QPixmap::grabWidget(sub));
 			}
 		}
@@ -141,16 +142,22 @@ void BasicVis::paintEvent(QPaintEvent * event) {
 		int w =qRound((qreal)width() / (qreal)numBars);
 		int step = height() / numBars;
 		int tmp = initY;
-		
-		srand(time(NULL));
+		//draw onto a pixmap 
+		QPixmap p(w,height());
+		QPainter pixmapPainter(&p);
+		pixmapPainter.setBrush(*linearGrad);
+		pixmapPainter.setPen(QPen(Qt::white));
+		pixmapPainter.drawRect(0,0,w,height());
+		//draw the pixmap numBars times instead of drawing numBars rectangles (cpu intensive)
 		for(int i = 0; i < numBars;i++) {
 			tmp = tmp + step; 
 			if(tmp> height()) tmp = (tmp-height());
-			painter.drawRect(i*w,tmp,w,height());
+			painter.drawPixmap(i*w,tmp,p);
 		}
 		tmp = initY;
 		painter.setBrush(QBrush(Qt::gray));
 		painter.setPen(QPen(Qt::transparent));
+		//The peaks have to be drawn seperately
 		for(int i = 0; i < numBars;i++) {
 			tmp = tmp + step; 
 			if(tmp> height()) tmp = (tmp-height());
@@ -197,9 +204,6 @@ void BasicVis::paintEvent(QPaintEvent * event) {
 				curPos.setY(curPos.y()+step);
 				path.lineTo(curPos);
 			}
-		
-// 		path.lineTo(curPos);
-// 		path.lineTo(width(),mid);
 		}
 		painter.drawPath(path);
 	}

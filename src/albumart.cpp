@@ -32,10 +32,10 @@ void AlbumArt::fetchXML(int newId) {
 // 						(Xmms::bind(&AlbumArt::gotInformation,this));
 // 	}
 	QString tmpQuery;
-		if(mlib->getInfo("album",id).toInt()!=-1)
-		tmpQuery += mlib->getInfo("album",id).toString();
 		if(mlib->getInfo("arist",id).toInt()!=-1)
-		tmpQuery += " " + mlib->getInfo("artist",id).toString();
+		tmpQuery += mlib->getInfo("artist",id).toString();
+		if(mlib->getInfo("album",id).toInt()!=-1)
+		tmpQuery += " " +mlib->getInfo("album",id).toString();
 	if(tmpQuery == "" || query == tmpQuery) {
 	return;
 	}
@@ -46,7 +46,7 @@ void AlbumArt::fetchXML(int newId) {
 	//Thanks amarok for the D1URM... code thing
 	QString toUrl;
 	toUrl.append("http://xml.amazon.com/onca/xml3?t=webservices-20&dev-t=D1URM11J3F2CEH&KeywordSearch=");
-	toUrl.append(query);
+	toUrl.append(QUrl::toPercentEncoding(query));
 	toUrl.append("&mode=music&type=lite&locale=us&page=1&f=xml");
 
 	QUrl url(toUrl);
