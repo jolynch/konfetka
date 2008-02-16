@@ -100,6 +100,17 @@ void Options::updateXmms2OptsForeach(const std::string &key, const Xmms::Dict::V
 	curItem->setText(1, valQStr);
 }
 
+void Options::filterXmms2Opts() {
+	QList<QTreeWidgetItem*> foundList = xmms2Tree->findItems(xmms2Search->displayText(), Qt::MatchContains, 0);
+	foundList += xmms2Tree->findItems(xmms2Search->displayText(), Qt::MatchContains, 1);
+	for (int i=0; i<xmms2Tree->topLevelItemCount(); i++) {
+		if (foundList.contains(xmms2Tree->topLevelItem(i)))
+			xmms2Tree->topLevelItem(i)->setHidden(false);
+		else
+			xmms2Tree->topLevelItem(i)->setHidden(true);
+	}
+}
+
 void Options::setLayoutSide(bool right_side){//true=right, false=left
 return;
 }
@@ -225,6 +236,7 @@ void Options::constructOptions() {
 	
 	xmms2Search = new QLineEdit();
 	xmms2Grid->addWidget(xmms2Search, 0,0,1,1);
+	connect(xmms2Search,SIGNAL(editingFinished()),this,SLOT(filterXmms2Opts()));
 	
 	QStringList xmms2TreeHeaders;
 	xmms2Tree = new QTreeWidget();

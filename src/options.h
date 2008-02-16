@@ -82,6 +82,7 @@ class Options:public LayoutPanel {
 	QWidget *xmms2Opt;
 	QTreeWidget *xmms2Tree;
 	QLineEdit *xmms2Search;
+	QPushButton *xmms2BtnSearch;
 	void updateXmms2OptsForeach(const std::string&, const Xmms::Dict::Variant&);
 	//End XMMS2
 
@@ -98,6 +99,7 @@ class Options:public LayoutPanel {
 	void updateGui(QString,QVariant);
 	void updateXmms2Opts(const Xmms::Dict&);
 	void xmms2TreeStartEdit(QTreeWidgetItem* item, int col);
+	void filterXmms2Opts();
 };
 
 //Often lists need to be edited, for example the import order for collections, or labels of a song to show
