@@ -7,7 +7,8 @@ ContextInfo::ContextInfo(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QW
 	mlib = (MlibData*)(conn->getDataBackendObject(DataBackend::MLIB));
 
 	QGridLayout * layout = new QGridLayout();
-	tree = new QTreeWidget(this);
+	
+	tree = new EventTree();
 	QPalette pal = tree->palette();
         pal.setColor(QPalette::Base,pal.color(QPalette::Window));
         tree->setPalette(pal);
@@ -20,11 +21,13 @@ ContextInfo::ContextInfo(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QW
 	QStringList Hlabels;
 	Hlabels << "Context Infomation";
 	tree->setHeaderLabels(Hlabels);
+	tree->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	artistHeader = new QTreeWidgetItem(tree);
 	artistHeader->setText(0,"Artist: ");
+	tree->setMouseTracking(true);
+
 	layout->addWidget(tree,0,0);
 	this->setLayout(layout);
-	
 	connect(mlib,SIGNAL(infoChanged(int)),this,SLOT(infoChanged(int)));
 	connect(conn,SIGNAL(currentId(int)),this,SLOT(slotUpdateInfo(int)));
 }
@@ -135,9 +138,13 @@ bool ContextInfo::constructAlbum(QTreeWidgetItem* album,const Xmms::List <Xmms::
 						(boost::bind(&ContextInfo::gotAlbumCover,this,songList.value(key),_1));
 		QIcon icon;
 // 		std::cout<<(album->icon(0)==icon)<<std::endl;
+		} else {
+		cntr-=1;
+		if(cntr<=1)
+		setUpdatesEnabled(true);
 		}
 	}
-	album->setExpanded(true);
+/*	album->setExpanded(true);*/
 	return true;
 }
 
@@ -154,6 +161,22 @@ bool ContextInfo::gotAlbumCover(int id,const Xmms::bin& res) {
 	idToItem.value(id)->parent()->setIcon(0,icon);
 	albumToItem.insert(mlib->getInfo("album",id).toString(),idToItem.value(id)->parent());
 	return true;
+}
+
+void EventTree::mouseMoveEvent(QMouseEvent * event) {
+	int delta = -1000;
+	int sensitivity = 10;
+	if(event->y()<sensitivity) {
+	delta = -1;
+	}
+	else if(event->y()+ (sensitivity+1)*2 + header()->height() > (height())) {
+	delta = 1;
+	}
+	if(delta!=-1000)
+	verticalScrollBar()->setValue(verticalScrollBar()->value()+delta);
+	
+	QTreeWidget::mouseMoveEvent(event);
+	event->ignore();
 }
 
 #endif

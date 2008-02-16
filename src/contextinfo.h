@@ -22,7 +22,11 @@
 #include <QStringList>
 #include <QHash>
 #include <QBuffer>
+#include <QMouseEvent>
+#include <QHeaderView>
+#include <QScrollBar>
 
+class EventTree;
 class ContextInfo:public QWidget {
 	Q_OBJECT
 	private:
@@ -48,5 +52,10 @@ class ContextInfo:public QWidget {
 	
 };
 
+//Just so that the tree can scroll on its own without a bar
+class EventTree:public QTreeWidget {
+	public:
+	void mouseMoveEvent(QMouseEvent * event);
+};
 
 #endif
