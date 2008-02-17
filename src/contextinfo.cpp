@@ -8,7 +8,7 @@ ContextInfo::ContextInfo(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QW
 
 	QGridLayout * layout = new QGridLayout();
 	
-	tree = new EventTree();
+	tree = new QTreeWidget();
 	QPalette pal = tree->palette();
         pal.setColor(QPalette::Base,pal.color(QPalette::Window));
         tree->setPalette(pal);
@@ -21,7 +21,6 @@ ContextInfo::ContextInfo(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QW
 	QStringList Hlabels;
 	Hlabels << "Context Infomation";
 	tree->setHeaderLabels(Hlabels);
-	tree->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	artistHeader = new QTreeWidgetItem(tree);
 	artistHeader->setText(0,"Artist: ");
 	tree->setMouseTracking(true);
@@ -30,6 +29,7 @@ ContextInfo::ContextInfo(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QW
 	this->setLayout(layout);
 	connect(mlib,SIGNAL(infoChanged(int)),this,SLOT(infoChanged(int)));
 	connect(conn,SIGNAL(currentId(int)),this,SLOT(slotUpdateInfo(int)));
+	connect(tree,SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),this,SLOT(addToPlist(QTreeWidgetItem*)));
 }
 void ContextInfo::infoChanged(int id) {
 	if(id == curId) {
@@ -52,6 +52,8 @@ void ContextInfo::slotUpdateInfo(int id){
 	if(curId == id) return;
 	curId = id;
 	
+	setUpdatesEnabled(false);
+	QTimer::singleShot(4000, this, SLOT(setUpdatesEnabled(bool)));
 	delete artistHeader;
 	artistHeader = new QTreeWidgetItem(tree);
 	
@@ -66,7 +68,6 @@ void ContextInfo::setInfo(int id) {
 void ContextInfo::constructArtist() {
 	idToItem.clear();
 	albumToItem.clear();
-	setUpdatesEnabled(false);
 	Xmms::Coll::Universe univ;
 	Xmms::Coll::Equals albumItems(univ,"artist",mlib->getInfo("artist",curId).toString().toStdString(),true);
 	std::list<std::string> what;
@@ -78,7 +79,7 @@ bool ContextInfo::gotAlbums(const Xmms::List <Xmms::Dict> &list) {
 	QStringList albumList; QString tmp;
 	for (list.first();list.isValid(); ++list) {
 		if(list->contains("album")) {
-		tmp = QString((list->get<std::string>("album")).c_str());
+		tmp = QString::fromUtf8((list->get<std::string>("album")).c_str());
 		}
 		else {
 		continue;
@@ -99,6 +100,7 @@ bool ContextInfo::gotAlbums(const Xmms::List <Xmms::Dict> &list) {
 			conn->collection.queryInfos(songItems,what)(boost::bind(&ContextInfo::constructAlbum,this,newAlbum,_1));
 	}
 	artistHeader->setExpanded(1);
+	if(albumList.size()<1) setUpdatesEnabled(true);
 	return true;
 }
 
@@ -107,7 +109,7 @@ bool ContextInfo::constructAlbum(QTreeWidgetItem* album,const Xmms::List <Xmms::
 	QHash<QString,int> songList; QString tmp; int tmpId;
 	for (list.first();list.isValid(); ++list) {
 		if(list->contains("id")&&list->contains("title")) {
-		tmp = QString(list->get<std::string>("title").c_str());
+		tmp = QString::fromUtf8(list->get<std::string>("title").c_str());
 		tmpId = list->get<int>("id");
 			if(songList.contains(tmp)) {
 				continue;
@@ -136,24 +138,40 @@ bool ContextInfo::constructAlbum(QTreeWidgetItem* album,const Xmms::List <Xmms::
 		if(mlib->getInfo("picture_front",songList.value(key)).toString()!="Unknown") {
 		conn->bindata.retrieve(mlib->getInfo("picture_front",songList.value(key)).toString().toStdString())
 						(boost::bind(&ContextInfo::gotAlbumCover,this,songList.value(key),_1));
-		QIcon icon;
 // 		std::cout<<(album->icon(0)==icon)<<std::endl;
 		} else {
-		cntr-=1;
-		if(cntr<=1)
-		setUpdatesEnabled(true);
+		cntr -= 1; if(cntr<=1) setUpdatesEnabled(true);
 		}
 	}
-/*	album->setExpanded(true);*/
+	if(keys.size()<1) setUpdatesEnabled(true);
+	return true;
+}
+
+void ContextInfo::setUpdatedEnabled(bool w) {
+	QWidget::setUpdatesEnabled(w);
+}
+
+void ContextInfo::addToPlist(QTreeWidgetItem * item) {
+	if(idToItem.key(item)!=0)
+		conn->playlist.addId(idToItem.key(item));
+	else {
+		Xmms::Coll::Universe univ;
+		Xmms::Coll::Equals albumItems(univ,"artist",mlib->getInfo("artist",curId).toString().toStdString(),true);
+		Xmms::Coll::Equals songItems(albumItems,"album",item->text(0).toStdString(),true);
+		conn->collection.queryIds(songItems)(Xmms::bind(&ContextInfo::addAlbumToPlist,this));
+	}
+}
+
+bool ContextInfo::addAlbumToPlist(const Xmms::List <uint> &list) {
+	for(list.first();list.isValid();++list) {
+		conn->playlist.addId(*list);
+	}
 	return true;
 }
 
 bool ContextInfo::gotAlbumCover(int id,const Xmms::bin& res) {
-	cntr-=1;
-		if(cntr<=1)
-		setUpdatesEnabled(true);
-		
-		if(albumToItem.contains(mlib->getInfo("album",id).toString())) return true;
+	cntr -= 1; if(cntr<=1) setUpdatesEnabled(true);	
+	if(albumToItem.contains(mlib->getInfo("album",id).toString())) return true;
 	QBuffer buffer;	
 	buffer.setData((const char*)(res.c_str()), res.size());
 	QImage tmp = QImage::fromData(buffer.data());
@@ -161,22 +179,6 @@ bool ContextInfo::gotAlbumCover(int id,const Xmms::bin& res) {
 	idToItem.value(id)->parent()->setIcon(0,icon);
 	albumToItem.insert(mlib->getInfo("album",id).toString(),idToItem.value(id)->parent());
 	return true;
-}
-
-void EventTree::mouseMoveEvent(QMouseEvent * event) {
-	int delta = -1000;
-	int sensitivity = 10;
-	if(event->y()<sensitivity) {
-	delta = -1;
-	}
-	else if(event->y()+ (sensitivity+1)*2 + header()->height() > (height())) {
-	delta = 1;
-	}
-	if(delta!=-1000)
-	verticalScrollBar()->setValue(verticalScrollBar()->value()+delta);
-	
-	QTreeWidget::mouseMoveEvent(event);
-	event->ignore();
 }
 
 #endif

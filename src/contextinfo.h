@@ -25,8 +25,9 @@
 #include <QMouseEvent>
 #include <QHeaderView>
 #include <QScrollBar>
+#include <QPainter>
+#include <QtDebug>
 
-class EventTree;
 class ContextInfo:public QWidget {
 	Q_OBJECT
 	private:
@@ -45,17 +46,15 @@ class ContextInfo:public QWidget {
 	bool gotAlbums(const Xmms::List <Xmms::Dict> &list);
 	bool constructAlbum(QTreeWidgetItem*,const Xmms::List <Xmms::Dict> &list);
 	bool gotAlbumCover(int id,const Xmms::bin& res);
+	bool addAlbumToPlist(const Xmms::List <uint> &list);
 	
 	public slots:
 	void infoChanged(int);
 	void slotUpdateInfo(int);
+	void setUpdatedEnabled(bool w = true);
+	void addToPlist(QTreeWidgetItem * item);
 	
 };
 
-//Just so that the tree can scroll on its own without a bar
-class EventTree:public QTreeWidget {
-	public:
-	void mouseMoveEvent(QMouseEvent * event);
-};
 
 #endif

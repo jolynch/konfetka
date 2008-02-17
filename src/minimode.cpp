@@ -183,7 +183,7 @@ void MiniMode::paintEvent(QPaintEvent *event) {
 	opt.init(this);
 	style()->drawPrimitive(QStyle::PE_Widget, &opt, &painter, this);
 
-	painter.setRenderHint(QPainter::HighQualityAntialiasing);
+	painter.setRenderHint(QPainter::Antialiasing);
 	
 	if(height()>100)
  	painter.drawText(QRect(140,0,artLabel->width(),artLabel->height()),

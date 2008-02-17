@@ -9,7 +9,7 @@
 #include "databackend.h"
 #include "databackend/mlibdata.h"
 #include <QWidget>
-#include <QFrame>
+#include <QScrollArea>
 #include <QLabel>
 #include <QLineEdit>
 #include <QGridLayout>
@@ -36,7 +36,7 @@ class InfoEditor:public QWidget
 		QLineEdit * year_;
 		QLineEdit * track_;
 		QLineEdit * genre_;
-		QFrame * uneditable;
+		QScrollArea * uneditable;
 		QGridLayout * uneditableLayout;
 		QLabel * notPlaying;
 		QLabel * url;

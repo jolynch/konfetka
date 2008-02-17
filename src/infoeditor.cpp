@@ -34,7 +34,7 @@ InfoEditor::InfoEditor(DataBackend * c,QWidget* parent,Qt::WindowFlags f):QWidge
 	layout->addWidget(track_,3,4,1,2);
 	genre_=new QLineEdit();
 	layout->addWidget(genre_,4,1,1,5);
-	uneditable=new QFrame();
+	uneditable=new QScrollArea();
 	uneditable->setFrameStyle(QFrame::StyledPanel|QFrame::Sunken);
 	uneditableLayout=new QGridLayout();
 	notPlaying=new QLabel("Nothing playing");
@@ -104,22 +104,17 @@ void InfoEditor::newId(int id)
 	genre_->setText(mlib->getInfo(QString("genre"),id).toString());
 	year_->setText(mlib->getInfo(QString("date"),id).toString());
 	track_->setText(QString::number(mlib->getInfo(QString("tracknr"),id).toInt()));
-	QString foo("");
-	foo.append("Filename: ");
-	try
-		{
-		QString bar=mlib->getInfo(QString("url"),id).toString();
-		//std::cout<<bar.toStdString()<<std::endl;
-		bar = QString::fromUtf8 (xmmsc_result_decode_url (NULL, bar.toAscii()));
-		if(bar.startsWith("file://"))
-				{
-				bar.remove(0,bar.lastIndexOf("/")+1);
-				foo.append(bar);
-				}
-		if(bar.startsWith("http://")||bar.startsWith("ftp://"))
-				foo.append("<Internet stream>");
-		}
-	catch(...){}
+	QString foo;
+	QString bar=mlib->getInfo("url",id).toString();
+	if(bar.startsWith("file://")) {
+		foo = ("Filename: ");
+		bar = mlib->getInfo("filename",id).toString();
+	}
+	else {
+		foo = ("URL: ");
+	}
+	foo+=bar;
+
 	url->setText(foo);
 	foo.clear();
 	std::stringstream ss;
