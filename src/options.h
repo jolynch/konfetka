@@ -54,6 +54,7 @@ class Options:public LayoutPanel {
 	QCheckBox * autoStart;
 	QCheckBox * albArtReflection;
 	QCheckBox * stayOnTop;
+	QCheckBox * dblClickContextInfoPlay;
 	QComboBox * language;
 
 	//End General

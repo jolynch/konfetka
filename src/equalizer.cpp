@@ -57,7 +57,7 @@ Equalizer::Equalizer(DataBackend * c,int width,QWidget * parent, Qt::WindowFlags
 	
 	load=new QComboBox();
 	//load->setIcon(*loadIcon);
- 	load->setFixedSize(75,25);
+ 	load->setMaximumSize(75,25);
 	load->setToolTip("Load Presets");
 	
 	QString dirName;
@@ -76,7 +76,7 @@ Equalizer::Equalizer(DataBackend * c,int width,QWidget * parent, Qt::WindowFlags
 	QIcon *saveIcon=new QIcon(":images/save.png");
 	save=new QPushButton();
 	save->setIcon(*saveIcon);
- 	save->setFixedSize(75,25);
+ 	save->setMaximumSize(75,25);
 	save->setToolTip("Save preset");
 	
 	buttons = new QVBoxLayout();

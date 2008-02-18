@@ -243,7 +243,7 @@ bool MediaLib::gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &
 			tmp = QString((list->get<std::string>("album")).c_str());
 			}
 			else if(list->contains("title")) {
-			tmp = "Unknown";
+			tmp = "Unknown Album";
 			}
 			else {
 			continue;
@@ -259,7 +259,7 @@ bool MediaLib::gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &
 		
 		if(artist->childCount()==0) {	
 		QTreeWidgetItem * newAlbum = new QTreeWidgetItem(artist);
-		newAlbum->setText(0,"Unknown");
+		newAlbum->setText(0,"Unknown Album");
 		QTreeWidgetItem * tempSong = new QTreeWidgetItem(newAlbum);
 		tempSong->setText(0,"...");
 		}
@@ -278,7 +278,7 @@ void MediaLib::getSongInfo(QTreeWidgetItem* item){
 		albumItems->setOperand(artColl);
 		}
 		
-		if(item->text(0)!="Unknown") {
+		if(item->text(0)!="Unknown Album") {
 		Xmms::Coll::Equals::Equals songItems(*albumItems,"album",item->text(0).toStdString(),true);
 		conn->collection.queryIds(songItems)(boost::bind(&MediaLib::gotSongs,this,item,_1));
 		}

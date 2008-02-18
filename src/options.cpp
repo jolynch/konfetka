@@ -77,6 +77,11 @@ void Options::updateGui(QString name,QVariant value) {
 	else if(name == "konfetka/language") {
 		language->setCurrentIndex(language->findText(value.toString()));
 	}
+	else if(name == "konfetka/contextInfoDoubleClickPlay") {
+		if(value.toBool())
+		dblClickContextInfoPlay->setCheckState(Qt::Checked);
+		
+	}
 }
 
 void Options::updateXmms2Opts(const Xmms::Dict &val) {
@@ -153,6 +158,10 @@ void Options::constructOptions() {
 	autoStart = new QCheckBox("Autostart XMMS2?");
 	albArtReflection = new QCheckBox("Album Art Reflection");
 	stayOnTop = new QCheckBox("Stays On Top");
+	dblClickContextInfoPlay = new QCheckBox("Context Info Double Click Play");
+	dblClickContextInfoPlay->setToolTip("When double clicking to append items to the playlsit in contextInfo, this option controls \
+	whether or not to try playing those songs");
+	dblClickContextInfoPlay->setCheckState(Qt::Checked);
 	language = new QComboBox();
 	QList<QString> languages;
 	languages << "English" << "Russian";
@@ -161,8 +170,9 @@ void Options::constructOptions() {
 	genLayout->addWidget(stayOnTop,0,0,1,1);
 	genLayout->addWidget(albArtReflection,1,0,1,1);
 	genLayout->addWidget(autoStart,2,0,1,1);
-	genLayout->addWidget(visOptions,0,1,2,1);
-	genLayout->addWidget(language,2,1,1,1);
+	genLayout->addWidget(dblClickContextInfoPlay,3,0,1,1);
+	genLayout->addWidget(visOptions,0,1,3,1);
+	genLayout->addWidget(language,3,1,1,1);
 	genOpt->setLayout(genLayout);
 	tab->addTab(genOpt,"General");
 	//End General
@@ -263,6 +273,7 @@ void Options::sendSettings(bool all) {
 	conn->changeAndSaveQSettings("konfetka/visFps",QVariant(visFps->value()));
 	conn->changeAndSaveQSettings("konfetka/visNumBars",QVariant(visNumBars->value()));
 	conn->changeAndSaveQSettings("konfetka/language",QVariant(language->currentText()));
+	conn->changeAndSaveQSettings("konfetka/contextInfoDoubleClickPlay",QVariant(dblClickContextInfoPlay->checkState() == Qt::Checked));
 	}
 	if (which == 1 || all) {
 	std::cout<<"sending plist"<<std::endl;

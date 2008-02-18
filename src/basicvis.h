@@ -16,8 +16,9 @@
 #include <QLinearGradient>
 #include <QMouseEvent>
 #include <QPainterPath>
+#include <QtDebug>
 
-enum VisType { SPEAKER, SPECTRUM, SCOPE};
+enum VisType { SPEAKER, SPECTRUM, SCOPE, OZONE};
 class Speaker;
 
 class BasicVis:public QWidget {

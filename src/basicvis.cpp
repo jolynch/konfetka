@@ -1,9 +1,10 @@
 #ifndef BASICVIS_CPP
 #define BASICVIS_CPP
 #include "basicvis.h"
-
+#define PI 3.14159265
 #include <bitset>
 #include <limits>
+
 BasicVis::BasicVis(DataBackend * c,QWidget* parent,Qt::WindowFlags f):QWidget(parent, f) {
 	conn = c;
 	numBars = 20;
@@ -207,6 +208,10 @@ void BasicVis::paintEvent(QPaintEvent * event) {
 		}
 		painter.drawPath(path);
 	}
+	else if (type == OZONE) {
+		//Jitu your code goes here
+		//For Jitu
+	}
 	painter.setPen(Qt::blue);
 	painter.setFont(QFont("courier",25, QFont::Bold ));
 	painter.drawText(rect(), Qt::AlignCenter,"DEMO ONLY");
@@ -230,14 +235,17 @@ void BasicVis::wheelEvent(QWheelEvent * event){
 	int t;
 	if(event->delta()>0) t = type + 1;
 	if(event->delta()<0) t = type - 1;
-		if(t>2 || t ==0) {
+		if(t<0) t = 3;
+		if(t>=4 || t ==0) {
 		type = SPEAKER;
 		}
 		else if(t==1){
 		type = SPECTRUM;
 		}
-		else
+		else if(t==2)
 		type = SCOPE;
+		else 
+		type = OZONE;
 }
 
 /***********************************- Speaker- *****************************************/ 

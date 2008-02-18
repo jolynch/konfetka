@@ -14,6 +14,7 @@
 #define CONTEXTINFO_H
 #include "databackend.h"
 #include "databackend/mlibdata.h"
+#include "databackend/plistdata.h"
 #include <QWidget>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
@@ -37,10 +38,10 @@ class ContextInfo:public QWidget {
 	QTreeWidgetItem * artistHeader;
 	QHash<int,QTreeWidgetItem*> idToItem;
 	QHash<QString,QTreeWidgetItem*> albumToItem;
-	int curId; int cntr;
+	int curId; int cntr; bool doubleClickPlay;
 
 	public:
-	ContextInfo(DataBackend * c,QWidget * parent = 0, Qt::WindowFlags f = 0);
+	ContextInfo(DataBackend * c,bool autoUpdate = true,QWidget * parent = 0, Qt::WindowFlags f = 0);
 	void setInfo(int id);
 	void constructArtist();
 	bool gotAlbums(const Xmms::List <Xmms::Dict> &list);
@@ -51,8 +52,9 @@ class ContextInfo:public QWidget {
 	public slots:
 	void infoChanged(int);
 	void slotUpdateInfo(int);
-	void setUpdatedEnabled(bool w = true);
+	void setUpdatesEnabled(bool w = true);
 	void addToPlist(QTreeWidgetItem * item);
+	void respondToConfigChange(QString,QVariant);
 	
 };
 

@@ -2,8 +2,8 @@
 #define CONTEXTINFO_CPP
 #include "contextinfo.h"
 
-ContextInfo::ContextInfo(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QWidget(parent,f) {
-	conn = c;
+ContextInfo::ContextInfo(DataBackend * c,bool autoUpdate,QWidget * parent, Qt::WindowFlags f):QWidget(parent,f) {
+	conn = c; 
 	mlib = (MlibData*)(conn->getDataBackendObject(DataBackend::MLIB));
 
 	QGridLayout * layout = new QGridLayout();
@@ -27,9 +27,13 @@ ContextInfo::ContextInfo(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QW
 
 	layout->addWidget(tree,0,0);
 	this->setLayout(layout);
-	connect(mlib,SIGNAL(infoChanged(int)),this,SLOT(infoChanged(int)));
-	connect(conn,SIGNAL(currentId(int)),this,SLOT(slotUpdateInfo(int)));
+	if(autoUpdate) {
+		connect(mlib,SIGNAL(infoChanged(int)),this,SLOT(infoChanged(int)));
+		connect(conn,SIGNAL(currentId(int)),this,SLOT(slotUpdateInfo(int)));
+	}	
 	connect(tree,SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),this,SLOT(addToPlist(QTreeWidgetItem*)));
+	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(respondToConfigChange(QString,QVariant)));
+	doubleClickPlay = true;
 }
 void ContextInfo::infoChanged(int id) {
 	if(id == curId) {
@@ -42,7 +46,7 @@ void ContextInfo::infoChanged(int id) {
 		artistHeader->setText(0,"Artist: Unknown");
 		constructArtist();
 	} else if (idToItem.contains(id)) {
-		QString tmp = idToItem.value(id)->text(0) + " (" + mlib->getInfo("time",id).toString()+")";
+		QString tmp = mlib->getInfo("album",id).toString() + " (" + mlib->getInfo("time",id).toString()+")";
 		idToItem.value(id)->setText(0,tmp);
 	}
 		
@@ -53,7 +57,7 @@ void ContextInfo::slotUpdateInfo(int id){
 	curId = id;
 	
 	setUpdatesEnabled(false);
-	QTimer::singleShot(4000, this, SLOT(setUpdatesEnabled(bool)));
+	QTimer::singleShot(4000, this, SLOT(setUpdatesEnabled()));
 	delete artistHeader;
 	artistHeader = new QTreeWidgetItem(tree);
 	
@@ -147,35 +151,58 @@ bool ContextInfo::constructAlbum(QTreeWidgetItem* album,const Xmms::List <Xmms::
 	return true;
 }
 
-void ContextInfo::setUpdatedEnabled(bool w) {
+void ContextInfo::setUpdatesEnabled(bool w) {
 	QWidget::setUpdatesEnabled(w);
 }
 
 void ContextInfo::addToPlist(QTreeWidgetItem * item) {
-	if(idToItem.key(item)!=0)
+	int num = ((PlistData*)(conn->getDataBackendObject(DataBackend::PLIST)))->getPlist()->rowCount();
+	if(idToItem.key(item)!=0) {
 		conn->playlist.addId(idToItem.key(item));
-	else {
+		if(doubleClickPlay) {
+			conn->playlist.setNext(num);
+			conn->playback.tickle();
+		}
+	}
+	else { //It's an album if not in the idToKey hash
 		Xmms::Coll::Universe univ;
 		Xmms::Coll::Equals albumItems(univ,"artist",mlib->getInfo("artist",curId).toString().toStdString(),true);
 		Xmms::Coll::Equals songItems(albumItems,"album",item->text(0).toStdString(),true);
-		conn->collection.queryIds(songItems)(Xmms::bind(&ContextInfo::addAlbumToPlist,this));
+		std::list<std::string> order;
+		order.push_back("title");
+		conn->collection.queryIds(songItems,order)(Xmms::bind(&ContextInfo::addAlbumToPlist,this));
 	}
 }
 
 bool ContextInfo::addAlbumToPlist(const Xmms::List <uint> &list) {
+	int num = ((PlistData*)(conn->getDataBackendObject(DataBackend::PLIST)))->getPlist()->rowCount();
 	for(list.first();list.isValid();++list) {
 		conn->playlist.addId(*list);
+	}
+	if(doubleClickPlay) {
+		conn->playlist.setNext(num);
+		conn->playback.tickle();
 	}
 	return true;
 }
 
+//Need this to figure out whether or not double clicking should play the song or just append it
+void ContextInfo::respondToConfigChange(QString key,QVariant value) {
+	if(key == "konfetka/contextInfoDoubleClickPlay") {
+		doubleClickPlay = value.toBool();
+	}
+}
+
 bool ContextInfo::gotAlbumCover(int id,const Xmms::bin& res) {
 	cntr -= 1; if(cntr<=1) setUpdatesEnabled(true);	
+	
 	if(albumToItem.contains(mlib->getInfo("album",id).toString())) return true;
+	
 	QBuffer buffer;	
 	buffer.setData((const char*)(res.c_str()), res.size());
-	QImage tmp = QImage::fromData(buffer.data());
-	QIcon icon(QPixmap::fromImage(tmp));
+	//Icons come from Pixmaps which come from Images which come from char arrays ... oh yippee
+	QIcon icon(QPixmap::fromImage(QImage::fromData(buffer.data())));
+	if(idToItem.value(id) == 0 || idToItem.value(id)->parent() == 0) return false;
 	idToItem.value(id)->parent()->setIcon(0,icon);
 	albumToItem.insert(mlib->getInfo("album",id).toString(),idToItem.value(id)->parent());
 	return true;
