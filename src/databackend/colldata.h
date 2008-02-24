@@ -22,6 +22,7 @@ class CollData:public QObject
 		DataBackend * conn;
 		QStringList collectionsOnly;
 		QStringList playlistsOnly;
+		QList<QString> importOrder;
 	public:
 		CollData(DataBackend * c,QObject * parent = 0);
 		QStringList getCollections();
@@ -31,8 +32,10 @@ class CollData:public QObject
 		bool getCollectionsFromServer(const Xmms::List<std::string>& list);
 		void createCollection(const Xmms::Coll::Coll&,std::string,Xmms::Collection::Namespace);
 		QString collAsQString(const Xmms::Coll::Coll&);
+		QList<QString> getImportOrder();
 	public slots:
 		void respondToCollectionChangedBroadcast(const Xmms::Dict& change);
+		void respondToConfigChange(QString,QVariant);
 	signals:
 		void updated(QString /*name*/, Xmms::Collection::Namespace);
 		void playlistsChanged(QStringList /*newList*/);

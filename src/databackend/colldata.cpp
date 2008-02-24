@@ -9,7 +9,14 @@ CollData::CollData(DataBackend * c,QObject * parent):QObject(parent)
 	conn->collection.list(Xmms::Collection::COLLECTIONS)
 		(Xmms::bind(&CollData::getCollectionsFromServer,this));
 	connect(conn,SIGNAL(collectionsChanged(const Xmms::Dict&)),this,SLOT(respondToCollectionChangedBroadcast(const Xmms::Dict&)));
+	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(respondToConfigChange(QString,QVariant)));
 	}
+
+void CollData::respondToConfigChange(QString name,QVariant value) {
+	if(name == "konfetka/collectionImportSortOrder") {
+		importOrder = value.toStringList();
+	}
+}
 
 bool CollData::getPlaylistsFromServer(const Xmms::List<std::string>& list)
 	{
@@ -65,6 +72,11 @@ void CollData::createCollection(const Xmms::Coll::Coll& coll,std::string name,Xm
 	{
 	conn->collection.save(coll,name,ns)(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
+
+QList<QString> CollData::getImportOrder() {
+	return importOrder;
+}
+
 
 QString CollData::collAsQString(const Xmms::Coll::Coll& coll) {
 	QString result;

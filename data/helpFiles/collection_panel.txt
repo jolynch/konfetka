@@ -1,0 +1,1 @@
+The panel allows you to view your collections and either double click songs or drag songs/collections into your playlists.

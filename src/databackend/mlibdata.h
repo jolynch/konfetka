@@ -22,7 +22,8 @@
 #include <QUrl>
 #include <QQueue>
 #include <QTimer>
-#include <string>
+#include <QBuffer>
+#include <QtDebug>
 
 
 //Simple class to store information about an entry in the Media Library
@@ -67,7 +68,7 @@ class MlibData:public QObject {
 	
 	public:
 	MlibData(DataBackend *c,QObject * parent = 0);
-	//Pass me hex for all I care, it is getting decoded
+	//Pass me hex for all I care, it is getting decoded... well not really
 	QVariant getInfo(std::string property, uint id);
 	QVariant getInfo(QString property, uint id);
 	QVariant getInfo(char* property, uint id);
@@ -83,6 +84,9 @@ class MlibData:public QObject {
 	bool getMediaInfo(const Xmms::PropDict& info);
 	bool mlibChanged(const unsigned int& id);
 	bool getAllMediaInfoForId(int,std::string,Xmms::Dict::Variant,std::string);
+	//very important, lets us store album art in our caches ... for now too much mem is used though
+	//bool gotAlbumCover(int id,const Xmms::bin& res);
+	//QImage getAlbumArtForId(int id);
 	public slots:
 	void fetchSomeMore();
 	

@@ -15,6 +15,7 @@
 #include "databackend/mlibdata.h"
 #include "databackend/colldata.h"
 #include "layoutpanel.h"
+#include "infoeditor.h"
 #include <QTreeWidget>
 #include <QTableWidget>
 #include <QGridLayout>
@@ -123,7 +124,7 @@ Q_OBJECT
 	void newColl(SourceType type);
 	void possiblySearchMlib();
 	void searchMlib();
-	void displaySongInfo();
+	void appendToPlaylistContextInfo();
 	
 	void addFromMlibDrag(QTreeWidgetItem*,int);
 	void addFromMlibDoubleClick(QTreeWidgetItem *,int);
@@ -167,21 +168,5 @@ Q_OBJECT
 
 	signals:
 	void removeSelected();
-};
-
-class InfoDialog:public QDialog {
-Q_OBJECT
-
-	private:
-	DataBackend * conn;
-	QTableWidget * table;
-	
-	public:
-	InfoDialog(DataBackend*, ItemType, QString);
-	
-// 	void keyPressEvent(QKeyEvent *event);
-	
-	public slots:
-	void accept();
 };
 #endif

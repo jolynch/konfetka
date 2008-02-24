@@ -1,0 +1,1 @@
+The panel allows you to add files to either the medialib or playlists via either dragging from the tree or selecting in the file list and then using the "Add Selected Files" button.

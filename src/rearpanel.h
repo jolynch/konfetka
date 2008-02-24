@@ -15,6 +15,7 @@
 #include "infoeditor.h"
 #include "basicvis.h"
 #include "contextinfo.h"
+#include "panelview.h"
 #include <string>
 #include <cstdlib>
 #include <QWidget>
@@ -47,6 +48,7 @@ class RearPanel: public QWidget
 		QGridLayout * infoLayout;
 		WikiView * wiki;
 		LyricBrowser * lyrics;
+		PanelView * panels;
 
 		Visualization * visualization;
 		Equalizer * equalizer;

@@ -173,23 +173,38 @@ bool MlibData::getAllMediaInfoForId(int id,std::string key,Xmms::Dict::Variant v
 		}
 		else {
 			if(key == "url") {
-			std::string tmpStr = boost::get<std::string>(val);
-			tmpStr = xmmsc_result_decode_url(NULL,tmpStr.c_str());
-			newValue = QVariant(tmpStr.c_str());
-			
-			//xmms2 doesn't keep the filename, but this is usefull for unknown titles
-			QString filename(tmpStr.c_str());
-			filename = filename.mid(filename.lastIndexOf("/")+1);
-			(cache.value(id))->setInfo(QString("filename"),QVariant(filename));
+				std::string tmpStr = boost::get<std::string>(val);
+				tmpStr = xmmsc_result_decode_url(NULL,tmpStr.c_str());
+				newValue = QVariant(tmpStr.c_str());
+				
+				//xmms2 doesn't keep the filename, but this is usefull for unknown titles
+				QString filename(tmpStr.c_str());
+				filename = filename.mid(filename.lastIndexOf("/")+1);
+				(cache.value(id))->setInfo(QString("filename"),QVariant(filename));
 			}
+			//used up way too much memory
+			/*else if(key =="picture_front") {
+				qDebug()<<"Getting front cover";
+				conn->bindata.retrieve(boost::get<std::string>(val).c_str())
+						(boost::bind(&MlibData::gotAlbumCover,this,id,_1));
+			}*/	
 			else {
-			newValue = QVariant(QString::fromUtf8(boost::get<std::string>(val).c_str()));
+				newValue = QVariant(QString::fromUtf8(boost::get<std::string>(val).c_str()));
 			}
 		}
 	(cache.value(id))->setInfo(newKey,newValue);
 	(cache.value(id))->setSource(newKey,QString::fromUtf8(src.c_str()));
 	return true;
 }
+
+//memory problems
+// bool MlibData::gotAlbumCover(int id,const Xmms::bin& res) {
+// 	QBuffer buffer;	
+// 	buffer.setData((const char*)(res.c_str()), res.size());
+// 	QImage icon = QImage::fromData(buffer.data());
+// 	cache.value(id)->setInfo("picture_front_data",QVariant(icon));
+// 	return true;
+// }
 
 void MlibData::getListFromServer(Xmms::Coll::Coll* mlib,QString property) {
  	std::list<std::string> what;

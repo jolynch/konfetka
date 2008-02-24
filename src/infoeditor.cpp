@@ -2,11 +2,12 @@
 #define INFOEDITOR_CPP
 #include "infoeditor.h"
 
-InfoEditor::InfoEditor(DataBackend * c,QWidget* parent,Qt::WindowFlags f):QWidget(parent,f)
+InfoEditor::InfoEditor(DataBackend * c,bool autoUpdate,QWidget* parent,Qt::WindowFlags f):QWidget(parent,f)
 	{
 	stopped=false;
 	curId=0;
 	conn=c;
+	mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
 	layout=new QGridLayout();
 	title=new QLabel("Title:");
 	layout->addWidget(title,0,0);
@@ -60,11 +61,21 @@ InfoEditor::InfoEditor(DataBackend * c,QWidget* parent,Qt::WindowFlags f):QWidge
 	reset->setToolTip("Reset information");
 	layout->addWidget(reset,8,5);
 	this->setLayout(layout);
-	QObject::connect(reset,SIGNAL(clicked()),this,SLOT(slotReset()));
-	QObject::connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),
+	connect(reset,SIGNAL(clicked()),this,SLOT(slotReset()));
+	if(autoUpdate) 
+	{
+		connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),
 				this,SLOT(newStatus(Xmms::Playback::Status)));
-	QObject::connect(conn,SIGNAL(currentId(int)),this,SLOT(newId(int)));
+		connect(conn,SIGNAL(currentId(int)),this,SLOT(newId(int)));
 	}
+		connect(mlib,SIGNAL(infoChanged(int)),this,SLOT(handleInfoChanged(int)));
+	}
+
+void InfoEditor::handleInfoChanged(int id) {
+	if(id == curId)
+	newId(id);
+}
+
 
 void InfoEditor::slotDone()
 	{
@@ -97,7 +108,6 @@ void InfoEditor::newId(int id)
 	{
 	curId=id;
 	if(stopped) return;
-	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
 	artist_->setText(mlib->getInfo(QString("artist"),id).toString());
 	title_->setText(mlib->getInfo(QString("title"),id).toString());
 	album_->setText(mlib->getInfo(QString("album"),id).toString());

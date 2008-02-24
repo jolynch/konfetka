@@ -101,6 +101,7 @@ class Options:public LayoutPanel {
 	void updateXmms2Opts(const Xmms::Dict&);
 	void xmms2TreeStartEdit(QTreeWidgetItem* item, int col);
 	void filterXmms2Opts();
+	void emitSettings();
 };
 
 //Often lists need to be edited, for example the import order for collections, or labels of a song to show

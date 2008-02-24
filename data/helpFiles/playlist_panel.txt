@@ -1,0 +1,1 @@
+This panel allows you to view and manipulate your playlist, along with changing the way xmms2 plays its music (repeat playlist, repeat single, etc...)

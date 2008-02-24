@@ -16,6 +16,8 @@
 #include <QStack>
 #include <cstdlib>
 #include <iostream>
+//For debugging
+#include <QtDebug>
 
 #define UPCOMING 10
 

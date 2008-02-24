@@ -37,7 +37,9 @@ ContextInfo::ContextInfo(DataBackend * c,bool autoUpdate,QWidget * parent, Qt::W
 }
 void ContextInfo::infoChanged(int id) {
 	if(id == curId) {
-		delete artistHeader;
+		idToItem.clear();
+		albumToItem.clear();
+		tree->clear();
 		artistHeader = new QTreeWidgetItem(tree);
 		
 		if(mlib->getInfo("artist",id).toInt() != -1)
@@ -57,9 +59,13 @@ void ContextInfo::slotUpdateInfo(int id){
 	curId = id;
 	
 	setUpdatesEnabled(false);
+	//In case we get some weird problems later
 	QTimer::singleShot(4000, this, SLOT(setUpdatesEnabled()));
-	delete artistHeader;
+	idToItem.clear();
+	albumToItem.clear();
+	tree->clear();
 	artistHeader = new QTreeWidgetItem(tree);
+	
 	
 	if(mlib->getInfo("id",id).toInt() != -1) infoChanged(id);
 }
@@ -70,8 +76,6 @@ void ContextInfo::setInfo(int id) {
 }
 
 void ContextInfo::constructArtist() {
-	idToItem.clear();
-	albumToItem.clear();
 	Xmms::Coll::Universe univ;
 	Xmms::Coll::Equals albumItems(univ,"artist",mlib->getInfo("artist",curId).toString().toStdString(),true);
 	std::list<std::string> what;
@@ -110,6 +114,7 @@ bool ContextInfo::gotAlbums(const Xmms::List <Xmms::Dict> &list) {
 
 
 bool ContextInfo::constructAlbum(QTreeWidgetItem* album,const Xmms::List <Xmms::Dict> &list) {
+	if(!album || albumToItem.key(album)!=0) return false;
 	QHash<QString,int> songList; QString tmp; int tmpId;
 	for (list.first();list.isValid(); ++list) {
 		if(list->contains("id")&&list->contains("title")) {
@@ -135,6 +140,7 @@ bool ContextInfo::constructAlbum(QTreeWidgetItem* album,const Xmms::List <Xmms::
 				QFont f = tree->font();
 				f.setBold(true);
 				item->setFont(0,f);
+				///This is causing segfaults
 				album->setFont(0,f);
 			}
 		album->addChild(item);

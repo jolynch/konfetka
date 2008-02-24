@@ -1,0 +1,1 @@
+This panel allows you to configure some of the aspects of konfetka, look and function.

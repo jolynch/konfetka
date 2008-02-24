@@ -1,0 +1,3 @@
+This panel allows you to view your media library, search through it, and create collections from the queries that you have already done.
+
+

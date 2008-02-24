@@ -49,7 +49,7 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	QString(" \"Parse:<query>\" and pressing enter. <query> is\nof the same syntax as cli: \"xmms2 mlib search <query>\""));
 	
 	infoMenu = new QMenu("Media Information");
-	infoMenu->addAction("View Media Information",this,SLOT(displaySongInfo()));
+	infoMenu->addAction("Append To Playlist",this,SLOT(appendToPlaylistContextInfo()));
 	infoMenu->addAction("Remove Selected Media",this,SLOT(slotRemove()));
 
 	QStringList filters;
@@ -238,6 +238,8 @@ bool MediaLib::gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &
 	artist->takeChildren();
 	QString tmp;
 	QList<QString> artistList;
+	QTreeWidgetItem * newAlbum;
+		
 		for (list.first();list.isValid(); ++list) {
 			if(list->contains("album")) {
 			tmp = QString((list->get<std::string>("album")).c_str());
@@ -251,14 +253,16 @@ bool MediaLib::gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &
 	
 			if(artistList.contains(tmp)) continue;
 			artistList.append(tmp);
-			QTreeWidgetItem * newAlbum = new QTreeWidgetItem(artist);
+			newAlbum = new QTreeWidgetItem(artist);
+			newAlbum->setIcon(0,QIcon(QPixmap("images/no_album150")));
 			newAlbum->setText(0,tmp);
 			QTreeWidgetItem * tempSong = new QTreeWidgetItem(newAlbum);
 			tempSong->setText(0,"...");
 		}
 		
 		if(artist->childCount()==0) {	
-		QTreeWidgetItem * newAlbum = new QTreeWidgetItem(artist);
+		newAlbum = new QTreeWidgetItem(artist);
+		newAlbum->setIcon(0,QIcon(QPixmap("images/no_album150")));
 		newAlbum->setText(0,"Unknown Album");
 		QTreeWidgetItem * tempSong = new QTreeWidgetItem(newAlbum);
 		tempSong->setText(0,"...");
@@ -600,10 +604,12 @@ void MediaLib::contextMenuEvent(QContextMenuEvent *event) {
 	infoMenu->exec(event->globalPos());
 }
 
-void MediaLib::displaySongInfo() {
-	QTreeWidgetItem* item = mediaList->currentItem();
-	InfoDialog dialog(conn,getItemType(item),item->text(0));
-	dialog.exec();
+void MediaLib::appendToPlaylistContextInfo() {
+	std::list<std::string> order;
+	foreach(QString str, coll->getImportOrder()) {
+	order.push_back(str.toStdString());
+	}
+	conn->playlist.addCollection(*selectedAsColl(),order);
 }
 
 QMimeData* MediaLib::getCurrentMimeData() {
@@ -720,50 +726,6 @@ void MediaLib::loadUpCollection(Xmms::Coll::Coll* tmpColl) {
 	mlib->getListFromServer(visibleMedia,"artist");
 }
 
-/********************* Info Dialog **************************/
-
-InfoDialog::InfoDialog(DataBackend * c, ItemType type, QString value) {
-	move(50,50);
-	conn = c;
-	switch(type) {
-		case ARTIST: {
-		std::cout<<"Artist"<<std::endl;
-		break;
-		}
-		case ALBUM: {
-		std::cout<<"Album"<<std::endl;
-		break;
-		}
-		case SONG: {
-		std::cout<<"Song"<<std::endl;
-		break;
-		}
-	}
-	std::cout<<value.toStdString()<<std::endl;
-	
-	table = new QTableWidget(4,4,this);
-	QTableWidgetItem *cubesHeaderItem = new QTableWidgetItem("Cubes");
-	cubesHeaderItem->setIcon(QIcon(QPixmap(":images/plus.png")));
-	cubesHeaderItem->setTextAlignment(Qt::AlignVCenter);
-	table->setItem(1, 4, cubesHeaderItem);
-	
-	QGridLayout * layout = new QGridLayout();
-	QDialogButtonBox * buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
-	connect(buttons, SIGNAL(accepted()), this, SLOT(accept()));
-	connect(buttons, SIGNAL(rejected()), this, SLOT(reject()));
-	
-	layout->addWidget(table);
-	layout->addWidget(buttons);
-	setLayout(layout);
-}
-
-void InfoDialog::accept() {
-	QDialog::accept();
-}
-
-
- 
-/************************************************************/
 #endif
 
 

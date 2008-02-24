@@ -18,7 +18,7 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 	logo=new QLabel();
 	logo->setPixmap(*(new QPixmap(":images/logoNoXmms2-secondTry.png")));
 	logo->setAlignment(Qt::AlignCenter);
-	authors=new QLabel("Powered by XMMS2.\nCode:\nAnton Frolenkov\nJoe E. Lynch");
+	authors=new QLabel("Powered by XMMS2.\nCode:\nAnton Frolenkov\nJoe E. Lynch\nJitu Das");
 	authors->setAlignment(Qt::AlignCenter);
 	//random=new QLabel("who | grep -i blonde | date && (cd $HOME; unzip; touch; strip; finger; mount; fsck; yes; unmount; make clean); sleep");
 	//random=new QLabel("Instead of office chair package contained bobcat. Would not buy again.");
@@ -44,11 +44,13 @@ RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowF
 	//visualization=new Visualization(conn,this, NULL);
 	newVis = new BasicVis(conn,this);
 	//DONE
+	panels = new PanelView(conn,this);
 
 	netInfo->addTab(info, "About");
 	netInfo->addTab(infoeditor, "Edit Info");
 	netInfo->addTab(wiki, "Artist Info");
 	netInfo->addTab(lyrics, "Lyrics");
+	netInfo->addTab(panels, "Panels");
 	equalizer=new Equalizer(conn,(int)(wid*(2.0/7)),this,NULL);
 	layout=new QGridLayout();
 	layout->addWidget(albumArt,0,0);

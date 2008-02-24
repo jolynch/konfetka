@@ -13,6 +13,7 @@ Options::Options(DataBackend * c, QWidget * parent,Qt::WindowFlags f):LayoutPane
 	QPushButton * cancel = new QPushButton("Cancel");
 	QPushButton * saveAll = new QPushButton("Save All");
 	connect(save,SIGNAL(clicked()),this,SLOT(sendSettings()));
+	connect(cancel,SIGNAL(clicked()),this,SLOT(emitSettings()));
 	connect(saveAll,SIGNAL(clicked()),this,SLOT(sendAllSettings()));
 	temp->addWidget(cancel);
 	temp->addWidget(save);
@@ -35,6 +36,11 @@ Options::~Options() {
 	delete layout;
 }
 
+void Options::emitSettings() {
+	qDebug()<<"init";
+	conn->emitInitialQSettings();
+}
+
 void Options::updateGui(QString name,QVariant value) {
 	if(name == "konfetka/playlistValues") {
 		QStringList temp = value.toStringList();
@@ -54,19 +60,27 @@ void Options::updateGui(QString name,QVariant value) {
 	}
 	else if(name == "konfetka/stayOnTop") {
 		if(value.toBool())
-		stayOnTop->setCheckState(Qt::Checked); 
+		stayOnTop->setCheckState(Qt::Checked);
+		else
+		stayOnTop->setCheckState(Qt::Unchecked);
 	}
 	else if(name == "konfetka/autoStartXMMS2") {
 		if(value.toBool())
 		autoStart->setCheckState(Qt::Checked);
+		else
+		autoStart->setCheckState(Qt::Unchecked);
 	}
 	else if(name == "konfetka/mlibDblClick") {
 		if(value.toBool())
 		doubleClick->setCheckState(Qt::Checked);
+		else
+		doubleClick->setCheckState(Qt::Unchecked);
 	}
 	else if(name == "konfetka/albumArtReflection") {
 		if(value.toBool())
 		albArtReflection->setCheckState(Qt::Checked);
+		else
+		albArtReflection->setCheckState(Qt::Unchecked);
 	}
 	else if(name == "konfetka/visFps") {
 		visFps->setValue(value.toInt());
@@ -80,6 +94,8 @@ void Options::updateGui(QString name,QVariant value) {
 	else if(name == "konfetka/contextInfoDoubleClickPlay") {
 		if(value.toBool())
 		dblClickContextInfoPlay->setCheckState(Qt::Checked);
+		else
+		dblClickContextInfoPlay->setCheckState(Qt::Unchecked);
 		
 	}
 }

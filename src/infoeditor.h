@@ -45,11 +45,13 @@ class InfoEditor:public QWidget
 		QLabel * timesPlayed;
 		QPushButton * done;
 		QPushButton * reset;
+		MlibData * mlib;
 	public:
-		InfoEditor(DataBackend * c,QWidget* parent=0, Qt::WindowFlags f=0);
+		InfoEditor(DataBackend * c,bool autoUpdate = true,QWidget* parent=0, Qt::WindowFlags f=0);
 	private slots:
 		void slotDone();
 		void slotReset();
+		void handleInfoChanged(int id);
 	public slots:
 		void newId(int id);
 		void newStatus(Xmms::Playback::Status status);
