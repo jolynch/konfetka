@@ -207,6 +207,8 @@ void PanelController_::handleDraggedTo(Panel_ * p, int newPos)
 	int l=left->getPosition();
 	int r=right->getPosition();
 	bool ir=(p==right);
+	if(ir&&left->isLocked()&&l>newPos) {p->mv(l);return;}
+	if(!ir&&right->isLocked()&&r<newPos) {p->mv(r);return;}
 	if(ir&&l>newPos) stuck=true;
 	if(!ir&&r<newPos) stuck=true;
 	if(ir&&newPos==PBG_WIDTH/2-1) stuck=true;
@@ -285,7 +287,7 @@ void PanelController_::rightClicked(Panel_ * p, int x, int y)
 		p->unlock();
 	else if(getId(name)=="lock"&&!p->isLocked())
 		p->lock();
-	else changeToPanel(name);
+	else if(!p->isLocked()) changeToPanel(name);
 	}
 
 QList<QAction *> PanelController_::findReplace(QString name)
