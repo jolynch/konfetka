@@ -54,7 +54,6 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 
 	QStringList filters;
 	filters << "*mp3*" << "*m4a*";
-	for(int i =1;i<4;i++)
 
 	buttons = new QVBoxLayout();	
 	layout->addWidget(searchLine,0,0,1,1);
@@ -470,7 +469,6 @@ void MediaLib::searchMlib() {
 	std::string text = searchLine->text().trimmed().toStdString();
 	Xmms::Coll::Union allMatches;
 		if(searchLine->text().startsWith("Parse:")) {
-			std::cout<<"AGG"<<std::endl;
 			text = searchLine->text().remove(0,6).toStdString();
 			try {
 			Xmms::CollPtr c = conn->collection.parse(text);

@@ -7,11 +7,12 @@
 class NiceLabel:public QLabel{	
 Q_OBJECT
 	private:
-	int x; int pressPos; int id; int ms;
+	int x, pressPos, id, ms, delta;
 	bool pressed;
+	QString delim;
 	
 	public:
-	NiceLabel(int speed=50,QWidget * parent = 0, Qt::WindowFlags f = 0);
+	NiceLabel(int speed=50, int spread = 1, QString del="  ***  ", QWidget * parent = 0, Qt::WindowFlags f = 0);
 	void mousePressEvent(QMouseEvent * event);
 	void mouseReleaseEvent(QMouseEvent * event);
 	void mouseMoveEvent(QMouseEvent * event);

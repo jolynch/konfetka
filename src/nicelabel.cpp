@@ -3,9 +3,11 @@
 #include "mainbar.h"
 
 /**************************NiceLabel**************************************/
-NiceLabel::NiceLabel(int speed,QWidget * parent, Qt::WindowFlags f):QLabel(parent,f) {
+NiceLabel::NiceLabel(int speed,int spread,QString del,QWidget * parent, Qt::WindowFlags f):QLabel(parent,f) {
 	pressed = false;
 	ms = speed;
+	delta = spread;
+	delim = del;
 	pressPos = 0;
 }
 
@@ -17,11 +19,13 @@ void NiceLabel::slotScroll(int amount) {
 void NiceLabel::mousePressEvent(QMouseEvent * event) {
 	pressed = true;
 	pressPos = event->x();
+	if(ms < 0) return;
 	killTimer(id);
 }
 
 void NiceLabel::mouseReleaseEvent(QMouseEvent * event) {
 	pressed = false;
+	if(ms < 0) return;
 	id = startTimer(ms);
 }
 
@@ -37,7 +41,7 @@ void NiceLabel::resizeEvent(QResizeEvent * event) {
 }
 
 void NiceLabel::paintEvent(QPaintEvent * event) {
-	QString strToPaint = text() + "  ***  ";
+	QString strToPaint = text() + delim;
 	QPainter painter(this);
 	painter.setPen(QColor(90,130,150,255));
 	int widthOfText = fontMetrics().width(strToPaint);
@@ -54,17 +58,19 @@ void NiceLabel::paintEvent(QPaintEvent * event) {
 
 void NiceLabel::timerEvent(QTimerEvent* event) {
 	if(event->timerId()==id) {
-		slotScroll();
+		slotScroll(-1*delta);
 	}
 	else
 	QLabel::timerEvent(event);
 }
 
 void NiceLabel::showEvent(QShowEvent * event) {
+	if(ms < 0) return;
 	id = startTimer(ms);
 }
 
 void NiceLabel::hideEvent(QHideEvent * event) {
+	if(ms < 0) return;
 	killTimer(id);
 }
 

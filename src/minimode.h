@@ -11,7 +11,9 @@
 #include "albumart.h"
 #include "mainbar.h"
 #include "songpositionslider.h"
+#include "nicelabel.h"
 #include <QGridLayout>
+#include <QVBoxLayout>
 #include <QWidget>
 #include <QLabel>
 #include <QPushButton>
@@ -26,7 +28,9 @@ class MiniMode:public QWidget
 		AlbumArt * parentAlbArt;
 		DataBackend * conn;
 		QLabel * artLabel;
-		QLabel * songInfo;
+		NiceLabel * artistInfo;
+		NiceLabel * albumInfo;
+		NiceLabel * songInfo;
 		QPushButton * play;
 		QPushButton * pause;
 		QPushButton * stop;

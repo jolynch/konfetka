@@ -54,18 +54,23 @@ FileBrowser::FileBrowser(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QW
 	
 	lineBar->setFloatable(true);
 	QToolBar * doStuff = new QToolBar();
-	doStuff->addAction("Add Selected Files to:",this, SLOT(addSelected()));
+	doStuff->addWidget(new QLabel("Add selected files from the list to:"));
 	doStuff->addWidget(toWhat);
 	doStuff->addWidget(tempLabel);
 	doStuff->addWidget(whichPlaylist);
+	doStuff->addAction("Do it!",this, SLOT(addSelected()));
 
 	layout = new QGridLayout();
 	layout->setSpacing(1);
-	layout->addWidget(lineBar,0,0);
-	layout->addWidget(splitter,1,0,2,2);
-	layout->addWidget(doStuff,3,0);
-	layout->setRowStretch(1,1);
-	layout->setRowStretch(0,1);
+	layout->addWidget(lineBar,0,0,1,3);
+	layout->addWidget(splitter,1,0,2,3);
+	layout->addWidget(new QLabel("Drag items from the tree or the list"),3,0,Qt::AlignCenter);
+	layout->addWidget(doStuff,3,1,1,2,Qt::AlignCenter);
+	for(int i = 0;i<3;i++) {
+	layout->setRowStretch(i,1);
+	layout->setColumnStretch(i,1);
+	}
+	layout->setColumnStretch(0,2);
 	this->setLayout(layout);
 
 // 	deleteSC = new QShortcut(Qt::Key_Delete,this,SLOT(slotRemove()),SLOT(slotRemove()));

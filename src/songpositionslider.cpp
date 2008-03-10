@@ -5,8 +5,8 @@
 
 
 /******** SongPositionSlider - Allows one to create a functioning seekBar by just constructing the object *****/
-SongPositionSlider::SongPositionSlider(DataBackend * c,Qt::Orientation o, QWidget* p):QSlider(o,p) {
-	conn = c;
+SongPositionSlider::SongPositionSlider(DataBackend * c,Qt::Orientation o, QWidget* p,int h):QSlider(o,p) {
+	conn = c; barheight = h;
 	duration = 0;
 	time = -1;
 	released = false;
@@ -169,11 +169,12 @@ void SongPositionSlider::paintEvent(QPaintEvent * event) {
 	if(duration!=0) {
 	double percent = value()/(double)duration;
 	int pxlBlack = (int)(width()*percent);
+	int y = (height()-barheight)/2;
 	if(curType != FILE)
 	pxlBlack = 0;
 
-	painter.fillRect(0,0,pxlBlack+2,20,QBrush(QColor("#696969")));
-	painter.fillRect(pxlBlack,0,width()-(pxlBlack+2),20,QBrush(QColor("#A1A1A1")));
+	painter.fillRect(0,y,pxlBlack+2,barheight,QBrush(QColor("#696969")));
+	painter.fillRect(pxlBlack,y,width()-(pxlBlack+2),barheight,QBrush(QColor("#A1A1A1")));
 	
 	QList<int> markerList = markers.values();
 	int curMarker=0;
@@ -195,8 +196,7 @@ void SongPositionSlider::paintEvent(QPaintEvent * event) {
 		tmp.setColorAt(0,side);
 		tmp.setColorAt(.5,center);
 		tmp.setColorAt(1,side);
-// 		QColor(113,164,187,220)
-		painter.fillRect(curMarker,0,5,20,QBrush(tmp));
+		painter.fillRect(curMarker,y,5,barheight,QBrush(tmp));
 		}
 	}
 }

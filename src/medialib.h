@@ -17,36 +17,25 @@
 #include "layoutpanel.h"
 #include "infoeditor.h"
 #include <QTreeWidget>
-#include <QTableWidget>
 #include <QGridLayout>
-#include <QTreeView>
-#include <QDirModel>
 #include <QTreeWidgetItem>
 #include <QStringList>
 #include <QHeaderView>
 #include <QLabel>
-#include <QFile>
 #include <QPushButton>
+#include <QDirModel>
 #include <QDrag>
 #include <QDropEvent>
 #include <QMimeData>
 #include <QUrl>
-#include <QStringListModel>
 #include <QHash>
-#include <QSet>
 #include <QLineEdit>
 #include <QVBoxLayout>
-#include <QThread>
-#include <QProgressBar>
-#include <QTextStream>
-#include <QStack>
 #include <QShortcut>
 #include <QSettings>
 #include <QTime>
 #include <QTimer>
 #include <QInputDialog>
-#include <QCheckBox>
-#include <QDialogButtonBox>
 #include <QComboBox>
 #include <QMenu>
 
@@ -62,8 +51,10 @@ static const ItemType ARTIST = 0x001;
 static const ItemType ALBUM = 0x010;
 static const ItemType SONG = 0x011;
 static const ItemType INVALID = 0x100;
+
 static const SourceType SELECTED = 0x01;
 static const SourceType VISIBLE = 0x10;
+
 static const SearchType SIMPLE= 0;
 static const SearchType PARSE= 1;
 

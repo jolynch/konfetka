@@ -29,7 +29,7 @@ class SongPositionSlider:public QSlider
 	{	Q_OBJECT
 		private:
 		DataBackend * conn;
-		int duration,time,currentID;
+		int duration,time,currentID,barheight;
 		bool released;
 		bool allowUpdates;
 		QTimer timer;
@@ -40,7 +40,7 @@ class SongPositionSlider:public QSlider
 		QSet<int> markers;
 		
 		public:
-		SongPositionSlider(DataBackend * c,Qt::Orientation , QWidget * parent = 0);	
+		SongPositionSlider(DataBackend * c,Qt::Orientation o, QWidget * parent = 0,int h = 20);	
 		int getDuration();
 		int getPositiveTime();
 		int getNegativeTime();

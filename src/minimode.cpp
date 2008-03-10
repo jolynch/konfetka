@@ -21,8 +21,18 @@ MiniMode::MiniMode(DataBackend * c,AlbumArt * a,QWidget * p, Qt::WindowFlags f):
 	
 	artLabel = new QLabel("AlbumArt");
 	listOfWidgets.append(artLabel);
-	songInfo = new QLabel();
+
+	QGridLayout * labels = new QGridLayout();
+	artistInfo = new NiceLabel(250,1,"  --  ");
+	labels->addWidget(artistInfo,0,0,Qt::AlignBottom);
+	listOfWidgets.append(artistInfo);
+	albumInfo = new NiceLabel(250,1,"  --  ");
+	labels->addWidget(albumInfo,1,0,Qt::AlignVCenter);
+	listOfWidgets.append(albumInfo);
+	songInfo = new NiceLabel(250,1,"  --  ");
+	labels->addWidget(songInfo,2,0,Qt::AlignTop);
 	listOfWidgets.append(songInfo);
+	labels->setVerticalSpacing(0);
 		
 	play = new QPushButton(QIcon(":images/play_button.png"),"");
 	play->setObjectName("miniButton");
@@ -43,7 +53,7 @@ MiniMode::MiniMode(DataBackend * c,AlbumArt * a,QWidget * p, Qt::WindowFlags f):
 	quit->setObjectName("miniButton");
 	quit->setFixedSize(50,20);
 		
-	position = new SongPositionSlider(conn,Qt::Horizontal,this);
+	position = new SongPositionSlider(conn,Qt::Horizontal,this,10);
 	position->setObjectName("miniSlider");
 	timeButton = new QPushButton("Time");
 	timeButton->setObjectName("miniTimeButton");
@@ -73,7 +83,7 @@ MiniMode::MiniMode(DataBackend * c,AlbumArt * a,QWidget * p, Qt::WindowFlags f):
 
 
 	layout->addWidget(artLabel,0,0,2,2);
-	layout->addWidget(songInfo,0,2,2,2);
+	layout->addLayout(labels,0,2,2,2);
 	layout->addWidget(miniVis,0,4,2,2);
 	layout->addWidget(volume,2,0,1,2);
 	layout->addWidget(position,2,2,1,3);
@@ -178,16 +188,12 @@ void MiniMode::mousePressEvent(QMouseEvent *event) {
 void MiniMode::paintEvent(QPaintEvent *event) {
 
 	QPainter painter(this);
-
-	QStyleOption opt;
-	opt.init(this);
-	style()->drawPrimitive(QStyle::PE_Widget, &opt, &painter, this);
-
 	painter.setRenderHint(QPainter::Antialiasing);
 	
-	if(height()>100)
- 	painter.drawText(QRect(140,0,artLabel->width(),artLabel->height()),
-	Qt::AlignLeft | Qt::AlignVCenter,curSongInfo);
+// 	if(height()>100)
+//  	painter.drawText(QRect(140,0,artLabel->width(),artLabel->height()),
+// 	Qt::AlignLeft | Qt::AlignVCenter,curSongInfo);
+
 	if(highlight) {
 // 	std::cout<<"here"<<std::endl;
 	painter.setBrush(QColor(150,180,190,100));
@@ -257,7 +263,10 @@ void MiniMode::setNewInfo(int id){
 	curSongInfo.append(str);
 	}
 	setToolTip(curSongInfo);
-	
+	artistInfo->setText("Artist: "+mlib->getInfo("artist",id).toString());
+	albumInfo->setText("Album: "+mlib->getInfo("album",id).toString());
+	songInfo->setText("Title: "+mlib->getInfo("title",id).toString());
+
 	update();
 }
 

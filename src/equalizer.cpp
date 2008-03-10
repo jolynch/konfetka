@@ -57,7 +57,8 @@ Equalizer::Equalizer(DataBackend * c,int width,QWidget * parent, Qt::WindowFlags
 	
 	load=new QComboBox();
 	//load->setIcon(*loadIcon);
- 	load->setMaximumSize(75,25);
+ 	load->setMaximumSize(100,25);
+	load->setMinimumSize(75,25);
 	load->setToolTip("Load Presets");
 	
 	QString dirName;
@@ -76,7 +77,8 @@ Equalizer::Equalizer(DataBackend * c,int width,QWidget * parent, Qt::WindowFlags
 	QIcon *saveIcon=new QIcon(":images/save.png");
 	save=new QPushButton();
 	save->setIcon(*saveIcon);
- 	save->setMaximumSize(75,25);
+ 	save->setMaximumSize(100,25);
+	save->setMinimumSize(75,25);
 	save->setToolTip("Save preset");
 	
 	buttons = new QVBoxLayout();
@@ -100,8 +102,9 @@ Equalizer::Equalizer(DataBackend * c,int width,QWidget * parent, Qt::WindowFlags
 	layout->addWidget(s8,1,11,3,1);
 	layout->addWidget(s9,1,12,3,1);
 	for(int i=0;i<layout->columnCount();i++) {
-	layout->setColumnStretch(i,10);
+	layout->setColumnStretch(i,1);
 	}
+	layout->setColumnStretch(1,2);
 	layout->setColumnStretch(1,1);layout->setColumnStretch(2,1);
 // 	layout->setHorizontalSpacing((2*width)/35-10);
  	layout->setRowMinimumHeight(0,50);

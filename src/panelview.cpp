@@ -111,7 +111,7 @@ void PanelView::loadPanels() {
 // 	}
 	QList<QString> temp; temp<<"Playlist"<<"Options"<<"File System"<<"Collections"<<"Medialib";
 	foreach(QString val,temp){
-		panels.insert(val,QPixmap("images/no_album175"));
+		panels.insert(val,QPixmap("images/unknown"));
 	}
 	keys = panels.keys();
 }

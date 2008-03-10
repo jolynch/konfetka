@@ -61,6 +61,7 @@
 	<file>images/refresh.png</file>
 	<file>images/xmms2Logo.png</file>
 	<file>images/speaker.png</file>
+	<file>images/unknown.png</file>
 	<file>images/panel-tiny-unlocked.png</file>
 	<file>images/panel-tiny-locked.png</file>
 	<file alias="weirdline">data/weirdline</file>
