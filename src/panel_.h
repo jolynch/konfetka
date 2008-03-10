@@ -33,7 +33,11 @@ class Panel_:public QWidget
 		QFrame * aFrame;
 	public:
 		Panel_(QWidget * parent, QString text, QWidget * a);
+		QWidget * attachedWidget();
 		void init(int pos, bool side);
+		void mv(int pos);
+		void showAttached();
+		void hideAttached();
 		int getPosition();
 		int getVPosition();
 		bool isRightSide();
@@ -54,6 +58,7 @@ class Panel_:public QWidget
 		void resizeAttached();
 		void clickTimeout();
 	signals:
+		void released();
 		void handleDraggedTo(Panel_ *,int);
 		void timerClicked(Panel_ *);
 		void rightClicked(Panel_ *,int,int);

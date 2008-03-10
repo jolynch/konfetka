@@ -5,6 +5,9 @@
 #include <QString>
 #include <QList>
 #include <QHash>
+#include <QAction>
+#include <QMenu>
+#include <QFont>
 #include "../panel_.h"
 
 typedef int PanelControllerFlag;
@@ -13,9 +16,9 @@ typedef int PanelControllerFlag;
 #define ANIMATION_INTERVAL 20
 
 class PanelController_:public QObject
-	{
+	{	Q_OBJECT
 	private:
-		QTimer * animator;
+		int timerId;
 		Panel_ * left;
 		Panel_ * right;
 		int screenWidth;
@@ -23,15 +26,19 @@ class PanelController_:public QObject
 		bool leftAnimating;  int leftAnimationTarget;
 		bool rightAnimating; int rightAnimationTarget;
 		QHash <QString, Panel_ *> nameHash;
-		QList <Panel_ * > leftPanels;
-		QList <Panel_ * > rightPanels;
+		QHash <Panel_ *, QString> panelHash;
+		QList <QString> leftPanels;
+		QList <QString> rightPanels;
+		QStringList panelNames;
 		
 		bool getSide(QString name);
 		QString getId(QString name);
+		QString getName(QString id,PanelControllerFlag f);
+		QString getName(QString id,bool s);
 
-		void changeToPanel(bool rightside, QString name);
-		void startAnim();
-		void stopAnim();
+		void changeToPanel(QString name);
+
+		void timerEvent ( QTimerEvent * event );
 
 		static const PanelControllerFlag BLANK		=0x000000;
 	public:
@@ -40,22 +47,33 @@ class PanelController_:public QObject
 		static const PanelControllerFlag LAYOUT_PANEL	=0x000100;
 
 		PanelController_(int width);
+		/*Restrictions on IDs that I remembered to put here:
+		**	IDs MUST NOT be repeated on each side. i.e. a side can only have one id of "Playlist". The other side can have an id of "Playlist" also.
+		**	No id can be "lock".
+		**	Can't use "$%$" in an id.
+		*/
 		void registerPanel(Panel_ * panel,QString id,PanelControllerFlag f);
 		void demandPanel(QString id); //Add more options probably
-		void demandPanel(QString id, bool keepSide); //keeps a side
+		void demandPanel(QString id, bool scrapSide); //keeps a side
 		QStringList getPanelNames();
-		Panel_ * getPanel(QString name, bool right_side=false);
-		
+		Panel_ * getPanel(QString id, bool right_side=false);
+
 	public slots:
-		void animate();
 		void handleDraggedTo(Panel_ *,int);
 		void timerClicked(Panel_ *);
 		void rightClicked(Panel_ *,int,int);
 		void scrolledUp(Panel_ *);
 		void scrolledDown(Panel_ *);
+		void release();
 
 	signals:
-		void newPanelRegistered(QString /*id*/);
+		void newPanelRegistered(QString /*id*/,bool /*side*/);
+	//Right click menu stuff
+	private:
+		QList<QAction *> leftActions;
+		QList<QAction *> rightActions;
+		QList<QAction *> findReplace(QString name);
+		
 	};
 
 #endif

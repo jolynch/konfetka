@@ -23,6 +23,13 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	QRect screenRect = desktop->screenGeometry();
 	std::cout<<"DR- X: "<<deskRect.x()<<" Y: "<<deskRect.y()<<" WIDTH: "<<deskRect.width()<<" HEIGHT: "<<deskRect.height()<<std::endl;
 	std::cout<<"SR- X: "<<screenRect.x()<<" Y: "<<screenRect.y()<<" WIDTH: "<<screenRect.width()<<" HEIGHT: "<<screenRect.height()<<std::endl;
+	screenW = screenRect.width();
+	screenH = screenRect.height();
+	height=450; currentHeight=450; step=-20;
+	this->setGeometry(screenRect.x(),screenRect.y(),screenW,450);
+	
+	conn->initPanelController(width());
+	PanelController_ * pc=((PanelController_ *)conn->getDataBackendObject(DataBackend::PANEL));
 
 	rearpanel=new RearPanel(conn,screenRect, this, NULL);	
 
@@ -33,12 +40,8 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	
 	connect(minibar,SIGNAL(volumeValueChanged(int)),mainbar,SLOT(slotSetVolume(int)));
 	connect(mainbar,SIGNAL(volumeChanged(int)),minibar,SIGNAL(setVolumeValue(int)));
-	medialibView=new MediaLib(conn,this,NULL);
+	
 	//playlistpanel=new PlaylistPanel(conn,this);
-	screenW = screenRect.width();
-	screenH = screenRect.height();
-	height=450; currentHeight=450; step=-20;
-	this->setGeometry(screenRect.x(),screenRect.y(),screenW,450);
 // 	this->setFixedHeight(height);
 // 	this->setFixedWidth(screenW);
 	icon=new QSystemTrayIcon(QIcon(":images/logomini.png"));
@@ -48,8 +51,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 
 	//Joe
 	//connect(rearpanel,SIGNAL(sigUpdateHeaders(QList<QString>)),playlistpanel,SLOT(updateHeaders(QList<QString>)));
-	connect(rearpanel,SIGNAL(sigDoubleClick(bool)),medialibView,SLOT(changeDoubleClick(bool)));
-	connect(rearpanel,SIGNAL(sigSearchWhat(int)),medialibView,SLOT(changeSearchAmount(int)));
+
 	//-anton damn you and your abstraction of the god damn playlist code...
 
 	QAction * temp;
@@ -129,7 +131,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 			this, SLOT(slotChangeState(konfetka::windowState,konfetka::windowState)));
 	QObject::connect(playlistpanel,SIGNAL(needRefresh()), this, SLOT(provideRefresh()));*/
 	minibar->hide();
-	PanelController *pc=new PanelController(width());
+	/*PanelController *pc=new PanelController(width());
 	//pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn,this)),PanelController::LEFTPANEL);
 	pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
 	Panel * mlibPanel=new Panel(this,"MEDIALIB",medialibView);
@@ -145,7 +147,18 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
 	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
 	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
-	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);*/
+
+	pc->registerPanel(new Panel_(this,"PLAYLIST",new PlaylistPanel(conn)),"Playlist",PanelController_::LEFTPANEL|PanelController_::LAYOUT_PANEL);
+	pc->registerPanel(new Panel_(this,"MEDIALIB",new MediaLib(conn,this,NULL)),"Medialib",PanelController_::RIGHTPANEL|PanelController_::LAYOUT_PANEL);
+	pc->registerPanel(new Panel_(this,"PLAYLIST",new PlaylistPanel(conn)),"Playlist",PanelController_::RIGHTPANEL|PanelController_::LAYOUT_PANEL);
+	pc->registerPanel(new Panel_(this,"MEDIALIB",new MediaLib(conn,this,NULL)),"Medialib",PanelController_::LEFTPANEL|PanelController_::LAYOUT_PANEL);
+	pc->registerPanel(new Panel_(this,"FILESYSTEM",new FileBrowser(conn,this)),"File System",PanelController_::RIGHTPANEL);
+	pc->registerPanel(new Panel_(this,"FILESYSTEM",new FileBrowser(conn,this)),"File System",PanelController_::LEFTPANEL);
+	pc->registerPanel(new Panel_(this,"COLLECTIONS",new CollectionBrowser(conn,this)),"Collections",PanelController_::LEFTPANEL|PanelController_::LAYOUT_PANEL);
+	pc->registerPanel(new Panel_(this,"COLLECTIONS",new CollectionBrowser(conn,this)),"Collections",PanelController_::RIGHTPANEL|PanelController_::LAYOUT_PANEL);
+	pc->registerPanel(new Panel_(this,"OPTIONS",new Options(conn,this)),"Options",PanelController_::RIGHTPANEL|PanelController_::LAYOUT_PANEL);
+	pc->registerPanel(new Panel_(this,"OPTIONS",new Options(conn,this)),"Options",PanelController_::LEFTPANEL|PanelController_::LAYOUT_PANEL);
 	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(respondToConfigChange(QString,QVariant)));
 	conn->emitInitialQSettings();
 	conn->emitInitialXmms2Settings();

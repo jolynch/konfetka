@@ -228,6 +228,7 @@ PlaylistPanel::PlaylistPanel(DataBackend * c):LayoutPanel()
 
 void PlaylistPanel::setLayoutSide(bool right_side)
 	{
+	side=right_side;
 	if(right_side)
 		{
 		rightLayout=new QGridLayout();
@@ -344,14 +345,17 @@ void PlaylistPanel::addQueue()
 
 void PlaylistPanel::addFromFilesystem()
 	{
+	((PanelController_*)(conn->getDataBackendObject(DataBackend::PANEL)))->demandPanel("File System",!side);
 	}
 
 void PlaylistPanel::addFromMedialib()
 	{
+	((PanelController_*)(conn->getDataBackendObject(DataBackend::PANEL)))->demandPanel("Medialib",!side);
 	}
 
 void PlaylistPanel::addFromCollections()
 	{
+	((PanelController_*)(conn->getDataBackendObject(DataBackend::PANEL)))->demandPanel("Collections",!side);
 	}
 
 void PlaylistPanel::deleteSelected()

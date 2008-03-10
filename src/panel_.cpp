@@ -38,7 +38,16 @@ void Panel_::init(int pos, bool side)
 	if(!rightSide){vposition=0;}
 	else{vposition=PBG_HEIGHT;}
 	this->move(position-PBG_WIDTH/2,vposition);
+	resizeAttached();
 	}
+
+void Panel_::mv(int pos)
+	{this->move(pos-PBG_WIDTH/2,vposition);}
+
+void Panel_::showAttached()
+	{attached->show();}
+void Panel_::hideAttached()
+	{attached->hide();}
 
 int Panel_::getPosition()
 	{return position;}
@@ -48,6 +57,8 @@ bool Panel_::isRightSide()
 	{return rightSide;}
 bool Panel_::isLocked() 
 	{return locked;}
+QWidget * Panel_::attachedWidget()
+	{return attached;}
 
 void Panel_::mouseDoubleClickEvent ( QMouseEvent * event )
 	{
@@ -78,6 +89,8 @@ void Panel_::mouseReleaseEvent ( QMouseEvent * event )
 	if(locked) return;
 	if(clicked)
 		emit timerClicked(this);
+	else
+		emit released();
 	clicked=false;
 	dragging=false;
 	}

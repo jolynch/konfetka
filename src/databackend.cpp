@@ -13,8 +13,7 @@ DataBackend::DataBackend(QObject * parent, std::string name):XMMS2Interface(pare
 	mlibData=new MlibData(this);
 	collData=new CollData(this);
 	plistData=new PlistData(this);
-	//panelController=new PanelController_(this);
-
+	
 	QSettings s;
 	random=false;
 	if(!s.contains("konfetka/randomPlay")) s.setValue("konfetka/randomPlay",false);
@@ -36,6 +35,9 @@ QObject * DataBackend::getDataBackendObject(DataBackendType type) {
 		}
 	return NULL;
 }
+
+void DataBackend::initPanelController(int width)
+	{panelController=new PanelController_(width);}
 
 void DataBackend::emitInitialQSettings() {
 	QSettings s;

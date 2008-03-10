@@ -3,6 +3,7 @@
 #include "databackend.h"
 #include "databackend/plistdata.h"
 #include "databackend/colldata.h"
+#include "databackend/panelcontroller_.h"
 #include "layoutpanel.h"
 #include <iostream>
 #include <string>
@@ -60,6 +61,7 @@ class Playlist:public QTableView
 class PlaylistPanel:public LayoutPanel
 	{	Q_OBJECT
 	private:
+		bool side;
 		bool editing, locked;
 		bool repeat_one, repeat_all;
 		DataBackend * conn;

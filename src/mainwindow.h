@@ -52,7 +52,7 @@ class MainWindow:public QWidget
 		//Panel * playlist;
 		//Handle * medialib_handle;
 		//Panel * medialib;
-		MediaLib * medialibView;
+		//MediaLib * medialibView;
 		QGridLayout * layout;
 		QTimer * animator;
 		QSystemTrayIcon * icon;

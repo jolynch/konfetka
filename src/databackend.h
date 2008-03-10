@@ -40,7 +40,7 @@ class DataBackend:public XMMS2Interface//, public QObject
 	
 	DataBackend(QObject * parent, std::string name);
 	QObject * getDataBackendObject(DataBackendType type);
-
+	void initPanelController(int width);
 
 ///FORWARD/BACKWARD
 	private:

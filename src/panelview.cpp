@@ -5,7 +5,7 @@
 PanelView::PanelView(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QWidget(parent,f) {
 	conn = c;
 	controller = (PanelController_*)(conn->getDataBackendObject(DataBackend::PANEL));
-
+	
 	loadPanels();
 	
 	infoMenu = new QMenu("Panel Control");
