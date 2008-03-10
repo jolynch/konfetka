@@ -153,6 +153,8 @@ void PanelController_::demandPanel(QString id)
 	{
 	int l=left->getPosition();
 	int r=right->getPosition();
+	if(left->isLocked()) demandPanel(id,true);
+	if(right->isLocked()) demandPanel(id,false);
 	if(l==PBG_WIDTH/2&&r!=screenWidth-PBG_WIDTH/2)
 		{demandPanel(id,false);
 		return;}
@@ -170,6 +172,8 @@ void PanelController_::demandPanel(QString id)
 
 void PanelController_::demandPanel(QString id, bool scrapSide)
 	{
+	if(scrapSide&&right->isLocked()) return;
+	if(!scrapSide&&left->isLocked()) return;
 	changeToPanel(getName(id,scrapSide));
 	int l=left->getPosition();
 	int r=right->getPosition();
@@ -297,6 +301,8 @@ QList<QAction *> PanelController_::findReplace(QString name)
 			QAction * t=new QAction("Toggle lock",0);
 			if(getSide(name)) t->setData("r$%$lock");
 			else t->setData("l$%$lock");
+			if(nameHash[name]->isLocked()) t->setIcon(QIcon(":images/panel-tiny-locked.png"));
+			else t->setIcon(QIcon(":images/panel-tiny-unlocked.png"));
 			QFont f=t->font();
 			f.setItalic(true);
 			t->setFont(f);

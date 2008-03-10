@@ -8,6 +8,7 @@
 #include <QAction>
 #include <QMenu>
 #include <QFont>
+#include <QIcon>
 #include "../panel_.h"
 
 typedef int PanelControllerFlag;
