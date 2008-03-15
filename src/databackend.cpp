@@ -6,7 +6,7 @@
 #include "databackend/plistdata.h"
 #include "databackend/mlibdata.h"
 #include "databackend/colldata.h"
-#include "databackend/PanelController.h"
+#include "databackend/panelcontroller.h"
 
 
 DataBackend::DataBackend(QObject * parent, std::string name):XMMS2Interface(parent,name) {
