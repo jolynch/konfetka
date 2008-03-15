@@ -2,8 +2,8 @@
 #define XMMSCLIENTPP
 #include <xmmsclient/xmmsclient++.h>
 #endif
-#ifndef REARPANEL_H
-#define REARPANEL_H
+#ifndef REARPanelH
+#define REARPanelH
 #include "databackend.h"
 #include "databackend/mlibdata.h"
 #include "equalizer.h"

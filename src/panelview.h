@@ -1,7 +1,7 @@
 #ifndef PANELVIEW_H
 #define PANELVIEW_H
 #include "databackend.h"
-#include "databackend/panelcontroller_.h"
+#include "databackend/panelcontroller.h"
 #include <QWidget>
 #include <QList>
 #include <QHash>
@@ -21,7 +21,7 @@ class PanelView:public QWidget {
 	Q_OBJECT
 	private:
 		DataBackend * conn;
-		PanelController_ * controller;
+		PanelController * controller;
 		QHash<QString,QPixmap> panels;
 		QHash<QString,QString> helpText;
 		int selected;

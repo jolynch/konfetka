@@ -1,9 +1,9 @@
-#ifndef PlaylistPanel_H
-#define PlaylistPanel_H
+#ifndef PLAYLISTPANEL_H
+#define PLAYLISTPANEL_H
 #include "databackend.h"
 #include "databackend/plistdata.h"
 #include "databackend/colldata.h"
-#include "databackend/panelcontroller_.h"
+#include "databackend/panelcontroller.h"
 #include "layoutpanel.h"
 #include <iostream>
 #include <string>

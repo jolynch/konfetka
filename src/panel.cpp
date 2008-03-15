@@ -1,181 +1,155 @@
 #ifndef PANEL_CPP
 #define PANEL_CPP
 #include "panel.h"
-#include <iostream>
 
-Panel::Panel(QWidget * parent, QString text_, QWidget * attached_):QWidget(parent)
+Panel::Panel(QWidget * parent, QString text, QWidget * a):QWidget(parent)
 	{
-	x=-1; y=-1;
-	text=text_;
-	setFixedHeight(PBG_HEIGHT);
-	setFixedWidth(PBG_WIDTH);
-	attached=attached_;
-	f=new QFrame((QWidget *)(this->parent()));
-	fl=new QGridLayout();
+	this->setFixedHeight(PBG_HEIGHT);
+	this->setFixedWidth(PBG_WIDTH);
+	vposition=0; 
+	position =PBG_WIDTH/2;
+	rightSide=false;
+	clicked=false;
+	dragging=false;
+	locked=false;
+	name=text;
+	attached=a;
+	clickTimer=new QTimer();
+	clickTimer->setSingleShot(true);
+	clickTimer->setInterval(100);
+	//frame setup. needs to hold the attached widget.
+	aFrame=new QFrame((QWidget *)(this->parent()));
+	QGridLayout * fl=new QGridLayout();
 	fl->addWidget(attached);
 	fl->setAlignment(Qt::AlignCenter);
 	fl->setMargin(0);
-	f->setLayout(fl);
-	f->setAutoFillBackground(true);
-	f->setBackgroundRole(QPalette::Window);
-	f->setFrameStyle(QFrame::StyledPanel|QFrame::Sunken);
-	locked=false; dragging=false; timerOn=false;
-	animator=new QTimer();
-	animator->setInterval(PT_INTERVAL);
-	menu=new QMenu();
-	clicktimer=new QTimer();
-	clicktimer->setSingleShot(true);
-	clicktimer->setInterval(100);
-	QObject::connect(clicktimer,SIGNAL(timeout()),this,SLOT(click_timeout()));
-	menu->addAction("Next panel",this,SLOT(up_press()));
-	menu->addAction("Previous panel",this,SLOT(down_press()));
-	menu->addAction("Toggle lock",this,SLOT(lock_press()));
-	this->hide();
-	clicked=false;
+	aFrame->setLayout(fl);
+	aFrame->setAutoFillBackground(true);
+	aFrame->setBackgroundRole(QPalette::Window);
+	aFrame->setFrameStyle(QFrame::StyledPanel|QFrame::Sunken);
+
+	connect(clickTimer,SIGNAL(timeout()),this,SLOT(clickTimeout()));
 	}
 
-LayoutPanel * Panel::getLayoutPanel()
-	{return ((LayoutPanel *)attached);}
-
-bool Panel::isLocked(){return locked;}
-
-void Panel::setSide(bool right_side)
+void Panel::init(int pos, bool side)
 	{
-	sideR=right_side;
-	if(x==-1&&y==-1)
-		{
-		if(!sideR)
-			{x=0;y=0;}
-		else
-			{x=((QWidget *)parent())->width()-PBG_WIDTH; y=PBG_HEIGHT;}
-		move(x,y);
-		resizeAttached();
-		}
+	rightSide=side;
+	position=pos;
+	if(!rightSide){vposition=0;}
+	else{vposition=PBG_HEIGHT;}
+	this->move(position-PBG_WIDTH/2,vposition);
+	resizeAttached();
 	}
-	
 
-void Panel::setSide_DOUBLESIDEPANEL(bool right_side)
-	{
-	if(!right_side)
-		{y=0;}
-	else
-		{y=PBG_HEIGHT;}
-	}
+void Panel::mv(int pos)
+	{this->move(pos-PBG_WIDTH/2,vposition);}
+
+void Panel::showAttached()
+	{attached->show();}
+void Panel::hideAttached()
+	{attached->hide();}
+
+int Panel::getPosition()
+	{return position;}
+int Panel::getVPosition()
+	{return vposition;}
+bool Panel::isRightSide() 
+	{return rightSide;}
+bool Panel::isLocked() 
+	{return locked;}
+QWidget * Panel::attachedWidget()
+	{return attached;}
 
 void Panel::mouseDoubleClickEvent ( QMouseEvent * event )
 	{
-	if(locked) return;
-	QObject::connect(animator,SIGNAL(timeout()),this,SLOT(timer_ping()));
-	animator->start();
-	timerOn=true;clicktimer->stop();
-	attached->hide();
+	if(!locked)
+		emit timerClicked(this);
 	}
 
 void Panel::mouseMoveEvent ( QMouseEvent * event )
 	{
-	if(locked) return;
-	if(!dragging) return;
-	QPoint newP=event->globalPos();
-	emit(requestMove(false,newP.x(),y,sideR,this));
-	this->show();
+	if(dragging&&!locked)
+		emit handleDraggedTo(this,event->globalX());
 	}
 
 void Panel::mousePressEvent ( QMouseEvent * event )
-	{clicked=true;
+	{
 	if(event->button()==Qt::RightButton)
-		menu->exec(event->globalPos());
-	if(locked) return;
-	if(event->button()==Qt::LeftButton)
 		{
-		clicktimer->start();
-		dragging=true;
-		lastP=event->globalPos();
+		emit rightClicked(this,event->globalX(),event->globalY());
+		return;
 		}
+	if(locked) return;
+	clicked=true;
+	clickTimer->start();
 	}
 
 void Panel::mouseReleaseEvent ( QMouseEvent * event )
-	{clicked=false;
-	if(dragging)
-		{dragging=false;}
-	show();
-	emit(released(this));
-	}
-
-void Panel::click_timeout()
 	{
-	if(clicked) return;
-	const QPoint foo(0,0);
-	mouseDoubleClickEvent(new QMouseEvent(QEvent::MouseButtonDblClick,foo,Qt::RightButton,Qt::RightButton,0));}
+	if(locked) return;
+	if(clicked)
+		emit timerClicked(this);
+	else
+		emit released();
+	clicked=false;
+	dragging=false;
+	}
 
 void Panel::wheelEvent ( QWheelEvent * event )
 	{
 	if(locked) return;
-	if(event->delta()>0) up_press();
-	if(event->delta()<0) down_press();
+	if(event->delta()>0) emit scrolledUp(this);
+	if(event->delta()<0) emit scrolledDown(this);
 	}
 
 void Panel::moveEvent ( QMoveEvent * event )
 	{
-	x=event->pos().x();
+	if(locked) return;
+	position=event->pos().x()+PBG_WIDTH/2;
+	update();
 	resizeAttached();
-	}
-
-void Panel::up_press()
-	{if(locked) return;
-	emit(cycle(true));}
-
-void Panel::down_press()
-	{if(locked) return;
-	emit(cycle(false));}
-
-void Panel::lock_press()
-	{locked = !locked; update();}
-
-void Panel::timer_ping()
-	{emit(requestMove(true,PSLIDE_DELTA,y,sideR,this));}
-
-void Panel::stop()
-	{
-	//if(!timerOn) return;
-	animator->disconnect();
-	animator->stop();
-	timerOn=false;
-	attached->show();
-	}
-
-void Panel::resizeAttached()
-	{
-	int xPos=x;
-	QWidget * pa=(QWidget *)parent();
-	if(sideR)
-		{xPos+=PBG_WIDTH;
-		f->move(xPos,pa->y());}
-	else 
-		f->move(pa->x(),pa->y());
-	int width=x;
-	if(sideR)width=pa->width()-(x+PBG_WIDTH);
-	f->resize(width,PBG_HEIGHT*2);
-	f->show();
 	}
 
 void Panel::hide()
 	{
-	active=false;
 	((QWidget *)(this))->hide();
-	f->hide();
+	aFrame->hide();
 	}
 
 void Panel::show()
 	{
-	active=true;
-	f->show();
+	aFrame->show();
 	((QWidget *)(this))->show();
 	}
 
-bool Panel::isActive()
-	{return active;}
+void Panel::lock()
+	{locked=true; update();}
 
- //!here be hardcoding
+void Panel::unlock()
+	{locked=false; update();}
+
+void Panel::resizeAttached()
+	{
+	QWidget * pa=(QWidget *)parent();
+	if(rightSide)
+		aFrame->move(position+PBG_WIDTH/2,pa->y());
+	else 
+		aFrame->move(pa->x(),pa->y());
+	int width=position-PBG_WIDTH/2;
+	if(rightSide)width=pa->width()-(position+PBG_WIDTH/2);
+	aFrame->resize(width,PBG_HEIGHT*2);
+	}
+
+void Panel::clickTimeout()
+	{
+	if(locked) return;
+	if(clicked)
+		{
+		clicked=false;
+		dragging=true;
+		}
+	}
+
 void Panel::paintEvent ( QPaintEvent * event )
 	{
 	QPainter painter(this);
@@ -187,7 +161,7 @@ void Panel::paintEvent ( QPaintEvent * event )
 	//curveFactor >=1
 	int x, x2, curveFactor;
 	curveFactor=2; x=0; x2=PBG_WIDTH/curveFactor;
-		if(sideR) {
+		if(rightSide) {
 		x=PBG_WIDTH/curveFactor;
 		x2=0;
 		}
@@ -202,7 +176,7 @@ void Panel::paintEvent ( QPaintEvent * event )
 	path.closeSubpath();
 	//end rounded corners
 
-	if(sideR)
+	if(rightSide)
 		{
 		gradient=QLinearGradient(PBG_WIDTH,0,0,0);
 		gradient.setColorAt(0,QColor::fromRgb(157,178,190));
@@ -224,10 +198,8 @@ void Panel::paintEvent ( QPaintEvent * event )
 	painter.setPen(Qt::black);
 	painter.setFont(QFont("Monospace",PTEXT_SIZE,QFont::Bold));
 	painter.drawText(QRectF((PBG_WIDTH-PTEXT_SIZE)/2.0,0.0,PTEXT_SIZE,PBG_HEIGHT),
-			Qt::AlignCenter|Qt::TextWrapAnywhere,text);
+			Qt::AlignCenter|Qt::TextWrapAnywhere,name);
 	painter.restore();
 	}
 
-void Panel::allowXMove(int x__)
-	{move(x__,y);}
 #endif

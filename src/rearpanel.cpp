@@ -1,5 +1,5 @@
-#ifndef REARPANEL_CPP
-#define REARPANEL_CPP
+#ifndef REARPanelCPP
+#define REARPanelCPP
 #include <time.h>
 #include "rearpanel.h"
 RearPanel::RearPanel(DataBackend * c,QRect deskRect,QWidget * parent,Qt::WindowFlags f):QWidget(parent,f)

@@ -1,7 +1,7 @@
-#ifndef PANELCONTROLLER__CPP
-#define PANELCONTROLLER__CPP
-#include "panelcontroller_.h"
-PanelController_::PanelController_(int width):QObject()
+#ifndef PANELCONTROLLER_CPP
+#define PANELCONTROLLER_CPP
+#include "panelcontroller.h"
+PanelController::PanelController(int width):QObject()
 	{
 	timerId=startTimer(ANIMATION_INTERVAL);
 	screenWidth=width;
@@ -14,7 +14,7 @@ PanelController_::PanelController_(int width):QObject()
 	rightAnimationTarget=-1;
 	}
 
-bool PanelController_::getSide(QString name)
+bool PanelController::getSide(QString name)
 	{
 	if((name.split("$%$")[0])=="l")
 		return false;
@@ -23,10 +23,10 @@ bool PanelController_::getSide(QString name)
 	return 0;
 	}
 
-QString PanelController_::getId(QString name)
+QString PanelController::getId(QString name)
 	{return (name.split("$%$")[1]);}
 
-QString PanelController_::getName(QString id,PanelControllerFlag f)
+QString PanelController::getName(QString id,PanelControllerFlag f)
 	{
 	QString out="";
 	if((f&LEFTPANEL)!=BLANK) out="l";
@@ -36,7 +36,7 @@ QString PanelController_::getName(QString id,PanelControllerFlag f)
 	return out;
 	}
 
-QString PanelController_::getName(QString id,bool s)
+QString PanelController::getName(QString id,bool s)
 	{
 	QString out="";
 	if(!s) out="l";
@@ -46,7 +46,7 @@ QString PanelController_::getName(QString id,bool s)
 	return out;
 	}
 
-void PanelController_::changeToPanel(QString name)
+void PanelController::changeToPanel(QString name)
 	{
 	int lPos=0;
 	if(getSide(name))
@@ -75,7 +75,7 @@ void PanelController_::changeToPanel(QString name)
 		}
 	}
 
-void PanelController_::timerEvent ( QTimerEvent * event )
+void PanelController::timerEvent ( QTimerEvent * event )
 	{
 	if(event->timerId()!=timerId) return;
 	if(leftAnimating)
@@ -102,7 +102,7 @@ void PanelController_::timerEvent ( QTimerEvent * event )
 		}
 	}
 
-void PanelController_::registerPanel(Panel_ * panel,QString id,PanelControllerFlag f)
+void PanelController::registerPanel(Panel * panel,QString id,PanelControllerFlag f)
 	{
 	QString name=getName(id,f);
 	nameHash[name]=panel;
@@ -141,15 +141,15 @@ void PanelController_::registerPanel(Panel_ * panel,QString id,PanelControllerFl
 		panelNames.append(id);
 	//Connects
 	QObject::connect(panel,SIGNAL(released()),this,SLOT(release()));
-	QObject::connect(panel,SIGNAL(timerClicked(Panel_ *)),this,SLOT(timerClicked(Panel_ *)));
-	QObject::connect(panel,SIGNAL(rightClicked(Panel_ *,int,int)),this,SLOT(rightClicked(Panel_ *,int,int)));
-	QObject::connect(panel,SIGNAL(handleDraggedTo(Panel_ *,int)),this,SLOT(handleDraggedTo(Panel_ *,int)));
-	QObject::connect(panel,SIGNAL(scrolledUp(Panel_ *)),this,SLOT(scrolledUp(Panel_ *)));
-	QObject::connect(panel,SIGNAL(scrolledDown(Panel_ *)),this,SLOT(scrolledDown(Panel_ *)));
+	QObject::connect(panel,SIGNAL(timerClicked(Panel *)),this,SLOT(timerClicked(Panel *)));
+	QObject::connect(panel,SIGNAL(rightClicked(Panel *,int,int)),this,SLOT(rightClicked(Panel *,int,int)));
+	QObject::connect(panel,SIGNAL(handleDraggedTo(Panel *,int)),this,SLOT(handleDraggedTo(Panel *,int)));
+	QObject::connect(panel,SIGNAL(scrolledUp(Panel *)),this,SLOT(scrolledUp(Panel *)));
+	QObject::connect(panel,SIGNAL(scrolledDown(Panel *)),this,SLOT(scrolledDown(Panel *)));
 	emit newPanelRegistered(id,r);
 	}
 
-void PanelController_::demandPanel(QString id)
+void PanelController::demandPanel(QString id)
 	{
 	int l=left->getPosition();
 	int r=right->getPosition();
@@ -170,7 +170,7 @@ void PanelController_::demandPanel(QString id)
 		return;}
 	}
 
-void PanelController_::demandPanel(QString id, bool scrapSide)
+void PanelController::demandPanel(QString id, bool scrapSide)
 	{
 	if(scrapSide&&right->isLocked()) return;
 	if(!scrapSide&&left->isLocked()) return;
@@ -188,16 +188,16 @@ void PanelController_::demandPanel(QString id, bool scrapSide)
 		}
 	}
 
-QStringList PanelController_::getPanelNames()
+QStringList PanelController::getPanelNames()
 	{return panelNames;}
 
-Panel_ * PanelController_::getPanel(QString id, bool right_side)
+Panel * PanelController::getPanel(QString id, bool right_side)
 	{return nameHash[getName(id,right_side)];}
 
-void PanelController_::release()
+void PanelController::release()
 	{stuck=false;}
 
-void PanelController_::handleDraggedTo(Panel_ * p, int newPos)
+void PanelController::handleDraggedTo(Panel * p, int newPos)
 	{
 	if(p!=right&&p!=left) return;
 	if((newPos<PBG_WIDTH/2))
@@ -220,7 +220,7 @@ void PanelController_::handleDraggedTo(Panel_ * p, int newPos)
 		right->mv(newPos);
 	}
 
-void PanelController_::timerClicked(Panel_ * p)
+void PanelController::timerClicked(Panel * p)
 	{
 	if(p!=right&&p!=left) return;
 	int l=left->getPosition();
@@ -278,7 +278,7 @@ void PanelController_::timerClicked(Panel_ * p)
 		}
 	}
 
-void PanelController_::rightClicked(Panel_ * p, int x, int y)
+void PanelController::rightClicked(Panel * p, int x, int y)
 	{
 	QAction * a=QMenu::exec(findReplace(panelHash[p]),QPoint(x,y));
 	if(a==0) return;
@@ -290,7 +290,7 @@ void PanelController_::rightClicked(Panel_ * p, int x, int y)
 	else if(!p->isLocked()) changeToPanel(name);
 	}
 
-QList<QAction *> PanelController_::findReplace(QString name)
+QList<QAction *> PanelController::findReplace(QString name)
 	{
 	QList<QAction *> out;
 	QList<QAction *> tmp;
@@ -315,7 +315,7 @@ QList<QAction *> PanelController_::findReplace(QString name)
 	return out;
 	}
 
-void PanelController_::scrolledUp(Panel_ * p)
+void PanelController::scrolledUp(Panel * p)
 	{
 	QString name=panelHash[p];
 	if(getSide(name))
@@ -334,7 +334,7 @@ void PanelController_::scrolledUp(Panel_ * p)
 		}
 	}
 
-void PanelController_::scrolledDown(Panel_ * p)
+void PanelController::scrolledDown(Panel * p)
 	{
 	QString name=panelHash[p];
 	if(getSide(name))

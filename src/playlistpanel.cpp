@@ -1,5 +1,5 @@
-#ifndef PlaylistPanel_CPP
-#define PlaylistPanel_CPP
+#ifndef PLAYLISTPANEL_CPP
+#define PLAYLISTPANEL_CPP
 #include "playlistpanel.h"
 Playlist::Playlist(DataBackend * c,QWidget * p):QTableView(p)
 	{
@@ -345,17 +345,17 @@ void PlaylistPanel::addQueue()
 
 void PlaylistPanel::addFromFilesystem()
 	{
-	((PanelController_*)(conn->getDataBackendObject(DataBackend::PANEL)))->demandPanel("File System",!side);
+	((PanelController*)(conn->getDataBackendObject(DataBackend::PANEL)))->demandPanel("File System",!side);
 	}
 
 void PlaylistPanel::addFromMedialib()
 	{
-	((PanelController_*)(conn->getDataBackendObject(DataBackend::PANEL)))->demandPanel("Medialib",!side);
+	((PanelController*)(conn->getDataBackendObject(DataBackend::PANEL)))->demandPanel("Medialib",!side);
 	}
 
 void PlaylistPanel::addFromCollections()
 	{
-	((PanelController_*)(conn->getDataBackendObject(DataBackend::PANEL)))->demandPanel("Collections",!side);
+	((PanelController*)(conn->getDataBackendObject(DataBackend::PANEL)))->demandPanel("Collections",!side);
 	}
 
 void PlaylistPanel::deleteSelected()

@@ -6,7 +6,7 @@
 #include "databackend/plistdata.h"
 #include "databackend/mlibdata.h"
 #include "databackend/colldata.h"
-#include "databackend/panelcontroller_.h"
+#include "databackend/PanelController.h"
 
 
 DataBackend::DataBackend(QObject * parent, std::string name):XMMS2Interface(parent,name) {
@@ -37,7 +37,7 @@ QObject * DataBackend::getDataBackendObject(DataBackendType type) {
 }
 
 void DataBackend::initPanelController(int width)
-	{panelController=new PanelController_(width);}
+	{panelController=new PanelController(width);}
 
 void DataBackend::emitInitialQSettings() {
 	QSettings s;

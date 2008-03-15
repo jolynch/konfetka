@@ -29,7 +29,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	this->setGeometry(screenRect.x(),screenRect.y(),screenW,450);
 	
 	conn->initPanelController(width());
-	PanelController_ * pc=((PanelController_ *)conn->getDataBackendObject(DataBackend::PANEL));
+	PanelController * pc=((PanelController *)conn->getDataBackendObject(DataBackend::PANEL));
 
 	rearpanel=new RearPanel(conn,screenRect, this, NULL);	
 
@@ -41,18 +41,10 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	connect(minibar,SIGNAL(volumeValueChanged(int)),mainbar,SLOT(slotSetVolume(int)));
 	connect(mainbar,SIGNAL(volumeChanged(int)),minibar,SIGNAL(setVolumeValue(int)));
 	
-	//playlistpanel=new PlaylistPanel(conn,this);
-// 	this->setFixedHeight(height);
-// 	this->setFixedWidth(screenW);
 	icon=new QSystemTrayIcon(QIcon(":images/logomini.png"));
 	QObject::connect(icon,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 						this,SLOT(clickResponse(QSystemTrayIcon::ActivationReason)));
 	QObject::connect(mainbar,SIGNAL(infoChanged()),this,SLOT(trayTool()));
-
-	//Joe
-	//connect(rearpanel,SIGNAL(sigUpdateHeaders(QList<QString>)),playlistpanel,SLOT(updateHeaders(QList<QString>)));
-
-	//-anton damn you and your abstraction of the god damn playlist code...
 
 	QAction * temp;
 	QMenu * menu=new QMenu();
@@ -88,7 +80,6 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 
 	icon->setContextMenu(menu);
 	icon->show();
-//	CollectionEditor * edit=new CollectionEditor(conn,this);
 	/*!!!!!!!!!!!!!!need to remove this hardcoding somehow!!!!!!!!!!!!!!!!!*/
 	/*!Other than the panel handles being hard coded to being 187 high what hard coding?!*/
 	QRect geom=this->geometry();
@@ -101,64 +92,23 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	middle=geom.width()/2-10;
 	mlibHH=rearpanel->height()-187;
 	playHH=0;
-	//Playlisthandle=new Handle(":images/Playlisthandle",this);
-	//playlist=new Panel(leftSide,playHH,screenW,geom.height()-75,false,playlistpanel,this);
-	//medialib=new Panel(rightSide,playHH,screenW,geom.height()-75,true,medialibView,this);
-//	medialib=new Panel(rightSide,playHH,screenW,geom.height()-75,true,edit,this);
-	//medialib_handle=new Handle(":images/medialib_handle",this);
-	//Playlisthandle->move(leftSide,playHH);
-	//medialib_handle->move(rightSide,mlibHH);
+
 	currentPlaylistPos=leftSide;
 	currentMedialibPos=rightSide;
 	currentState=konfetka::rearPanel;
-	/*QObject::connect(Playlisthandle,SIGNAL(clicked()),this,SLOT(slotPlaylistClicked()));
-	QObject::connect(medialib_handle,SIGNAL(clicked()),this,SLOT(slotMedialibClicked()));
-	QObject::connect(Playlisthandle,SIGNAL(done()),this,SLOT(slotAnimationDone()));
-	QObject::connect(medialib_handle,SIGNAL(done()),this,SLOT(slotAnimationDone()));
-	QObject::connect(this, SIGNAL(movePlaylist(int,int,int,int)),
-						Playlisthandle,SLOT(moveThis(int,int,int,int)));
-	QObject::connect(this, SIGNAL(resizePlaylist(int,int)),
-						playlistpanel,SLOT(update(int,int)));
-//	QObject::connect(this, SIGNAL(resizeMedialib(int,int)),
-//						edit,SLOT(update(int,int)));
-	QObject::connect(this, SIGNAL(movePlaylist(int,int,int,int)),
-						playlist,SLOT(moveThis(int,int,int,int)));
-	QObject::connect(this, SIGNAL(moveMedialib(int,int,int,int)),
-						medialib_handle,SLOT(moveThis(int,int,int,int)));
-	QObject::connect(this, SIGNAL(moveMedialib(int,int,int,int)),
-						medialib,SLOT(moveThis(int,int,int,int)));
-	QObject::connect(this, SIGNAL(stateChanged(konfetka::windowState,konfetka::windowState)),
-			this, SLOT(slotChangeState(konfetka::windowState,konfetka::windowState)));
-	QObject::connect(playlistpanel,SIGNAL(needRefresh()), this, SLOT(provideRefresh()));*/
+
 	minibar->hide();
-	/*PanelController *pc=new PanelController(width());
-	//pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn,this)),PanelController::LEFTPANEL);
-	pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
-	Panel * mlibPanel=new Panel(this,"MEDIALIB",medialibView);
-	PanelPtrList * mlibincompatlist=new PanelPtrList();
-	mlibincompatlist->append(mlibPanel);
-	pc->registerPanel(mlibPanel,PanelController::DOUBLE_SIDED_PANEL,mlibincompatlist);
-	pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
-	//pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn,this)),PanelController::RIGHTPANEL);
 
-
-	pc->registerPanel(new Panel(this,"FILESYSTEM",new FileBrowser(conn,this)),PanelController::RIGHTPANEL);
-	pc->registerPanel(new Panel(this,"FILESYSTEM",new FileBrowser(conn,this)),PanelController::LEFTPANEL);
-	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
-	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
-	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
-	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);*/
-
-	pc->registerPanel(new Panel_(this,"PLAYLIST",new PlaylistPanel(conn)),"Playlist",PanelController_::LEFTPANEL|PanelController_::LAYOUT_PANEL);
-	pc->registerPanel(new Panel_(this,"MEDIALIB",new MediaLib(conn,this,NULL)),"Medialib",PanelController_::RIGHTPANEL|PanelController_::LAYOUT_PANEL);
-	pc->registerPanel(new Panel_(this,"PLAYLIST",new PlaylistPanel(conn)),"Playlist",PanelController_::RIGHTPANEL|PanelController_::LAYOUT_PANEL);
-	pc->registerPanel(new Panel_(this,"MEDIALIB",new MediaLib(conn,this,NULL)),"Medialib",PanelController_::LEFTPANEL|PanelController_::LAYOUT_PANEL);
-	pc->registerPanel(new Panel_(this,"FILESYSTEM",new FileBrowser(conn,this)),"File System",PanelController_::RIGHTPANEL);
-	pc->registerPanel(new Panel_(this,"FILESYSTEM",new FileBrowser(conn,this)),"File System",PanelController_::LEFTPANEL);
-	pc->registerPanel(new Panel_(this,"COLLECTIONS",new CollectionBrowser(conn,this)),"Collections",PanelController_::LEFTPANEL|PanelController_::LAYOUT_PANEL);
-	pc->registerPanel(new Panel_(this,"COLLECTIONS",new CollectionBrowser(conn,this)),"Collections",PanelController_::RIGHTPANEL|PanelController_::LAYOUT_PANEL);
-	pc->registerPanel(new Panel_(this,"OPTIONS",new Options(conn,this)),"Options",PanelController_::RIGHTPANEL|PanelController_::LAYOUT_PANEL);
-	pc->registerPanel(new Panel_(this,"OPTIONS",new Options(conn,this)),"Options",PanelController_::LEFTPANEL|PanelController_::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn)),"Playlist",PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"MEDIALIB",new MediaLib(conn,this,NULL)),"Medialib",PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"PLAYLIST",new PlaylistPanel(conn)),"Playlist",PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"MEDIALIB",new MediaLib(conn,this,NULL)),"Medialib",PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"FILESYSTEM",new FileBrowser(conn,this)),"File System",PanelController::RIGHTPANEL);
+	pc->registerPanel(new Panel(this,"FILESYSTEM",new FileBrowser(conn,this)),"File System",PanelController::LEFTPANEL);
+	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),"Collections",PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),"Collections",PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),"Options",PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),"Options",PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
 	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(respondToConfigChange(QString,QVariant)));
 	conn->emitInitialQSettings();
 	conn->emitInitialXmms2Settings();
@@ -201,108 +151,7 @@ void MainWindow::slotQuit()
 	papa->quit();
 	}
 
-/*void MainWindow::slotPlaylistClicked()
-	{
-	switch(currentState)
-		{
-		case konfetka::rearPanel:
-			emit(slotChangeState(currentState,konfetka::playlistOnly));
-			break;
-		case konfetka::playlistOnly:
-			emit(slotChangeState(currentState,konfetka::rearPanel));
-			break;
-		case konfetka::medialibOnly:
-			emit(slotChangeState(currentState,konfetka::Playlistmedialib));
-			break;
-		case konfetka::Playlistmedialib:
-			emit(slotChangeState(currentState,konfetka::medialibOnly));
-			break;
-		}
-	}
 
-void MainWindow::slotMedialibClicked()
-	{
-	switch(currentState)
-		{
-		case konfetka::rearPanel:
-			emit(slotChangeState(currentState,konfetka::medialibOnly));
-			break;
-		case konfetka::medialibOnly:
-			emit(slotChangeState(currentState,konfetka::rearPanel));
-			break;
-		case konfetka::playlistOnly:
-			emit(slotChangeState(currentState,konfetka::Playlistmedialib));
-			break;
-		case konfetka::Playlistmedialib:
-			emit(slotChangeState(currentState,konfetka::playlistOnly));
-			break;
-		}
-	}
-
-void MainWindow::slotChangeState(konfetka::windowState oldS, konfetka::windowState newS)
-	{
-	currentState=newS;
-	rearpanel->hide();
-	switch(oldS)
-		{
-		case konfetka::rearPanel:
-			if(newS==konfetka::medialibOnly)
-				{
-				emit(moveMedialib(mlibHH,leftSide,rightSide,-5));
-				emit(resizeMedialib(rightSide+20-leftSide,height-75));
-				}
-			if(newS==konfetka::playlistOnly)
-				{
-				emit(movePlaylist(playHH,rightSide,leftSide,5));
-				emit(resizePlaylist(rightSide,height-75));
-				}
-			break;
-		case konfetka::medialibOnly:
-			if(newS==konfetka::rearPanel)
-				{
-				emit(moveMedialib(mlibHH,rightSide,leftSide,5));
-				emit(resizeMedialib(rightSide+20-rightSide,height-75));
-				}
-			if(newS==konfetka::Playlistmedialib)
-				{
-				emit(moveMedialib(mlibHH,middle,leftSide,5));
-				emit(resizeMedialib(rightSide+20-middle,height-75));
-				emit(movePlaylist(playHH,middle,leftSide,5));
-				emit(resizePlaylist(middle,height-75));
-				}
-			break;
-		case konfetka::playlistOnly:
-			if(newS==konfetka::rearPanel)
-				{
-				emit(movePlaylist(playHH,leftSide,rightSide,-5));
-				emit(resizePlaylist(leftSide,height-75));
-				}
-			if(newS==konfetka::Playlistmedialib)
-				{
-				emit(moveMedialib(mlibHH,middle,rightSide,-5));
-				emit(resizeMedialib(rightSide+20-middle,height-75));
-				emit(movePlaylist(playHH,middle,rightSide,-5));
-				emit(resizePlaylist(middle,height-75));
-				}
-			break;
-		case konfetka::Playlistmedialib:
-			if(newS==konfetka::medialibOnly)
-				{
-				emit(movePlaylist(playHH,leftSide,middle,-5));
-				emit(moveMedialib(mlibHH,leftSide,middle,-5));
-				emit(resizeMedialib(rightSide+20-leftSide,height-75));
-				emit(resizePlaylist(leftSide,height-75));
-				}
-			if(newS==konfetka::playlistOnly)
-				{
-				emit(movePlaylist(playHH,rightSide,middle,5));
-				emit(moveMedialib(mlibHH,rightSide,middle,5));
-				emit(resizeMedialib(rightSide+20-rightSide,height-75));
-				emit(resizePlaylist(rightSide,height-75));
-				}
-			break;
-		}
-	}*/
 
 void MainWindow::slotAnimationDone()
 	{
@@ -366,27 +215,4 @@ void MainWindow::clickResponse(QSystemTrayIcon::ActivationReason reason)
 	if(reason==QSystemTrayIcon::Trigger) toggle();
 	}
 
-/*void MainWindow::provideRefresh()
-	{
-	switch(currentState)
-		{
-		case konfetka::medialibOnly:
-		case konfetka::rearPanel:
-			emit(resizePlaylist(leftSide,height-75));
-			return;
-		case konfetka::Playlistmedialib:
-			emit(resizePlaylist(middle,height-75));
-			return;
-		case konfetka::playlistOnly:
-			emit(resizePlaylist(rightSide,height-75));
-			return;
-		};
-	}*/
-
-
-/*//! ADDED TO MAKE RAND PLAY WORK, also makes other things more convenient
-MediaLib* MainWindow::theMediaLib() {
-return medialibView;
-}
-//! done*/
 #endif
