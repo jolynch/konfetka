@@ -8,7 +8,7 @@ AlbumArt::AlbumArt(DataBackend * c) {
 	numToGet=0;
 	hasAlbum = 0;
 	toReflect = 1;
-	noAlbum = QPixmap(":images/no_album175");
+	noAlbum = QPixmap(":images/no_album180");
 	setAcceptDrops(true);
 	http = new QHttp();
 	connect(conn,SIGNAL(qsettingsValueChanged(QString, QVariant)),this,SLOT(processSettingsUpdate(QString,QVariant)));
