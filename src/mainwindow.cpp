@@ -85,8 +85,10 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	QRect geom=this->geometry();
 	mainbar->resize(geom.width(),75);
 	mainbar->move(geom.x(),geom.height()-75);
+	mainbar->show();
 	rearpanel->resize(geom.width()-40,geom.height()-75);
 	rearpanel->move(geom.x()+20,0);
+	rearpanel->show();
 	leftSide=geom.x();
 	rightSide=geom.width()-20;
 	middle=geom.width()/2-10;
