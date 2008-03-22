@@ -11,132 +11,131 @@ AlbumArt::AlbumArt(DataBackend * c) {
 	noAlbum = QPixmap(":images/no_album180");
 	setAcceptDrops(true);
 	http = new QHttp();
+	menu = new QMenu();
+	menu->setTitle("Album Art");
+	menu->addAction("Next Cover",this,SLOT(getNextCover()));
+	menu->addAction("Previous Cover",this,SLOT(getPrevCover()));
+	menu->addAction("Best Match",this,SLOT(getOrigCover()));
 	connect(conn,SIGNAL(qsettingsValueChanged(QString, QVariant)),this,SLOT(processSettingsUpdate(QString,QVariant)));
 }
 
 AlbumArt::~AlbumArt() {
 	delete http;
+	delete menu;
 }
 
 void AlbumArt::processSettingsUpdate(QString name,QVariant value) {
 	if(name == "konfetka/albumArtReflection")
-	toReflect = value.toBool();
+		toReflect = value.toBool();
+	
 	update();
 }
 
 
 void AlbumArt::fetchXML(int newId) {
 	id = newId;
-// 	if(mlib->getInfo("picture_front",id).toString()!="Unknown") {
-// 	conn->bindata.retrieve(mlib->getInfo("picture_front",id).toString().toStdString())
-// 						(Xmms::bind(&AlbumArt::gotInformation,this));
-// 	}
 	QString tmpQuery;
 		if(mlib->getInfo("arist",id).toInt()!=-1)
 		tmpQuery += mlib->getInfo("artist",id).toString();
 		if(mlib->getInfo("album",id).toInt()!=-1)
 		tmpQuery += " " +mlib->getInfo("album",id).toString();
-	if(tmpQuery == "" || query == tmpQuery) {
+	if(tmpQuery == "" || query == tmpQuery) { //if it's the same don't do it again
 	return;
 	}
 	if(tmpQuery!=query)
 	query = tmpQuery;
-	std::cout<<"Looking for:"<<query.toStdString()<<std::endl;
+
 	allCovers = QDomNodeList();
-	//Thanks amarok for the D1URM... code thing
-	QString toUrl;
-	toUrl.append("http://xml.amazon.com/onca/xml3?t=webservices-20&dev-t=D1URM11J3F2CEH&KeywordSearch=");
-	toUrl.append(QUrl::toPercentEncoding(query));
-	toUrl.append("&mode=music&type=lite&locale=us&page=1&f=xml");
+	//This very simple really ... TODO different locals, etc.. etc..
+	QString toUrl="http://xml.amazon.com/onca/xml3?t=webservices-20&dev-t=12VHZKVBHQEAV5JTTQ02&KeywordSearch="+
+		      (QUrl::toPercentEncoding(query))+
+		      "&mode=music&type=lite&locale=us&page=1&f=xml";
 
 	QUrl url(toUrl);
-
+	//Just to make sure that we don't get anything wrong, use QUrl 
 	http->setHost(url.host(), url.port() != -1 ? url.port() : 80);
 	if (!url.userName().isEmpty())
 	http->setUser(url.userName(), url.password());
 	
-		if(xmlBuffer.isOpen())
+	if(xmlBuffer.isOpen()) 
 		xmlBuffer.close();
-
-		if(!xmlBuffer.isOpen()) {
+	if(!xmlBuffer.isOpen()) 
 		xmlBuffer.open(QIODevice::ReadWrite);
-		}
 			
-	httpGetId = http->get(conn->encodeUrl(toUrl), &xmlBuffer);
+	httpGetId = http->get(conn->encodeUrl(toUrl), &xmlBuffer);//Get the xml from amazon and store in a buffer
 	connect(&timeout, SIGNAL(timeout()), this, SLOT(fetchImage()));
-// 	timeout.start(5000); //TODO let people change the timeout time
+	timeout.start(5000); //TODO let people change the timeout time
 	connect(http, SIGNAL(done(bool)), this, SLOT(fetchImage(bool)));
 }
 
 void AlbumArt::fetchImage(bool err,bool force) {
 	QObject::disconnect(http, 0, this, 0);
 	timeout.stop();
-		if(err) {
-		std::cout<<"Error looking up XML: "<<http->error()<<std::endl;
+	
+	if(err) {
+			qDebug()<<"Error looking up XML:"<<http->error();
 			if(http->error()!=2) {
-			setImage(1);
-			return;
+				setImage(1);
+				return;
 			}
 			else
-			std::cout<<"Trying from cache"<<std::endl;
-		}
+				std::cout<<"Trying from cache"<<std::endl;
+	}
 
-		if(imageBuffer.isOpen())
-		imageBuffer.close();
+	if(imageBuffer.isOpen()) imageBuffer.close(); //We have to close this if we're going to use it again
+	
 	QDomDocument doc("art");
 	QDomNode details;
-	if(!force && doc.setContent(xmlBuffer.data())) { // Hope that this succeeds
-	//TODO debugging output from the xmlbuffer	
-	std::cout<<"Read in XML document"<<std::endl;
-	details = doc.documentElement().namedItem( "Details" );
-
-	allCovers = doc.elementsByTagName("Details");
- 	imageUrl=allCovers.item(numToGet).namedItem("ImageUrlLarge").firstChild().nodeValue();
-	std::cout<<allCovers.size()<<std::endl;
+	if(!force && doc.setContent(xmlBuffer.data())) {
+		//TODO debugging output from the xmlbuffer	
+		details = doc.documentElement().namedItem( "Details" );
+		allCovers = doc.elementsByTagName("Details");
+		imageUrl = allCovers.item(numToGet).namedItem("ImageUrlLarge").firstChild().nodeValue();
 	}
 	else if(force) {
-	imageUrl=allCovers.item(numToGet).namedItem("ImageUrlLarge").firstChild().nodeValue();
+		imageUrl=allCovers.item(numToGet).namedItem("ImageUrlLarge").firstChild().nodeValue();
 	}
-	else
-	err = true;
+	else {
+		err = true;
+	}
 	//Once you have the list of covers, go look to see if this artist is already caches in bindata
 		if(mlib->getInfo("picture_front",id).toString()!="Unknown" && !force) {
-		conn->bindata.retrieve(mlib->getInfo("picture_front",id).toString().toStdString())
-						(Xmms::bind(&AlbumArt::gotInformation,this));
+			conn->bindata.retrieve(mlib->getInfo("picture_front",id).toString().toStdString())
+					      (Xmms::bind(&AlbumArt::gotInformation,this));
 		}
 		else if(!err) {
-		QUrl url(imageUrl);
-	
-			if(!imageBuffer.isOpen()) {
-			imageBuffer.open(QIODevice::ReadWrite);
-			}
-		std::cout<<"Fetching image from server: ["<<url.host().toStdString()<<"] ["<<url.path().toStdString()<<"]"<<std::endl;
-		http->setHost(url.host(),80);
-	 	http->get(url.path(),&imageBuffer);
-		connect(http, SIGNAL(done(bool)), this, SLOT(setImage(bool)));
-		}
+			QUrl url(imageUrl);
+		
+				if(!imageBuffer.isOpen()) {
+				imageBuffer.open(QIODevice::ReadWrite);
+				}
+			std::cout<<"Fetching image from server: ["<<url.host().toStdString()<<"] ["<<url.path().toStdString()<<"]"<<std::endl;
+			http->setHost(url.host(),80);
+			http->get(url.path(),&imageBuffer);
+			connect(http, SIGNAL(done(bool)), this, SLOT(setImage(bool)));
+		} //at this point we can't fetch it and it's not in bindata
 		else {
-		hasAlbum = false;
-		update();
+			hasAlbum = false;
+			emit newPixmap(noAlbum);
+			update();
 		}
 }
 
 void AlbumArt::setImage(bool err) {
 	QObject::disconnect(http, 0, this, 0);
 	if(err) {
-	std::cout<<"Error looking up image: "<<http->error()<<std::endl;
+		qDebug()<<"Error looking up album cover:"<<imageUrl<<http->error();
 	return;
 	}
-// 	std::cout<<"SETTING IMAGE"<<std::endl;
 		QImage tmp = QImage::fromData(imageBuffer.data());
 			if(tmp.isNull()) {
-			emit newPixmap(noAlbum);
-			hasAlbum = false;
-			update();
-			return;
+				emit newPixmap(noAlbum);
+				hasAlbum = false;
+				update();
+				return;
 			}
 			else
-			center = QPixmap::fromImage(tmp); 
+				center = QPixmap::fromImage(tmp); 
 		emit newPixmap(center);
 		hasAlbum = true;
 		//Take the image, flip it, apply a gradient, and then cut it in half, which should reveal a nice little reflection
@@ -162,50 +161,48 @@ void AlbumArt::setImage(bool err) {
 //What you wanna do foo?
 void AlbumArt::mouseReleaseEvent(QMouseEvent * event) {
 	if(allCovers.isEmpty()) {
-	QMessageBox::information(this, ("Konfetka"),"Sorry, no albums were found that matched your query",
+	QMessageBox::information(this, ("Konfetka Album Search"),"Sorry, no albums were found that matched your query",
 				QMessageBox::Ok);
 	return;
 	}
-	QMenu * menu = new QMenu();
-	menu->setTitle("Album Art");
-	menu->addAction("Next Cover",this,SLOT(getNextCover()));
-	menu->addAction("Previous Cover",this,SLOT(getPrevCover()));
-	menu->addAction("Best Match",this,SLOT(getOrigCover()));
+	
 	menu->popup(event->globalPos());
 }
 
 //Allow you to cycle through available albumart
+//Gos one back
 void AlbumArt::getPrevCover() {
 	if((numToGet-1)<0)
-	numToGet=allCovers.size()-1; 
+		numToGet=allCovers.size()-1; 
 	else
-	numToGet-=1;
+		numToGet-=1;
 	makeRequest();
 }
 
+//Gos one more
 void AlbumArt::getNextCover() {
 	numToGet=(numToGet+1)%allCovers.size();
 	makeRequest();
 }
 
+//Gets the "best match" from amazon's list
 void AlbumArt::getOrigCover() {
 	numToGet=0;
 	makeRequest();
 }
 
-//Basically, forces us to use xml instead of the bindata(which otherwise is used if present)
+//Basically, forces us to use xml instead of the bindata (which is otherwise used if present)
 void AlbumArt::makeRequest(){
 	fetchImage(false,true);
 }
 
-//This widget has no children, technically I guess I could make 'im a QFrame instead of QWidget ... ah well
+//Paint that album art on there
 void AlbumArt::paintEvent(QPaintEvent * event) {
 	QPainter painter(this);
-	painter.save();
 	painter.setRenderHint(QPainter::Antialiasing,true);
 	painter.fillRect(0,0,width(),height(), painter.background());
 	if(hasAlbum){
-		//Scales the drawing, but idk if I like it at 0,0 always)
+		//Scales the drawing, but idk if I like it at 0,0 always) TODO center in both directions
 		if(toReflect)
 		painter.drawPixmap(QRect(0,0,this->width()/4,this->width()/2),left,QRect(0,0,87,175));
 		painter.drawPixmap(QRect(this->width()/4,0,this->width()/2,this->width()/2),center,QRect(0,0,175,175));
@@ -216,13 +213,6 @@ void AlbumArt::paintEvent(QPaintEvent * event) {
 	painter.drawPixmap(QRect(width()/4, (height()-noAlbum.height())/2 ,
 		noAlbum.width(),noAlbum.height()),noAlbum,noAlbum.rect());
 	}
-	painter.restore();
-}
-
-//Can change whether we do the nice little reflection or not
-void AlbumArt::slotReflect(bool reflect) {
-	toReflect = reflect;
-	update();
 }
 
 //Recieved bindata -- xmms2 callback
@@ -248,19 +238,13 @@ void AlbumArt::dragEnterEvent(QDragEnterEvent * event) {
 }
 
 void AlbumArt::dropEvent(QDropEvent * event) {
-	QUrl url(event->mimeData()->text());
-// 	std::cout<<url.toStdString()<<std::endl;
-	std::cout<<url.host().toStdString()<<" "<<url.path().toStdString()<<std::endl;
-	
-	
+	QUrl url(event->mimeData()->text());	
 		if(imageBuffer.isOpen())
-		imageBuffer.close();
-		if(!imageBuffer.isOpen()) {
-		imageBuffer.open(QIODevice::ReadWrite);
-		}
-
+			imageBuffer.close();
+		if(!imageBuffer.isOpen()) 
+			imageBuffer.open(QIODevice::ReadWrite);
 	http->setHost(url.host(),80);
-	http->get(url.path(),&imageBuffer);
+	http->get(url.path().replace(" ","%20"),&imageBuffer);
 	connect(http, SIGNAL(done(bool)), this, SLOT(setImage(bool)));
 
 	event->acceptProposedAction();

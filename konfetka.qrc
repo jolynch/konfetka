@@ -65,6 +65,13 @@
 	<file>images/unknown.png</file>
 	<file>images/panel-tiny-unlocked.png</file>
 	<file>images/panel-tiny-locked.png</file>
+	        
+	<file>data/helpFiles/collections_panel.png</file>
+	<file>data/helpFiles/filesystem_panel.png</file>
+	<file>data/helpFiles/medialib_panel.png</file>
+	<file>data/helpFiles/options_panel.png</file>
+	<file>data/helpFiles/playlist_panel.png</file>
+	
 	<file alias="weirdline">data/weirdline</file>
 
 </qresource>

@@ -25,11 +25,10 @@ PanelView::PanelView(DataBackend * c,QWidget * parent, Qt::WindowFlags f):QWidge
 		else if(keys.value(i) == "File System")
 			dirName+="filesystem_panel.txt";
 		else if(keys.value(i) == "Collections")
-			dirName+="collection_panel.txt";
+			dirName+="collections_panel.txt";
 		else if(keys.value(i) == "Medialib")
 			dirName+="medialib_panel.txt";
 		
-		qDebug()<<dirName;
 		QFile file(dirName);
 		if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) continue;
 		
@@ -56,11 +55,11 @@ void PanelView::paintEvent(QPaintEvent * event) {
 		if(i==selected) {
 			painter.fillPath(path,QBrush("#418ad4"));
 		}
-		painter.drawPixmap(0,i*h,panels.value(keys.value(i)).scaled(h,h,Qt::IgnoreAspectRatio,Qt::SmoothTransformation));
-		painter.drawText(h+offset,i*h+h/2,keys.value(i));
+		painter.drawPixmap(0,i*h,panels.value(keys.value(i)).scaled((int)(h*1.5),h,Qt::IgnoreAspectRatio,Qt::SmoothTransformation));
+		painter.drawText((int)(h*1.5)+offset,i*h+h/2,keys.value(i));
 		//Draws the text, wrapping, into the space provided.
 		//h+fontMetrics().width(keys.value(i))+2*offset
-		x = qMax(h+fontMetrics().width(keys.value(i))+2*offset,140);
+		x = qMax((int)(h*1.5)+fontMetrics().width(keys.value(i))+2*offset,150);
 		painter.drawText(QRect(x,i*h, width()-x,h),Qt::AlignLeft | Qt::TextWordWrap,helpText.value(keys.value(i)));
 	}
 }
@@ -74,7 +73,6 @@ void PanelView::mousePressEvent(QMouseEvent * event) {
 
 void PanelView::mouseDoubleClickEvent(QMouseEvent * event) {
 	controller->demandPanel(keys.value(selected));
-	qDebug()<<"Demanded Panel"<<keys.value(selected);
 }
 
 void PanelView::contextMenuEvent(QContextMenuEvent * event) {
@@ -98,7 +96,6 @@ void PanelView::keyPressedEvent(QKeyEvent * event){
 
 void PanelView::demandPanel() {
 	controller->demandPanel(keys.value(selected));
-	qDebug()<<"Demanded Panel"<<keys.value(selected);
 }
 
 void PanelView::helpInfo() {
@@ -110,8 +107,13 @@ void PanelView::loadPanels() {
 // 		panels->insert(str,QPixmap::grabWidget(controller->getPanel(str)));
 // 	}
 	QList<QString> temp; temp<<"Playlist"<<"Options"<<"File System"<<"Collections"<<"Medialib";
+	QString file;
 	foreach(QString val,temp){
-		panels.insert(val,QPixmap("images/unknown"));
+		file = val.toLower().remove(" ")+"_panel";
+		qDebug()<<file;
+			panels.insert(val,QPixmap(":data/helpFiles/"+file));
+		
+// 			panels.insert(val,QPixmap(":images/unknown"));
 	}
 	keys = panels.keys();
 }
