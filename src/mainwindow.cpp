@@ -77,7 +77,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	
 	menu->addAction(QIcon(":images/toggle_button.png"),"Toggle Konfetka",this,SLOT(toggle())/*,QKeySequence(Qt::Key_F11)*/);
 	menu->addAction(QIcon(":images/quit_button.png"),"Quit Konfetka",this,SLOT(slotQuit()));
-
+	this->hide();
 	icon->setContextMenu(menu);
 	icon->show();
 	/*!!!!!!!!!!!!!!need to remove this hardcoding somehow!!!!!!!!!!!!!!!!!*/
@@ -114,7 +114,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(respondToConfigChange(QString,QVariant)));
 	conn->emitInitialQSettings();
 	conn->emitInitialXmms2Settings();
-	((QWidget*)this)->hide();
+	this->show();
 	}
 
 void MainWindow::respondToConfigChange(QString name,QVariant value) {
@@ -140,10 +140,9 @@ void MainWindow::trayTool() {
 void MainWindow::slotHide()
 	{
 	minibar->show();
-	rearpanel->hide();
-	mainbar->hide();
 	this->hide();
 	}
+	
 void MainWindow::slotQuit()
 	{
 	delete conn;
@@ -165,6 +164,7 @@ void MainWindow::show()
 	
 void MainWindow::hide()
 	{
+std::cout<<"hiding"<<std::endl;
 	rearpanel->hide();
 	mainbar->hide();
 	((QWidget*)this)->hide();
