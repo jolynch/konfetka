@@ -14,7 +14,7 @@
 typedef int PanelControllerFlag;
 
 #define ANIMATION_STEP 100
-#define ANIMATION_INTERVAL 20
+#define ANIMATION_INTERVAL 33
 
 class PanelController:public QObject
 	{	Q_OBJECT

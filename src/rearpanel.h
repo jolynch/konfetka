@@ -7,7 +7,6 @@
 #include "databackend.h"
 #include "databackend/mlibdata.h"
 #include "equalizer.h"
-#include "visualization.h"
 #include "options.h"
 #include "wikibrowser.h"
 #include "lyricbrowser.h"
@@ -50,7 +49,6 @@ class RearPanel: public QWidget
 		LyricBrowser * lyrics;
 		PanelView * panels;
 
-		Visualization * visualization;
 		Equalizer * equalizer;
 		InfoEditor * infoeditor;
 		QGridLayout * layout;
