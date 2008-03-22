@@ -114,6 +114,9 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(respondToConfigChange(QString,QVariant)));
 	conn->emitInitialQSettings();
 	conn->emitInitialXmms2Settings();
+	
+	RearPanel * test=new RearPanel(conn,screenRect,NULL,NULL);
+	test->show();
 	}
 
 void MainWindow::respondToConfigChange(QString name,QVariant value) {
