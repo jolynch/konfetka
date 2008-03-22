@@ -17,7 +17,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	sheet = QString(file.readAll());
 	qApp->setStyleSheet(sheet);
 	animator=new QTimer();
-	mainbar=new MainBar(conn,this,this,NULL);
+	mainbar=new MainBar(conn,this,NULL,NULL);
 	QDesktopWidget *desktop = papa->desktop();
 	QRect deskRect = desktop->availableGeometry();
 	QRect screenRect = desktop->screenGeometry();
@@ -31,7 +31,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	conn->initPanelController(width());
 	PanelController * pc=((PanelController *)conn->getDataBackendObject(DataBackend::PANEL));
 
-	rearpanel=new RearPanel(conn,screenRect, this, NULL);	
+	rearpanel=new RearPanel(conn,screenRect, NULL, NULL);	
 
 		if(s.value("staysOnTop").toBool())
 		minibar=new MiniMode(conn,rearpanel->getAlbumArt(),NULL,Qt::WindowStaysOnTopHint|Qt::FramelessWindowHint);
@@ -180,8 +180,7 @@ void MainWindow::toggle()
 	if(animator->isActive()) return;
 	if(minibar->isVisible()) {minibar->hide();this->show();return;}
 // 	std::cout<<"showing"<<std::endl;
-	rearpanel->show();
-	mainbar->show();
+	this->show();
 	locked=true;
 	//mainbar->hide();
 	//Playlisthandle->hide();
