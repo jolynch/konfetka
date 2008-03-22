@@ -132,9 +132,9 @@ void Panel::resizeAttached()
 	{
 	QWidget * pa=(QWidget *)parent();
 	if(rightSide)
-		aFrame->move(position+PBG_WIDTH/2,pa->y());
+		aFrame->move(position+PBG_WIDTH/2,0);
 	else 
-		aFrame->move(pa->x(),pa->y());
+		aFrame->move(0,0);
 	int width=position-PBG_WIDTH/2;
 	if(rightSide)width=pa->width()-(position+PBG_WIDTH/2);
 	aFrame->resize(width,PBG_HEIGHT*2);
