@@ -598,7 +598,7 @@ void MediaLib::contextMenuEvent(QContextMenuEvent *event) {
 		return;
 // 	std::cout<<"AHH"<<std::endl;
 	QTreeWidgetItem * itm = mediaList->currentItem();
-	std::cout<<itm->text(0).toStdString()<<std::endl;
+//	std::cout<<itm->text(0).toStdString()<<std::endl;
 	infoMenu->exec(event->globalPos());
 }
 
