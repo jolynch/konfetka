@@ -27,6 +27,7 @@
 #include <QShortcut>
 #include <QRect>
 #include <QWidgetAction>
+#include <QKeySequence>
 
 namespace konfetka
 	{

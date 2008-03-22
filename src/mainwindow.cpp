@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_CPP
 #define MAINWINDOW_CPP
 #include "mainwindow.h"
+#include "../globalshortcut/globalshortcutmanager.h"
 
 MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QWidget(parent, f)
 	{
@@ -80,6 +81,9 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	this->hide();
 	icon->setContextMenu(menu);
 	icon->show();
+	
+	GlobalShortcutManager::connect(QKeySequence(tr("Ctrl+`")),this,SLOT(toggle()));
+	
 	/*!!!!!!!!!!!!!!need to remove this hardcoding somehow!!!!!!!!!!!!!!!!!*/
 	/*!Other than the panel handles being hard coded to being 187 high what hard coding?!*/
 	QRect geom=this->geometry();
