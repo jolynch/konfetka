@@ -185,6 +185,7 @@ void MainWindow::toggle()
 	if(minibar->isVisible()) {minibar->hide();this->show();return;}
 // 	std::cout<<"showing"<<std::endl;
 	this->show();
+	this->raise();
 	locked=true;
 	//mainbar->hide();
 	//Playlisthandle->hide();
@@ -227,6 +228,7 @@ void MainWindow::slotResizeThis() {
 	animator->stop();
 	animator->disconnect();
 	setUpdatesEnabled(1);
+	raise();
 	}
 }
 
