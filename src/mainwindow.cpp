@@ -17,7 +17,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	sheet = QString(file.readAll());
 	qApp->setStyleSheet(sheet);
 	animator=new QTimer();
-	mainbar=new MainBar(conn,this,NULL,NULL);
+	mainbar=new MainBar(conn,this,this,NULL);
 	QDesktopWidget *desktop = papa->desktop();
 	QRect deskRect = desktop->availableGeometry();
 	QRect screenRect = desktop->screenGeometry();
@@ -28,10 +28,10 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	height=450; currentHeight=450; step=-20;
 	this->setGeometry(screenRect.x(),screenRect.y(),screenW,450);
 	
-	conn->initPanelController(width());
+	conn->initPanelController(screenW);
 	PanelController * pc=((PanelController *)conn->getDataBackendObject(DataBackend::PANEL));
 
-	rearpanel=new RearPanel(conn,screenRect, NULL, NULL);	
+	rearpanel=new RearPanel(conn,screenRect, this, NULL);	
 
 		if(s.value("staysOnTop").toBool())
 		minibar=new MiniMode(conn,rearpanel->getAlbumArt(),NULL,Qt::WindowStaysOnTopHint|Qt::FramelessWindowHint);
@@ -84,15 +84,15 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	/*!Other than the panel handles being hard coded to being 187 high what hard coding?!*/
 	QRect geom=this->geometry();
 	mainbar->resize(geom.width(),75);
-	mainbar->move(geom.x(),geom.height()-75);
+	mainbar->move(0,187*2);
 	mainbar->show();
-	rearpanel->resize(geom.width()-40,geom.height()-75);
-	rearpanel->move(geom.x()+20,0);
+	rearpanel->resize(geom.width()-40,187*2);
+	rearpanel->move(20,0);
 	rearpanel->show();
 	leftSide=geom.x();
 	rightSide=geom.width()-20;
 	middle=geom.width()/2-10;
-	mlibHH=rearpanel->height()-187;
+	mlibHH=187;
 	playHH=0;
 
 	currentPlaylistPos=leftSide;
