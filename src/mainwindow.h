@@ -48,7 +48,6 @@ class MainWindow:public QWidget
 		RearPanel * rearpanel;
 		MainBar * mainbar;
 
-		QGridLayout * layout;
 		QTimer * animator;
 		QSystemTrayIcon * icon;
 		QWidgetAction * volumeLabel;
@@ -72,6 +71,9 @@ class MainWindow:public QWidget
 	
 		void respondToConfigChange(QString name,QVariant value);
 		void trayTool();
+		
+		void show();
+		void hide();
 	};
 
 #endif
