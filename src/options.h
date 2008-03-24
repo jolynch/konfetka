@@ -146,13 +146,16 @@ class ShortcutChooser: public QDialog {
 	Q_OBJECT
 	private:
 	QString currentCombo;
+	QLabel * shortcutLabel;
+	QPushButton * done;
 	
 	public:
 	ShortcutChooser(QWidget * parent=0,Qt::WindowFlags f=0);
 
 	public slots:
 	void keyPressEvent(QKeyEvent * event);
-	QString getCombo();
+	void keyReleaseEvent(QKeyEvent * event);
+	QString getCombo(QString);
 };
 
 #endif

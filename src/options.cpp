@@ -480,13 +480,27 @@ void ListEditor::setList(QList<QString> newList) {
 /**************************************************************************************************************/
 // ShortcutChooser
 ShortcutChooser::ShortcutChooser(QWidget * parent,Qt::WindowFlags f):QDialog(parent,f) {
-	currentCombo == "";
+	currentCombo = "";
+	shortcutLabel = new QLabel(currentCombo);
+
+	done = new QPushButton("Done");
+	connect(done,SIGNAL(clicked()),this,SLOT(accept()));
+
+	QGridLayout * grid = new QGridLayout();
+	grid->addWidget(shortcutLabel,0,0);
+	grid->addWidget(done,1,0);
+	setLayout(grid);
 }
 
 void ShortcutChooser::keyPressEvent(QKeyEvent * event) {
+	qDebug()<<event->count();
 }
 
-QString ShortcutChooser::getCombo() {
+void ShortcutChooser::keyReleaseEvent(QKeyEvent * event) {
+}
+
+QString ShortcutChooser::getCombo(QString initCombo) {
+	shortcutLabel->setText(initCombo);
 	return NULL;
 }
 
