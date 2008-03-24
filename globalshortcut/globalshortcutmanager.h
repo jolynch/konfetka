@@ -1,7 +1,8 @@
 /*
  * globalshortcutmanager.h - Class managing global shortcuts
  * Copyright (C) 2006-2007  Maciej Niedzielski
- *
+ * Disconnect a slot: 2007 - 2008  Joseph Lynch
+ * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -26,6 +27,7 @@
 #include <QObject>
 #include <QKeySequence>
 #include <QMap>
+#include <QDebug>
 
 class QObject;
 class KeyTrigger;
@@ -43,6 +45,7 @@ private:
 	static GlobalShortcutManager* instance_;
 	class KeyTrigger;
 	QMap<QKeySequence, KeyTrigger*> triggers_;
+	QMap<const char*, KeyTrigger*> slots_;
 };
 
 #endif

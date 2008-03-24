@@ -122,10 +122,10 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	}
 
 void MainWindow::respondToConfigChange(QString name,QVariant value) {
-	if(name =="konfetka/globalShortcut") {
-	minMaxGlobSC = QKeySequence("Ctrl+`");
-	GlobalShortcutManager::disconnect(minMaxGlobSC,this,SLOT(toggle()));
-	GlobalShortcutManager::connect(minMaxGlobSC,this,SLOT(toggle()));
+	if(name == "konfetka/shortcut_Show-Hide") {
+		QKeySequence k(value.toString());
+		GlobalShortcutManager::disconnect(QKeySequence(),this,SLOT(toggle()));
+		GlobalShortcutManager::connect(k,this,SLOT(toggle()));
 	}
 
 	if(name!="konfetka/stayOnTop") return;

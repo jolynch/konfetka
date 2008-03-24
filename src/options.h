@@ -145,17 +145,16 @@ class ListEditor:public QWidget {
 class ShortcutChooser: public QDialog {
 	Q_OBJECT
 	private:
-	QString currentCombo;
 	QLabel * shortcutLabel;
-	QPushButton * done;
-	
+	QStringList getModifiers(int mods);
+
 	public:
 	ShortcutChooser(QWidget * parent=0,Qt::WindowFlags f=0);
+	static QKeySequence getSequence(QWidget* parent, const QString& caption, const QKeySequence& value);
+	bool isModifier(int key);
 
 	public slots:
-	void keyPressEvent(QKeyEvent * event);
 	void keyReleaseEvent(QKeyEvent * event);
-	QString getCombo(QString);
 };
 
 #endif

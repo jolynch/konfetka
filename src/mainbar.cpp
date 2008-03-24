@@ -117,6 +117,7 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 		connect(miniButton,SIGNAL(clicked()),p,SLOT(slotHide()));
 	connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),
 				this,SLOT(newStatus(Xmms::Playback::Status)));
+	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(respondToConfigChange(QString,QVariant)));
 }
 	
 
@@ -132,6 +133,27 @@ MainBar::~MainBar()
 	delete quitButton;
 	delete volumeSlider;
 	}
+void MainBar::respondToConfigChange(QString key,QVariant val) {
+	if(key == "konfetka/shortcut_Play-Pause") {
+		QKeySequence k(val.toString());
+		GlobalShortcutManager::disconnect(QKeySequence(),this,SLOT(slotPlay()));
+		GlobalShortcutManager::connect(k,this,SLOT(slotPlay()));
+	}
+	if(key == "konfetka/shortcut_Next song") {
+		QKeySequence k(val.toString());
+		GlobalShortcutManager::disconnect(QKeySequence(),conn,SLOT(playNextSong()));
+		GlobalShortcutManager::connect(k,conn,SLOT(playNextSong()));
+	}
+	if(key == "konfetka/shortcut_Previous song") {
+		QKeySequence k(val.toString());
+		GlobalShortcutManager::disconnect(QKeySequence(),conn,SLOT(playPreviousSong()));
+		GlobalShortcutManager::connect(k,conn,SLOT(playPreviousSong()));
+	}
+
+/*shortcut_Next%20song=Ctrl+Shift+C
+shortcut_Play-Pause=Ctrl+Shift+X
+shortcut_Previous%20song=Ctrl+Shift+A*/
+}
 
 void MainBar::slotPlay() {
 	if(stat == XMMS_PLAYBACK_STATUS_PLAY)

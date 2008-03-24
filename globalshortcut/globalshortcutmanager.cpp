@@ -1,7 +1,8 @@
 /*
  * globalshortcutmanager.cpp - Class managing global shortcuts
  * Copyright (C) 2006 - 2007  Maciej Niedzielski
- *
+ * Disconnect a slot: 2007 - 2008  Joseph Lynch
+ * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -58,6 +59,7 @@ void GlobalShortcutManager::connect(const QKeySequence& key, QObject* receiver, 
 	if (!t) {
 		t = new KeyTrigger(key);
 		instance()->triggers_.insert(key, t);
+		instance()->slots_.insert(slot,t);
 	}
 
 	QObject::connect(t, SIGNAL(activated()), receiver, slot);
@@ -72,6 +74,9 @@ void GlobalShortcutManager::connect(const QKeySequence& key, QObject* receiver, 
 void GlobalShortcutManager::disconnect(const QKeySequence& key, QObject* receiver, const char* slot)
 {
 	KeyTrigger* t = instance()->triggers_[key];
+	if(key.toString()=="")  { //Disconnect the slot instead of the sequence
+		t = instance()->triggers_.value(instance()->triggers_.key(instance()->slots_[slot]));
+	}
 	if (!t) {
 		return;
 	}
@@ -88,4 +93,5 @@ void GlobalShortcutManager::clear()
 	foreach (KeyTrigger* t, instance()->triggers_)
 		delete t;
 	instance()->triggers_.clear();
+	instance()->slots_.clear();
 }

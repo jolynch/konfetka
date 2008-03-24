@@ -329,8 +329,9 @@ void Options::constructOptions() {
 }
 
 void Options::editShortcut(QTableWidgetItem* item) {
-	qDebug()<<"Clicked";
-	chooserDialog->exec();
+	QString newSeq = ShortcutChooser::getSequence(this,"Please Choose a New Shortcut",item->text()).toString();
+	if(newSeq != "")
+	item->setText(newSeq);
 }
 
 void Options::sendSettings(bool all) {
@@ -480,30 +481,60 @@ void ListEditor::setList(QList<QString> newList) {
 /**************************************************************************************************************/
 // ShortcutChooser
 ShortcutChooser::ShortcutChooser(QWidget * parent,Qt::WindowFlags f):QDialog(parent,f) {
-	currentCombo = "";
-	shortcutLabel = new QLabel(currentCombo);
-
-	done = new QPushButton("Done");
+	shortcutLabel = new QLabel("");
+	shortcutLabel->setAlignment(Qt::AlignCenter);
+	shortcutLabel->setFocusPolicy(Qt::NoFocus);
+	QPushButton * done = new QPushButton("Done");
+	done->setFocusPolicy(Qt::NoFocus);
+	QPushButton * exit = new QPushButton("Close");
+	exit->setFocusPolicy(Qt::NoFocus);
 	connect(done,SIGNAL(clicked()),this,SLOT(accept()));
+	connect(exit,SIGNAL(clicked()),this,SLOT(reject()));
 
 	QGridLayout * grid = new QGridLayout();
-	grid->addWidget(shortcutLabel,0,0);
+	grid->addWidget(shortcutLabel,0,0,1,2);
 	grid->addWidget(done,1,0);
+	grid->addWidget(exit,1,1);
 	setLayout(grid);
 }
 
-void ShortcutChooser::keyPressEvent(QKeyEvent * event) {
-	qDebug()<<event->count();
-}
-
 void ShortcutChooser::keyReleaseEvent(QKeyEvent * event) {
+	if(!isModifier(event->key())) {
+		if(getModifiers(event->modifiers()).isEmpty())
+		shortcutLabel->setText(QKeySequence(event->key()).toString());
+		else
+		shortcutLabel->setText(getModifiers(event->modifiers()).join("+")+"+"+QKeySequence(event->key()).toString());
+	}
 }
 
-QString ShortcutChooser::getCombo(QString initCombo) {
-	shortcutLabel->setText(initCombo);
-	return NULL;
+QKeySequence ShortcutChooser::getSequence(QWidget* parent, const QString& caption, const QKeySequence& value) {
+	ShortcutChooser chooser(parent);
+	chooser.setWindowTitle(caption);
+	chooser.shortcutLabel->setText(value.toString());
+	if (chooser.exec() == QDialog::Accepted)
+		return QKeySequence(chooser.shortcutLabel->text()); // accepted, return actual value
+    
+	return QKeySequence(); // cancelled, return null string
 }
 
+QStringList ShortcutChooser::getModifiers(int mods) {
+	QStringList result;
+	if(mods & Qt::ShiftModifier)
+	result<<"Shift";
+	if(mods & Qt::ControlModifier)
+	result<<"Ctrl";
+	if(mods & Qt::AltModifier)
+	result<<"Alt";
+	if(mods & Qt::MetaModifier)
+	result<<"Meta";
+	return result;
+}
+
+bool ShortcutChooser::isModifier(int key) {
+	if(key == Qt::Key_Shift ||key == Qt::Key_Control ||key == Qt::Key_Alt ||key == Qt::Key_Meta )
+		return true;
+	return false;
+}
 /**********************************************************************************************/	
 // ShortcutChooser
 

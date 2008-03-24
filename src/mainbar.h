@@ -23,6 +23,7 @@
 #include <iostream>
 #include <string>
 #include <QFontMetrics>
+#include "../globalshortcut/globalshortcutmanager.h"
 
 class NiceLabel;
 class MainBar:public QWidget{	
@@ -65,6 +66,7 @@ Q_OBJECT
 		void slotMute();
 		void newStatus(Xmms::Playback::Status);
 		void updateTime();
+		void respondToConfigChange(QString,QVariant);
 	public:
 		MainBar(DataBackend * c, QWidget* papa,
 				QWidget * parent = 0, Qt::WindowFlags f = 0);
