@@ -621,7 +621,7 @@ QMimeData* MediaLib::getCurrentMimeData() {
 // 	std::cout<<tmp<<std::endl;
 // 	stream << tmp;	
 // 	encodedData.append((char*)tmp);
-	encodedData =QByteArray::number((int)tmp);
+	encodedData =QByteArray::number((qlonglong)tmp);
 // 	std::cout<<tmp<<std::endl;
 
 	mimeData->setData("application/x-collstruct", encodedData);

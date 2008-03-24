@@ -43,6 +43,7 @@ class MainWindow:public QWidget
 		int screenW; int screenH; int height; int currentHeight; int step;
 		int leftSide; int rightSide; int middle; int mlibHH; int playHH;
 		int currentPlaylistPos; int currentMedialibPos;
+		QKeySequence minMaxGlobSC;
 		DataBackend * conn;
 		QApplication * papa;
 		MiniMode * minibar;

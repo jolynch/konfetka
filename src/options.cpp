@@ -98,6 +98,17 @@ void Options::updateGui(QString name,QVariant value) {
 		dblClickContextInfoPlay->setCheckState(Qt::Unchecked);
 		
 	}
+	else if(name.startsWith("konfetka/shortcut_")) {
+// 		qDebug()<<name<<value.toString();
+		QList<QTableWidgetItem*> matches = shortcutMatrix->findItems(name.remove("konfetka/shortcut_"),Qt::MatchExactly);
+		for(int i=0;i<matches.size();i++) {
+			if(matches[i]->column()==0) {
+				shortcutMatrix->setItem(matches[i]->row(),1,new QTableWidgetItem(value.toString()));
+				shortcutMatrix->item(matches[i]->row(),1)->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+			}
+		}
+// 		qDebug()<<matches.size();
+	}
 }
 
 void Options::updateXmms2Opts(const Xmms::Dict &val) {
@@ -257,7 +268,7 @@ void Options::constructOptions() {
 	//End Collections
 	
 	//XMMS2 Options
-	xmms2Opt = new QWidget();;
+	xmms2Opt = new QWidget();
 	QGridLayout * xmms2Grid = new QGridLayout();
 	
 	xmms2Search = new QLineEdit();
@@ -274,12 +285,58 @@ void Options::constructOptions() {
 	xmms2Opt->setLayout(xmms2Grid);
 	tab->addTab(xmms2Opt,"XMMS2");
 	//End XMMS2 Options
+
+	//Shortcut Options
+	shortcutOpt = new QWidget();
+	QGridLayout * shortcutGrid = new QGridLayout();
+
+	shortcutMatrix = new QTableWidget(4,2);
+	shortcutGrid->addWidget(shortcutMatrix,0,0);
+	QStringList hlabels;
+	hlabels<<""<<""<<""<<"";
+	shortcutMatrix->setVerticalHeaderLabels(hlabels);
+	hlabels.clear(); hlabels<<"Action"<<"Shortcut (Double click to edit)";
+	shortcutMatrix->setShowGrid(false);
+	shortcutMatrix->setHorizontalHeaderLabels(hlabels);
+	shortcutMatrix->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+	shortcutMatrix->resizeColumnToContents(0);
+	shortcutMatrix->setItem(0,0,new QTableWidgetItem(tr("Show-Hide")));
+	shortcutMatrix->item(0,0)->setFlags(Qt::ItemIsEnabled);
+	shortcutMatrix->setItem(0,1,new QTableWidgetItem(tr("Ctrl+`")));
+	shortcutMatrix->item(0,1)->setFlags(Qt::ItemIsEnabled);
+
+	shortcutMatrix->setItem(1,0,new QTableWidgetItem(tr("Play-Pause")));
+	shortcutMatrix->item(1,0)->setFlags(Qt::ItemIsEnabled);
+	shortcutMatrix->setItem(1,1,new QTableWidgetItem(tr("Ctrl+Shift+X")));
+	shortcutMatrix->item(1,1)->setFlags(Qt::ItemIsEnabled);
+
+	shortcutMatrix->setItem(2,0,new QTableWidgetItem(tr("Next song")));
+	shortcutMatrix->item(2,0)->setFlags(Qt::ItemIsEnabled);
+	shortcutMatrix->setItem(2,1,new QTableWidgetItem(tr("Ctrl+Shift+C")));
+	shortcutMatrix->item(2,1)->setFlags(Qt::ItemIsEnabled);
+
+	shortcutMatrix->setItem(3,0,new QTableWidgetItem(tr("Previous song")));
+	shortcutMatrix->item(3,0)->setFlags(Qt::ItemIsEnabled);
+	shortcutMatrix->setItem(3,1,new QTableWidgetItem(tr("Ctrl+Shift+Z")));
+	shortcutMatrix->item(3,1)->setFlags(Qt::ItemIsEnabled);
+
+	shortcutOpt->setLayout(shortcutGrid);
+	tab->addTab(shortcutOpt,"Shortcuts");
+
+	chooserDialog = new ShortcutChooser();
+	connect(shortcutMatrix,SIGNAL(itemDoubleClicked(QTableWidgetItem *)),this,SLOT(editShortcut(QTableWidgetItem*)));
+	//End Shortcut Options
+}
+
+void Options::editShortcut(QTableWidgetItem* item) {
+	qDebug()<<"Clicked";
+	chooserDialog->exec();
 }
 
 void Options::sendSettings(bool all) {
 	int which = tab->currentIndex();
 	/*
-	0 = General, 1 = Playlist, 2 = MediaLib, 3 = Collections, 4 = XMMS2
+	0 = General, 1 = Playlist, 2 = MediaLib, 3 = Collections, 4 = XMMS2, 5 = Shortcuts
 	*/
 	if(which == 0 || all) {
 	std::cout<<"sending gen"<<std::endl;
@@ -311,6 +368,14 @@ void Options::sendSettings(bool all) {
 	for (int i=0; i<items.count(); i++)
 		conn->changeAndSaveXMMS2Settings(items[i]->text(0).toStdString(), items[i]->text(1).toStdString());
 	}
+	if(which == 5 || all) {
+	qDebug()<<"sending shortcuts";
+	
+	for(int i=0;i<shortcutMatrix->rowCount();i++) {
+		conn->changeAndSaveQSettings(("konfetka/shortcut_"+shortcutMatrix->item(i,0)->text()),
+					     (shortcutMatrix->item(i,1)->text()));
+	}
+	}
 }
 
 void Options::sendAllSettings() {
@@ -318,8 +383,7 @@ std::cout<<"sending all"<<std::endl;
 sendSettings(true);
 }
 
-/**************************************************************************************************************/
-// List Editor
+
 
 ListEditor::ListEditor(DataBackend * c,QString property,QWidget * parent):QWidget(parent) {
 	conn = c;
@@ -413,5 +477,20 @@ void ListEditor::setList(QList<QString> newList) {
 /**********************************************************************************************/	
 //End List Editor
 
+/**************************************************************************************************************/
+// ShortcutChooser
+ShortcutChooser::ShortcutChooser(QWidget * parent,Qt::WindowFlags f):QDialog(parent,f) {
+	currentCombo == "";
+}
+
+void ShortcutChooser::keyPressEvent(QKeyEvent * event) {
+}
+
+QString ShortcutChooser::getCombo() {
+	return NULL;
+}
+
+/**********************************************************************************************/	
+// ShortcutChooser
 
 #endif

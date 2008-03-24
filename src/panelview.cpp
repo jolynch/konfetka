@@ -80,7 +80,7 @@ void PanelView::contextMenuEvent(QContextMenuEvent * event) {
 }
 
 void PanelView::keyPressedEvent(QKeyEvent * event){
-	qDebug()<<"pressed";
+// 	qDebug()<<"pressed";
 	if(event->key()==Qt::Key_Up) {
 		selected += 1;
 		selected %= panels.size();
@@ -99,7 +99,7 @@ void PanelView::demandPanel() {
 }
 
 void PanelView::helpInfo() {
-	qDebug()<<"Help"<<keys.value(selected);
+// 	qDebug()<<"Help"<<keys.value(selected);
 }
 
 void PanelView::loadPanels() {
@@ -110,7 +110,7 @@ void PanelView::loadPanels() {
 	QString file;
 	foreach(QString val,temp){
 		file = val.toLower().remove(" ")+"_panel";
-		qDebug()<<file;
+// 		qDebug()<<file;
 			panels.insert(val,QPixmap(":data/helpFiles/"+file));
 		
 // 			panels.insert(val,QPixmap(":images/unknown"));

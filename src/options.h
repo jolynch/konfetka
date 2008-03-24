@@ -25,9 +25,13 @@ Main dev: Joe Lynch
 #include <QKeyEvent>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
+#include <QTableWidget>
+#include <QTableWidgetItem>
+#include <QHeaderView>
 #include <QLineEdit>
 
 class ListEditor;
+class ShortcutChooser;
 class Options:public LayoutPanel {
 	Q_OBJECT
 	private:
@@ -87,6 +91,13 @@ class Options:public LayoutPanel {
 	void updateXmms2OptsForeach(const std::string&, const Xmms::Dict::Variant&);
 	//End XMMS2
 
+
+	//Shortcuts
+	QWidget * shortcutOpt;
+	QTableWidget * shortcutMatrix;
+	ShortcutChooser * chooserDialog;
+	//Shortcuts
+
 	void constructOptions();
 
 	public:
@@ -101,6 +112,7 @@ class Options:public LayoutPanel {
 	void updateXmms2Opts(const Xmms::Dict&);
 	void xmms2TreeStartEdit(QTreeWidgetItem* item, int col);
 	void filterXmms2Opts();
+	void editShortcut(QTableWidgetItem*);
 	void emitSettings();
 };
 
@@ -127,6 +139,20 @@ class ListEditor:public QWidget {
 	private slots:
 	void add();
 	void editable(int npos);
+};
+
+//We need this for the key shortcut thingies
+class ShortcutChooser: public QDialog {
+	Q_OBJECT
+	private:
+	QString currentCombo;
+	
+	public:
+	ShortcutChooser(QWidget * parent=0,Qt::WindowFlags f=0);
+
+	public slots:
+	void keyPressEvent(QKeyEvent * event);
+	QString getCombo();
 };
 
 #endif

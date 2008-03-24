@@ -9,7 +9,6 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	this->setWindowTitle ("Konfetka");
 	papa=a;
 	conn=new DataBackend(NULL, std::string("Konfetka"));
-	QSettings s;
 	QString foo=Xmms::getUserConfDir().c_str();
 	foo.append("/clients/konfetka/stylesheet");
 	QFile file(foo);
@@ -33,7 +32,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	PanelController * pc=((PanelController *)conn->getDataBackendObject(DataBackend::PANEL));
 
 	rearpanel=new RearPanel(conn,screenRect, this, NULL);	
-
+	QSettings s;
 		if(s.value("staysOnTop").toBool())
 		minibar=new MiniMode(conn,rearpanel->getAlbumArt(),NULL,Qt::WindowStaysOnTopHint|Qt::FramelessWindowHint);
 		else
@@ -82,8 +81,9 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	icon->setContextMenu(menu);
 	icon->show();
 	
-	GlobalShortcutManager::connect(QKeySequence(tr("Ctrl+`")),this,SLOT(toggle()));
-	
+	minMaxGlobSC = QKeySequence("Ctrl+`");
+	GlobalShortcutManager::connect(minMaxGlobSC,this,SLOT(toggle()));
+
 	/*!!!!!!!!!!!!!!need to remove this hardcoding somehow!!!!!!!!!!!!!!!!!*/
 	/*!Other than the panel handles being hard coded to being 187 high what hard coding?!*/
 	QRect geom=this->geometry();
@@ -122,6 +122,12 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	}
 
 void MainWindow::respondToConfigChange(QString name,QVariant value) {
+	if(name =="konfetka/globalShortcut") {
+	minMaxGlobSC = QKeySequence("Ctrl+`");
+	GlobalShortcutManager::disconnect(minMaxGlobSC,this,SLOT(toggle()));
+	GlobalShortcutManager::connect(minMaxGlobSC,this,SLOT(toggle()));
+	}
+
 	if(name!="konfetka/stayOnTop") return;
 	
 	if(value.toBool())
@@ -168,10 +174,9 @@ void MainWindow::show()
 	
 void MainWindow::hide()
 	{
-std::cout<<"hiding"<<std::endl;
 	rearpanel->hide();
 	mainbar->hide();
-	((QWidget*)this)->hide();
+	QWidget::hide();
 	}
 
 void MainWindow::slotAnimationDone()
