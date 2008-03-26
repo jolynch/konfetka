@@ -324,7 +324,7 @@ void Options::constructOptions() {
 	tab->addTab(shortcutOpt,"Shortcuts");
 
 	chooserDialog = new ShortcutChooser();
-	connect(shortcutMatrix,SIGNAL(itemDoubleClicked(QTableWidgetItem *)),this,SLOT(editShortcut(QTableWidgetItem*)));
+	connect(shortcutMatrix,SIGNAL(itemClicked(QTableWidgetItem *)),this,SLOT(editShortcut(QTableWidgetItem*)));
 	//End Shortcut Options
 }
 
@@ -332,6 +332,11 @@ void Options::editShortcut(QTableWidgetItem* item) {
 	QString newSeq = ShortcutChooser::getSequence(this,"Please Choose a New Shortcut",item->text()).toString();
 	if(newSeq != "")
 	item->setText(newSeq);
+}
+
+void Options::manualEditShortcut(QTableWidgetItem * item) {
+	item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
+	//shortcutMatrix->edit(item);
 }
 
 void Options::sendSettings(bool all) {
@@ -499,12 +504,14 @@ ShortcutChooser::ShortcutChooser(QWidget * parent,Qt::WindowFlags f):QDialog(par
 }
 
 void ShortcutChooser::keyReleaseEvent(QKeyEvent * event) {
-	if(!isModifier(event->key())) {
-		if(getModifiers(event->modifiers()).isEmpty())
-		shortcutLabel->setText(QKeySequence(event->key()).toString());
+	if(!isModifier(event->key()) && event->key() != Qt::Key_unknown) {
+		qDebug()<<getModifiers(event->modifiers()).join("+")<<QKeySequence(event->key()).toString(QKeySequence::NativeText);
+		if(getModifiers(event->modifiers()).isEmpty()) 
+		shortcutLabel->setText(QKeySequence(event->key()).toString(QKeySequence::NativeText));
 		else
-		shortcutLabel->setText(getModifiers(event->modifiers()).join("+")+"+"+QKeySequence(event->key()).toString());
+		shortcutLabel->setText(getModifiers(event->modifiers()).join("+")+"+"+QKeySequence(event->key()).toString(QKeySequence::NativeText));
 	}
+	qDebug()<<QKeySequence(event->key()).toString(QKeySequence::NativeText);
 }
 
 QKeySequence ShortcutChooser::getSequence(QWidget* parent, const QString& caption, const QKeySequence& value) {

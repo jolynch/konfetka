@@ -113,6 +113,7 @@ class Options:public LayoutPanel {
 	void xmms2TreeStartEdit(QTreeWidgetItem* item, int col);
 	void filterXmms2Opts();
 	void editShortcut(QTableWidgetItem*);
+	void manualEditShortcut(QTableWidgetItem*);
 	void emitSettings();
 };
 
