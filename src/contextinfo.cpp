@@ -114,7 +114,7 @@ bool ContextInfo::gotAlbums(const Xmms::List <Xmms::Dict> &list) {
 
 
 bool ContextInfo::constructAlbum(QTreeWidgetItem* album,const Xmms::List <Xmms::Dict> &list) {
-	if(!album || albumToItem.key(album)!=0) return false;
+	if(album == NULL || albumToItem.key(album)!=0) return false;
 	QHash<QString,int> songList; QString tmp; int tmpId;
 	for (list.first();list.isValid(); ++list) {
 		if(list->contains("id")&&list->contains("title")) {

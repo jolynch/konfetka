@@ -23,15 +23,15 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	QRect screenRect = desktop->screenGeometry();
 	std::cout<<"DR- X: "<<deskRect.x()<<" Y: "<<deskRect.y()<<" WIDTH: "<<deskRect.width()<<" HEIGHT: "<<deskRect.height()<<std::endl;
 	std::cout<<"SR- X: "<<screenRect.x()<<" Y: "<<screenRect.y()<<" WIDTH: "<<screenRect.width()<<" HEIGHT: "<<screenRect.height()<<std::endl;
-	screenW = screenRect.width();
-	screenH = screenRect.height();
+	screenW = deskRect.width();
+	screenH = deskRect.height();
 	height=450; currentHeight=450; step=-20;
-	this->setGeometry(screenRect.x(),screenRect.y(),screenW,450);
+	this->setGeometry(deskRect.x(),deskRect.y(),screenW,height);
 	
 	conn->initPanelController(screenW);
 	PanelController * pc=((PanelController *)conn->getDataBackendObject(DataBackend::PANEL));
 
-	rearpanel=new RearPanel(conn,screenRect, this, NULL);	
+	rearpanel=new RearPanel(conn,deskRect, this, NULL);	
 	QSettings s;
 		if(s.value("staysOnTop").toBool())
 		minibar=new MiniMode(conn,rearpanel->getAlbumArt(),NULL,Qt::WindowStaysOnTopHint|Qt::FramelessWindowHint);
