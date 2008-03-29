@@ -17,7 +17,7 @@ CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::Windo
 	plistList = new QListWidget(listSplitter);
 	plistList->setDragEnabled(true);
 	
-	collDisplay = new CollTreeWidget(this,splitter);
+	collDisplay = new CollTreeWidget(this,conn,splitter);
 	QSettings s;
 	labels<<"Artist"<<"Album"<<"Title"<<"Genre";
 	if(labels.contains("konfetka/collectionbrowserlabels"))
@@ -32,13 +32,17 @@ CollectionBrowser::CollectionBrowser(DataBackend * c,QWidget * parent, Qt::Windo
 
 	dispColl = new QLineEdit();
 	dispColl->setEnabled(false);
+	QPushButton * createBin = new QPushButton("Create Bin");
+	createBin->setToolTip("Create Collection \"Bins\" to organize your music in");
+	connect(createBin,SIGNAL(clicked()),this,SLOT(createNewBin()));
 
-	layout1 = new QGridLayout();
-	layout1->addWidget(dispColl,0,0);
-	layout1->addWidget(splitter,1,0);
-	layout1->setRowStretch(1,1);
+	layout = new QGridLayout();
+	layout->addWidget(dispColl,0,0);
+	layout->addWidget(createBin,0,1);
+	layout->addWidget(splitter,1,0,1,2);
+	layout->setRowStretch(1,1);
 
-	this->setLayout(layout1); 
+	this->setLayout(layout); 
 
 	mimeData = NULL; drag = NULL;
 
@@ -127,29 +131,31 @@ void CollectionBrowser::updatePlistList(QStringList list) {
 
 
 void CollectionBrowser::getCollectionFromItem(QListWidgetItem * item) {
-// 	std::cout<<item->text().toStdString()<<std::endl;
 	if(collList->row(item) >0) {
-	conn->collection.get(item->text().toStdString(),collNamespace)(Xmms::bind(&CollectionBrowser::recievedNewColl,this));
-	plistList->setCurrentItem(plistList->item(0));
-	currentCollection = item->text();
-	currentNamespace = collNamespace;
+		qDebug()<<"fetching";
+		conn->collection.get(item->text().toStdString(),collNamespace)(Xmms::bind(&CollectionBrowser::recievedNewColl,this));
+		plistList->setCurrentItem(plistList->item(0));
+		currentCollection = item->text();
+		currentNamespace = collNamespace;
 	}
 	else if(plistList->row(item)>0) {
-	conn->collection.get(item->text().toStdString(),plistNamespace)(Xmms::bind(&CollectionBrowser::recievedNewColl,this));
-	collList->setCurrentItem(collList->item(0));
-	currentCollection = item->text();
-	currentNamespace = plistNamespace;
+		conn->collection.get(item->text().toStdString(),plistNamespace)(Xmms::bind(&CollectionBrowser::recievedNewColl,this));
+		collList->setCurrentItem(collList->item(0));
+		currentCollection = item->text();
+		currentNamespace = plistNamespace;
 	}
 	else {
-	collDisplay->clear();
+		collDisplay->clear();
 	}
 }
 
 bool CollectionBrowser::recievedNewColl(const Xmms::Coll::Coll& newColl) {
 	dispColl->setText(coll->collAsQString(newColl));
-	Xmms::Coll::Reference* temp = new Xmms::Coll::Reference(currentCollection.toStdString(),currentNamespace);
-	currentCollectionStructure = temp;
+	currentCollectionType = newColl.getType();
 	conn->collection.queryIds(newColl)(Xmms::bind(&CollectionBrowser::updateCollDisplay,this));
+	if(newColl.getAttribute("IsBin")=="true") {
+		currentCollectionType = 1337; //Its a Bin :-P
+	} 
 	return true;
 }
 
@@ -281,35 +287,154 @@ QMimeData* CollectionBrowser::getMimeInfo(const QList<QTreeWidgetItem *> items) 
 	return mimeData;
 }
 
-void CollectionBrowser::appendNewCollection(Xmms::Coll::Coll* tmp) {
-	Xmms::Coll::Union* un = new Xmms::Coll::Union();
-		if(currentCollectionStructure->getType() == Xmms::Coll::UNION) {
-		Xmms::Coll::OperandIterator temp = currentCollectionStructure->getOperandIterator();
-				for(temp.first();temp.valid();temp.next()) {
-				un->addOperand(**temp);
-// 				tmpStr = collAsQString((**temp));
-// 				result += tmpStr;
-// 				temp.next();
-// 					if(temp.valid())
-// 					result+= " OR ";
-				}
-		}
-// 	un->addOperand(*currentCollectionStructure);
-	un->addOperand(*tmp);
-		try{
-		conn->collection.save(*un,currentCollection.toStdString(),currentNamespace);
-		} catch (Xmms::result_error c) { std::cout<<"bled"<<std::endl;}
+int CollectionBrowser::getCurrentType() {
+	return currentCollectionType;
 }
 
-CollTreeWidget::CollTreeWidget(CollectionBrowser* l,QWidget * parent):QTreeWidget(parent) {
+QString CollectionBrowser::getCurrentName() {
+	return currentCollection;
+}
+
+Xmms::Collection::Namespace CollectionBrowser::getCurrentNamespace() {
+	return currentNamespace;
+}
+
+
+
+void CollectionBrowser::createNewBin() {
+	bool ok;
+	QString text = QInputDialog::getText(this, "Bin Name","What would you like to call your new Bin?",
+		       		            QLineEdit::Normal,NULL, &ok);
+	qDebug()<<ok<<text;
+	if(!ok) return;
+	Xmms::Coll::Idlist newBin;
+	Xmms::Coll::Union inBin;
+	inBin.addOperand(newBin);
+	Xmms::Coll::Intersection overall;
+	Xmms::Coll::Idlist newBinComplement;
+	Xmms::Coll::Complement notInBin(newBinComplement);
+	overall.addOperand(inBin);
+	overall.addOperand(notInBin);
+	overall.setAttribute("IsBin","true");
+	//Untill they get collection editing all done Idlists will be used
+	//newBin.setAttribute("IsBin","true");
+	conn->collection.save(overall,text.toStdString(),collNamespace); 	
+}
+/* Untill the cpp bindings are ready
+bool CollectionBrowser::appendListToBin(QList<uint> list,const Xmms::Coll::Coll& newColl) {
+	if(currentCollectionType != 1337) return false;
+	//Untill they get stuff fixed
+	//qDebug()<<"Before"<<coll->collAsQString(newColl);
+	Xmms::CollPtr ptr;
+	Xmms::Coll::OperandIterator temp = newColl.getOperandIterator();
+	for(temp.first();temp.valid();temp.next()) {
+		if((*temp)->getType()==Xmms::Coll::UNION) {
+			Xmms::Coll::OperandIterator temp2 = (*temp)->getOperandIterator();
+			for(temp2.first();temp2.valid();temp2.next()){
+				if((*temp2)->getType()==Xmms::Coll::IDLIST) {
+				ptr = *temp2; 
+				break;
+				}
+			}
+			break;
+		}
+	}
+	for(int i=0;i<list.size();i++) {
+		ptr->append(list[i]);
+	}
+	conn->collection.save(newColl,currentCollection.toStdString(),currentNamespace);
+	return true;
+}
+
+bool CollectionBrowser::appendCollToBin(const Xmms::Coll::Coll& coll) {
+	if(currentCollectionType != 1337) return false;
+	
+	return true;
+}
+
+bool CollectionBrowser::removeFromBin(QList<uint> list,const Xmms::Coll::Coll& coll) {
+	if(currentCollectionType != 1337) return false;
+	
+	return true;
+}
+*/	
+
+void CollectionBrowser::appendListToBin(QList<uint> list) {
+	xmmsc_result_t* res = xmmsc_coll_get (conn->getConnection(),currentCollection.toStdString().c_str(),"Collections");  
+	xmmsc_result_wait (res);
+	xmmsc_coll_t* new_coll;
+	xmmsc_result_get_collection (res, &new_coll);
+	xmmsc_coll_t *op;
+	for(xmmsc_coll_operand_list_first(new_coll);xmmsc_coll_operand_list_valid(new_coll);xmmsc_coll_operand_list_next(new_coll)) {
+                if(xmmsc_coll_operand_list_entry(new_coll, &op)) {
+			if(xmmsc_coll_get_type(op)==XMMS_COLLECTION_TYPE_UNION) {
+			xmmsc_coll_t *op1;
+			for(xmmsc_coll_operand_list_first(op);xmmsc_coll_operand_list_valid(op);xmmsc_coll_operand_list_next(op)){
+				if(xmmsc_coll_operand_list_entry(op,&op1)) {
+					if(xmmsc_coll_get_type(op1)==XMMS_COLLECTION_TYPE_IDLIST) {
+					qDebug()<<"Found idlist";
+						for(int i=0;i<list.size();i++) {
+							xmmsc_coll_idlist_append(op1,list[i]);	
+						}
+					}
+				}
+			}	
+			}
+		}
+	}
+	xmmsc_result_wait(xmmsc_coll_save(conn->getConnection(),new_coll,currentCollection.toStdString().c_str(),"Collections"));
+	xmmsc_result_unref (res);	
+}
+
+void CollectionBrowser::appendCollToBin(Xmms::CollPtr coll) {
+}
+
+void CollectionBrowser::removeFromBin(QList<uint> list) {
+}
+
+CollTreeWidget::CollTreeWidget(CollectionBrowser* l,DataBackend * c,QWidget * parent):QTreeWidget(parent) {
 	lib = l;
+	conn = c;
 }
 
 CollTreeWidget::~CollTreeWidget() {
 }
 
+bool CollTreeWidget::lookupId(bool toAdd,const uint val) {
+	listOfIDs<<val;
+	numIDs-=1;
+	if(numIDs == 0)
+		lib->appendListToBin(listOfIDs);
+	return true;
+}
 
 void CollTreeWidget::dropEvent(QDropEvent *event) {
+	qDebug()<<"Drop";
+	qDebug()<<lib->getCurrentType();
+	if(lib->getCurrentType()==1337) { //Its a dynamic Bin
+		if(event->mimeData()->hasUrls()) {
+			qDebug()<<"Bin";
+			QList<QUrl> list = event->mimeData()->urls();
+			bool toAppend = true;
+			numIDs = list.size();
+			listOfIDs.clear();
+			for(int i=0;i<list.size();i++) {
+				conn->medialib.getID(conn->encodeUrl(list[i].toString()).toStdString())
+					(boost::bind(&CollTreeWidget::lookupId,this,toAppend,_1));
+			}
+			//QList<uint> list;
+			//list<<78<<71<<77;
+			//lib->appendListToBin(list);
+		}
+		//conn->collection.get(lib->getCurrentName().toStdString(),lib->getCurrentNamespace())
+		//		(boost::bind(&CollectionBrowser::appendListToBin,lib,list,_1));
+		
+
+		//qDebug()<<lib->curStruct->getType();
+	}
+	
+	
+	return;
 	QByteArray encodedData = event->mimeData()->data("application/x-collstruct");
 	int temp = encodedData.toInt();
 	Xmms::Coll::Coll* tmp = (Xmms::Coll::Coll*)temp;
@@ -323,10 +448,8 @@ void CollTreeWidget::dragMoveEvent ( QDragMoveEvent * event ) {
 }
 
 void CollTreeWidget::dragEnterEvent(QDragEnterEvent *event) {
-	if(event->mimeData()->hasFormat("application/x-collstruct"))
+	if(event->mimeData()->hasUrls())
 	event->acceptProposedAction();
-// 	else
-// 	event->ignore();
 }
 
 

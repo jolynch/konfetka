@@ -23,6 +23,13 @@
 #include <QUrl>
 #include <QLineEdit>
 #include <QKeyEvent>
+#include <QtDebug>
+#include <QPushButton>
+#include <QInputDialog>
+
+//Boost
+#include <boost/bind.hpp>
+#include <boost/ref.hpp>
 
 class CollectionBrowser:public LayoutPanel {
 	Q_OBJECT
@@ -37,8 +44,8 @@ class CollectionBrowser:public LayoutPanel {
 	QHash<uint,QTreeWidgetItem*> idToItem;
 	QStringList labels;
 	QString currentCollection; Xmms::Collection::Namespace currentNamespace;
-	Xmms::Coll::Coll* currentCollectionStructure;
-	QGridLayout * layout1;
+	int currentCollectionType;
+	QGridLayout * layout;
 
 	QTreeWidget * collDisplay;
 	QListWidget * collList;
@@ -58,7 +65,7 @@ class CollectionBrowser:public LayoutPanel {
 	public:
 	CollectionBrowser(DataBackend * c,QWidget * parent = 0, Qt::WindowFlags f = 0);
 	void setLayoutSide(bool);
-	bool recievedNewColl(const Xmms::Coll::Coll&);
+	bool recievedNewColl(const Xmms::Coll::Coll& newColl);
 	bool updateCollDisplay(const Xmms::List <uint> &list);
 	//Removes a collection
 	void removeSelectedCollections();
@@ -71,6 +78,19 @@ class CollectionBrowser:public LayoutPanel {
 	void keyPressEvent(QKeyEvent* event);
 	QMimeData* getMimeInfo(const QList<QTreeWidgetItem *> items);
 	void appendNewCollection(Xmms::Coll::Coll*);
+	//Bin related funcs
+	int getCurrentType();
+	QString getCurrentName();
+	Xmms::Collection::Namespace getCurrentNamespace();
+	void appendListToBin(QList<uint> list);
+	void appendCollToBin(Xmms::CollPtr coll);
+	void removeFromBin(QList<uint> list);
+	/*For whenever we can do the collection editing through cpp bindings 
+	bool appendListToBin(QList<uint> list,const Xmms::Coll::Coll& coll);
+	bool appendCollToBin(const Xmms::Coll::Coll& coll);
+	bool removeFromBin(QList<uint> list,const Xmms::Coll::Coll& coll);
+	*/
+
 
 	public slots:
 	void updateCollList(QStringList);
@@ -82,16 +102,22 @@ class CollectionBrowser:public LayoutPanel {
 	void greyItem(QTreeWidgetItem*);
 	void startDragList(QListWidgetItem*);
 	void startDrag();
+	void createNewBin();
 };
 
 class CollTreeWidget:public QTreeWidget {
 	Q_OBJECT
 	private:
 	CollectionBrowser* lib;
+	DataBackend * conn;
+	int numIDs;
+	bool addingIDs;
+	QList<uint> listOfIDs;
 	public:
-	CollTreeWidget(CollectionBrowser* l,QWidget * parent = 0);
+	CollTreeWidget(CollectionBrowser* l,DataBackend* c,QWidget * parent = 0);
 	~CollTreeWidget();
-	
+
+	bool lookupId(bool isAdd,const uint val);	
 	//Drag Drop / User interaction
 	void dropEvent(QDropEvent *event);
 	void dragMoveEvent ( QDragMoveEvent * ); 

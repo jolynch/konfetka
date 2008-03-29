@@ -132,7 +132,7 @@ QString CollData::collAsQString(const Xmms::Coll::Coll& coll) {
 			break;
 			}
 			case Xmms::Coll::IDLIST: {
-			result = "Id list";
+			result = "ID List";
 			break;
 			}       
 			case Xmms::Coll::QUEUE: {
