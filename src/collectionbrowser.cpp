@@ -262,18 +262,14 @@ void CollectionBrowser::removeSelectedPlaylists() {
 //Appends an extra NOT collection
 void CollectionBrowser::removeSelectedItems(){
 	QList<QTreeWidgetItem*> temp = collDisplay->selectedItems();
-	Xmms::Coll::Idlist newArguments;
+	QList<uint> toRemove;
 		for(int i=0;i<temp.size();i++) {
-			newArguments.append(idToItem.key(temp.value(i)));
+			toRemove.append(idToItem.key(temp.value(i)));
 		}
-	std::cout<<newArguments.size()<<std::endl;
-	std::cout<<currentCollection.toStdString()<<" "<<currentNamespace<<std::endl;
-	Xmms::Coll::Reference * ref = new Xmms::Coll::Reference(currentCollection.toStdString(),currentNamespace);
-	Xmms::Coll::Intersection * newRef = new Xmms::Coll::Intersection();
-	Xmms::Coll::Complement * comp = new Xmms::Coll::Complement(newArguments);
-	newRef->addOperand(*ref);
-	newRef->addOperand(*comp);
-	conn->collection.save(*newRef,currentCollection.toStdString(),currentNamespace);
+	std::cout<<toRemove.size()<<std::endl;
+	if(currentCollectionType == 1337) {
+		removeFromBin(toRemove);
+	}
 }
 
 QMimeData* CollectionBrowser::getMimeInfo(const QList<QTreeWidgetItem *> items) {
@@ -360,6 +356,8 @@ bool CollectionBrowser::removeFromBin(QList<uint> list,const Xmms::Coll::Coll& c
 */	
 
 void CollectionBrowser::appendListToBin(QList<uint> list) {
+	if(currentCollectionType!=1337) return;
+
 	xmmsc_result_t* res = xmmsc_coll_get (conn->getConnection(),currentCollection.toStdString().c_str(),"Collections");  
 	xmmsc_result_wait (res);
 	xmmsc_coll_t* new_coll;
@@ -384,12 +382,44 @@ void CollectionBrowser::appendListToBin(QList<uint> list) {
 	}
 	xmmsc_result_wait(xmmsc_coll_save(conn->getConnection(),new_coll,currentCollection.toStdString().c_str(),"Collections"));
 	xmmsc_result_unref (res);	
+	if(collList->currentItem()!=NULL && collList->currentRow()>0)
+		 getCollectionFromItem(collList->currentItem());
 }
 
 void CollectionBrowser::appendCollToBin(Xmms::CollPtr coll) {
+	if(currentCollectionType!=1337) return;
+
+	if(collList->currentItem()!=NULL && collList->currentRow()>0)
+		getCollectionFromItem(collList->currentItem());
+
 }
 
 void CollectionBrowser::removeFromBin(QList<uint> list) {
+	if(currentCollectionType!=1337) return;
+	
+	xmmsc_result_t* res = xmmsc_coll_get (conn->getConnection(),currentCollection.toStdString().c_str(),"Collections");  
+	xmmsc_result_wait (res);
+	xmmsc_coll_t* new_coll;
+	xmmsc_result_get_collection (res, &new_coll);
+	xmmsc_coll_t *op;
+	for(xmmsc_coll_operand_list_first(new_coll);xmmsc_coll_operand_list_valid(new_coll);xmmsc_coll_operand_list_next(new_coll)) {
+                if(xmmsc_coll_operand_list_entry(new_coll, &op)) {
+			if(xmmsc_coll_get_type(op)==XMMS_COLLECTION_TYPE_COMPLEMENT) {
+			xmmsc_coll_t *op1;
+				if(xmmsc_coll_operand_list_first(op)&&xmmsc_coll_operand_list_entry(op,&op1)) {
+					if(xmmsc_coll_get_type(op1)==XMMS_COLLECTION_TYPE_IDLIST) {
+						for(int i=0;i<list.size();i++) {
+							xmmsc_coll_idlist_append(op1,list[i]);	
+						}
+					}
+				}
+			}
+		}
+	}
+	xmmsc_result_wait(xmmsc_coll_save(conn->getConnection(),new_coll,currentCollection.toStdString().c_str(),"Collections"));
+	xmmsc_result_unref (res);
+	if(collList->currentItem()!=NULL && collList->currentRow()>0)
+		getCollectionFromItem(collList->currentItem());
 }
 
 CollTreeWidget::CollTreeWidget(CollectionBrowser* l,DataBackend * c,QWidget * parent):QTreeWidget(parent) {
