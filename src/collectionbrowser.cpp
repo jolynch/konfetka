@@ -132,7 +132,6 @@ void CollectionBrowser::updatePlistList(QStringList list) {
 
 void CollectionBrowser::getCollectionFromItem(QListWidgetItem * item) {
 	if(collList->row(item) >0) {
-		qDebug()<<"fetching";
 		conn->collection.get(item->text().toStdString(),collNamespace)(Xmms::bind(&CollectionBrowser::recievedNewColl,this));
 		plistList->setCurrentItem(plistList->item(0));
 		currentCollection = item->text();
@@ -301,7 +300,6 @@ void CollectionBrowser::createNewBin() {
 	bool ok;
 	QString text = QInputDialog::getText(this, "Bin Name","What would you like to call your new Bin?",
 		       		            QLineEdit::Normal,NULL, &ok);
-	qDebug()<<ok<<text;
 	if(!ok) return;
 	Xmms::Coll::Idlist newBin;
 	Xmms::Coll::Union inBin;
@@ -355,71 +353,96 @@ bool CollectionBrowser::removeFromBin(QList<uint> list,const Xmms::Coll::Coll& c
 }
 */	
 
-void CollectionBrowser::appendListToBin(QList<uint> list) {
-	if(currentCollectionType!=1337) return;
+//The next three functions look more complicated then they really are (thanks C), unfortunatelly the cpp bindings are kind of
+//not working right now, so I had to use c. Remember a bin looks like Intersection(Union(InBin,_other_collections_),Complement(NotInBin))
+//So all the for loops and such just find the correct part of the bin to change
 
-	xmmsc_result_t* res = xmmsc_coll_get (conn->getConnection(),currentCollection.toStdString().c_str(),"Collections");  
-	xmmsc_result_wait (res);
-	xmmsc_coll_t* new_coll;
-	xmmsc_result_get_collection (res, &new_coll);
+xmmsc_coll_t* CollectionBrowser::findPartOfBin(xmmsc_coll_t* bin, int type) {//0=InBin idlist, 1=InBin union, 2=NotInBin idlist
+	if(currentCollectionType!=1337 || collList->currentItem()==NULL || collList->currentRow()<=0) return NULL;
+
 	xmmsc_coll_t *op;
-	for(xmmsc_coll_operand_list_first(new_coll);xmmsc_coll_operand_list_valid(new_coll);xmmsc_coll_operand_list_next(new_coll)) {
-                if(xmmsc_coll_operand_list_entry(new_coll, &op)) {
+	for(xmmsc_coll_operand_list_first(bin);xmmsc_coll_operand_list_valid(bin);xmmsc_coll_operand_list_next(bin)) {
+                if(xmmsc_coll_operand_list_entry(bin, &op)) {
 			if(xmmsc_coll_get_type(op)==XMMS_COLLECTION_TYPE_UNION) {
+				if(type ==1) return op;
 			xmmsc_coll_t *op1;
 			for(xmmsc_coll_operand_list_first(op);xmmsc_coll_operand_list_valid(op);xmmsc_coll_operand_list_next(op)){
 				if(xmmsc_coll_operand_list_entry(op,&op1)) {
-					if(xmmsc_coll_get_type(op1)==XMMS_COLLECTION_TYPE_IDLIST) {
-					qDebug()<<"Found idlist";
-						for(int i=0;i<list.size();i++) {
-							xmmsc_coll_idlist_append(op1,list[i]);	
-						}
+					if(xmmsc_coll_get_type(op1)==XMMS_COLLECTION_TYPE_IDLIST && type == 0) {
+						return op1;
 					}
 				}
 			}	
 			}
-		}
-	}
-	xmmsc_result_wait(xmmsc_coll_save(conn->getConnection(),new_coll,currentCollection.toStdString().c_str(),"Collections"));
-	xmmsc_result_unref (res);	
-	if(collList->currentItem()!=NULL && collList->currentRow()>0)
-		 getCollectionFromItem(collList->currentItem());
-}
-
-void CollectionBrowser::appendCollToBin(Xmms::CollPtr coll) {
-	if(currentCollectionType!=1337) return;
-
-	if(collList->currentItem()!=NULL && collList->currentRow()>0)
-		getCollectionFromItem(collList->currentItem());
-
-}
-
-void CollectionBrowser::removeFromBin(QList<uint> list) {
-	if(currentCollectionType!=1337) return;
-	
-	xmmsc_result_t* res = xmmsc_coll_get (conn->getConnection(),currentCollection.toStdString().c_str(),"Collections");  
-	xmmsc_result_wait (res);
-	xmmsc_coll_t* new_coll;
-	xmmsc_result_get_collection (res, &new_coll);
-	xmmsc_coll_t *op;
-	for(xmmsc_coll_operand_list_first(new_coll);xmmsc_coll_operand_list_valid(new_coll);xmmsc_coll_operand_list_next(new_coll)) {
-                if(xmmsc_coll_operand_list_entry(new_coll, &op)) {
-			if(xmmsc_coll_get_type(op)==XMMS_COLLECTION_TYPE_COMPLEMENT) {
+			else if(xmmsc_coll_get_type(op)==XMMS_COLLECTION_TYPE_COMPLEMENT) {
 			xmmsc_coll_t *op1;
 				if(xmmsc_coll_operand_list_first(op)&&xmmsc_coll_operand_list_entry(op,&op1)) {
-					if(xmmsc_coll_get_type(op1)==XMMS_COLLECTION_TYPE_IDLIST) {
-						for(int i=0;i<list.size();i++) {
-							xmmsc_coll_idlist_append(op1,list[i]);	
-						}
+					if(xmmsc_coll_get_type(op1)==XMMS_COLLECTION_TYPE_IDLIST && type == 2) {
+						return op1;
 					}
 				}
 			}
 		}
 	}
-	xmmsc_result_wait(xmmsc_coll_save(conn->getConnection(),new_coll,currentCollection.toStdString().c_str(),"Collections"));
-	xmmsc_result_unref (res);
-	if(collList->currentItem()!=NULL && collList->currentRow()>0)
+	return NULL;
+}
+
+void CollectionBrowser::appendListToBin(QList<uint> list) {
+	if(currentCollectionType!=1337) return;
+
+	xmmsc_result_t* res = xmmsc_coll_get (conn->getConnection(),currentCollection.toStdString().c_str(),"Collections");
+	xmmsc_result_wait (res);
+	xmmsc_coll_t* new_coll;
+	xmmsc_result_get_collection (res, &new_coll);
+
+	xmmsc_coll_t* op = findPartOfBin(new_coll,0);
+	for(int i=0;i<list.size();i++) {
+		xmmsc_coll_idlist_append(op,list[i]);	
+	}
+	
+	if(collList->currentItem()!=NULL && collList->currentRow()>0) {
+		xmmsc_result_wait(xmmsc_coll_save(conn->getConnection(),new_coll,currentCollection.toStdString().c_str(),"Collections"));
 		getCollectionFromItem(collList->currentItem());
+	}
+	xmmsc_coll_unref(new_coll);
+}
+
+void CollectionBrowser::appendCollToBin(const Xmms::Coll::Coll& coll) {
+	if(currentCollectionType!=1337) return;
+
+	xmmsc_coll_t * to_append = coll.getColl();
+	xmmsc_result_t* res = xmmsc_coll_get (conn->getConnection(),currentCollection.toStdString().c_str(),"Collections");
+	xmmsc_result_wait (res);
+	xmmsc_coll_t* new_coll;
+	xmmsc_result_get_collection (res, &new_coll);
+
+	xmmsc_coll_t* op = findPartOfBin(new_coll,1);
+	xmmsc_coll_add_operand(op,to_append);
+
+	if(collList->currentItem()!=NULL && collList->currentRow()>0) {
+		xmmsc_result_wait(xmmsc_coll_save(conn->getConnection(),new_coll,currentCollection.toStdString().c_str(),"Collections"));
+		getCollectionFromItem(collList->currentItem());
+	}
+	xmmsc_coll_unref(new_coll);
+}
+
+void CollectionBrowser::removeFromBin(QList<uint> list) {
+	if(currentCollectionType!=1337) return;
+
+	xmmsc_result_t* res = xmmsc_coll_get (conn->getConnection(),currentCollection.toStdString().c_str(),"Collections");
+	xmmsc_result_wait (res);
+	xmmsc_coll_t* new_coll;
+	xmmsc_result_get_collection (res, &new_coll);
+
+	xmmsc_coll_t* op = findPartOfBin(new_coll,2);
+	for(int i=0;i<list.size();i++) {
+		xmmsc_coll_idlist_append(op,list[i]);	
+	}
+	if(collList->currentItem()!=NULL && collList->currentRow()>0) {
+		xmmsc_result_wait(xmmsc_coll_save(conn->getConnection(),new_coll,currentCollection.toStdString().c_str(),"Collections"));
+		getCollectionFromItem(collList->currentItem());
+	}
+	xmmsc_coll_unref(new_coll);
 }
 
 CollTreeWidget::CollTreeWidget(CollectionBrowser* l,DataBackend * c,QWidget * parent):QTreeWidget(parent) {
@@ -438,12 +461,14 @@ bool CollTreeWidget::lookupId(bool toAdd,const uint val) {
 	return true;
 }
 
+bool CollTreeWidget::lookupColl(const Xmms::Coll::Coll& coll) {
+	lib->appendCollToBin(coll);
+	return true;
+}
+
 void CollTreeWidget::dropEvent(QDropEvent *event) {
-	qDebug()<<"Drop";
-	qDebug()<<lib->getCurrentType();
 	if(lib->getCurrentType()==1337) { //Its a dynamic Bin
 		if(event->mimeData()->hasUrls()) {
-			qDebug()<<"Bin";
 			QList<QUrl> list = event->mimeData()->urls();
 			bool toAppend = true;
 			numIDs = list.size();
@@ -452,9 +477,12 @@ void CollTreeWidget::dropEvent(QDropEvent *event) {
 				conn->medialib.getID(conn->encodeUrl(list[i].toString()).toStdString())
 					(boost::bind(&CollTreeWidget::lookupId,this,toAppend,_1));
 			}
-			//QList<uint> list;
-			//list<<78<<71<<77;
-			//lib->appendListToBin(list);
+		}
+		else if(event->mimeData()->hasFormat("application/x-collname")) {
+			QDataStream in(event->mimeData()->data("application/x-collname"));
+			QString name,ns;
+			in>>name>>ns;
+			conn->collection.get(name.toStdString(),Xmms::Collection::COLLECTIONS)(Xmms::bind(&CollTreeWidget::lookupColl,this));
 		}
 		//conn->collection.get(lib->getCurrentName().toStdString(),lib->getCurrentNamespace())
 		//		(boost::bind(&CollectionBrowser::appendListToBin,lib,list,_1));
@@ -478,8 +506,8 @@ void CollTreeWidget::dragMoveEvent ( QDragMoveEvent * event ) {
 }
 
 void CollTreeWidget::dragEnterEvent(QDragEnterEvent *event) {
-	if(event->mimeData()->hasUrls())
-	event->acceptProposedAction();
+	if(event->mimeData()->hasUrls() || event->mimeData()->hasFormat("application/x-collname"))
+		event->acceptProposedAction();
 }
 
 

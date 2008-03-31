@@ -39,6 +39,7 @@ class ContextInfo:public QWidget {
 	QHash<int,QTreeWidgetItem*> idToItem;
 	QHash<QString,QTreeWidgetItem*> albumToItem;
 	int curId; int cntr; bool doubleClickPlay;
+	int lastID;
 
 	public:
 	ContextInfo(DataBackend * c,bool autoUpdate = true,QWidget * parent = 0, Qt::WindowFlags f = 0);
@@ -48,7 +49,8 @@ class ContextInfo:public QWidget {
 	bool constructAlbum(QTreeWidgetItem*,const Xmms::List <Xmms::Dict> &list);
 	bool gotAlbumCover(int id,const Xmms::bin& res);
 	bool addAlbumToPlist(const Xmms::List <uint> &list);
-	
+	void clearTree();
+
 	public slots:
 	void infoChanged(int);
 	void slotUpdateInfo(int);

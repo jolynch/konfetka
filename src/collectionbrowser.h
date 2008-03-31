@@ -82,8 +82,9 @@ class CollectionBrowser:public LayoutPanel {
 	int getCurrentType();
 	QString getCurrentName();
 	Xmms::Collection::Namespace getCurrentNamespace();
+	xmmsc_coll_t* findPartOfBin(xmmsc_coll_t* bin,int type);
 	void appendListToBin(QList<uint> list);
-	void appendCollToBin(Xmms::CollPtr coll);
+	void appendCollToBin(const Xmms::Coll::Coll& coll);
 	void removeFromBin(QList<uint> list);
 	/*For whenever we can do the collection editing through cpp bindings 
 	bool appendListToBin(QList<uint> list,const Xmms::Coll::Coll& coll);
@@ -118,6 +119,7 @@ class CollTreeWidget:public QTreeWidget {
 	~CollTreeWidget();
 
 	bool lookupId(bool isAdd,const uint val);	
+	bool lookupColl(const Xmms::Coll::Coll& coll);
 	//Drag Drop / User interaction
 	void dropEvent(QDropEvent *event);
 	void dragMoveEvent ( QDragMoveEvent * ); 

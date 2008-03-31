@@ -21,9 +21,9 @@ ContextInfo::ContextInfo(DataBackend * c,bool autoUpdate,QWidget * parent, Qt::W
 	QStringList Hlabels;
 	Hlabels << "Context Infomation";
 	tree->setHeaderLabels(Hlabels);
+	tree->setMouseTracking(true);
 	artistHeader = new QTreeWidgetItem(tree);
 	artistHeader->setText(0,"Artist: ");
-	tree->setMouseTracking(true);
 
 	layout->addWidget(tree,0,0);
 	this->setLayout(layout);
@@ -35,12 +35,19 @@ ContextInfo::ContextInfo(DataBackend * c,bool autoUpdate,QWidget * parent, Qt::W
 	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(respondToConfigChange(QString,QVariant)));
 	doubleClickPlay = true;
 }
+
+void ContextInfo::clearTree() {
+	QTreeWidgetItem * tmp;
+	while(artistHeader->childCount()>0) {
+		tmp = artistHeader->takeChild(0);
+		if(tmp) delete tmp;
+	}	
+}
 void ContextInfo::infoChanged(int id) {
 	if(id == curId) {
 		idToItem.clear();
 		albumToItem.clear();
-		tree->clear();
-		artistHeader = new QTreeWidgetItem(tree);
+		clearTree();
 		
 		if(mlib->getInfo("artist",id).toInt() != -1)
 		artistHeader->setText(0,"Artist: " + mlib->getInfo("artist",id).toString());
@@ -63,9 +70,8 @@ void ContextInfo::slotUpdateInfo(int id){
 	QTimer::singleShot(4000, this, SLOT(setUpdatesEnabled()));
 	idToItem.clear();
 	albumToItem.clear();
-	tree->clear();
-	artistHeader = new QTreeWidgetItem(tree);
 	
+	clearTree();
 	
 	if(mlib->getInfo("id",id).toInt() != -1) infoChanged(id);
 }
@@ -105,6 +111,7 @@ bool ContextInfo::gotAlbums(const Xmms::List <Xmms::Dict> &list) {
 		std::list<std::string> what;
 		what.push_back("title");
 		what.push_back("id");
+			lastID = curId;
 			conn->collection.queryInfos(songItems,what)(boost::bind(&ContextInfo::constructAlbum,this,newAlbum,_1));
 	}
 	artistHeader->setExpanded(1);
@@ -114,7 +121,7 @@ bool ContextInfo::gotAlbums(const Xmms::List <Xmms::Dict> &list) {
 
 
 bool ContextInfo::constructAlbum(QTreeWidgetItem* album,const Xmms::List <Xmms::Dict> &list) {
-	if(album == NULL || albumToItem.key(album)!=0) return false;
+	if(album == NULL || lastID != curId || artistHeader->indexOfChild(album)<0) return false;
 	QHash<QString,int> songList; QString tmp; int tmpId;
 	for (list.first();list.isValid(); ++list) {
 		if(list->contains("id")&&list->contains("title")) {
@@ -143,6 +150,7 @@ bool ContextInfo::constructAlbum(QTreeWidgetItem* album,const Xmms::List <Xmms::
 				///This is causing segfaults
 				album->setFont(0,f);
 			}
+			
 		album->addChild(item);
 		idToItem.insert(songList.value(key),item);
 		if(mlib->getInfo("picture_front",songList.value(key)).toString()!="Unknown") {

@@ -87,6 +87,7 @@ QString CollData::collAsQString(const Xmms::Coll::Coll& coll) {
 			break;
 			case Xmms::Coll::UNION: {
 			Xmms::Coll::OperandIterator temp = coll.getOperandIterator();
+				result += "[";
 				for(temp.first();temp.valid();temp.valid()) {
 				tmpStr = collAsQString((**temp));
 				result += tmpStr;
@@ -94,10 +95,12 @@ QString CollData::collAsQString(const Xmms::Coll::Coll& coll) {
 					if(temp.valid())
 					result+= " OR ";
 				}
+				result += "]";
 			break;
 			}
 			case Xmms::Coll::INTERSECTION: {
 			Xmms::Coll::OperandIterator temp = coll.getOperandIterator();
+				result += "[";
 				for(temp.first();temp.valid();temp.valid()) {
 				tmpStr = collAsQString((**temp));
 				result += tmpStr;
@@ -105,6 +108,7 @@ QString CollData::collAsQString(const Xmms::Coll::Coll& coll) {
 					if(temp.valid())
 					result+= " AND ";
 				}
+				result += "]";
 			break;
 			}
 			case Xmms::Coll::COMPLEMENT: {
