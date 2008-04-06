@@ -69,7 +69,7 @@ void MlibData::fetchSomeMore() {
 	}
 	else {
 // 	std::cout<<"going for another round"<<std::endl;
-	waitTimer.start(250);
+	waitTimer.start(100);
 	}
 }
 
@@ -117,7 +117,7 @@ void MlibData::getInfoFromServer(uint id) {
 // 		std::cout<<"enqueueing more songs "<<id<<std::endl;
 		waitingIds.enqueue(id);
 		if(!waitTimer.isActive())
-		waitTimer.start(250);
+			waitTimer.start(100);
 	}
 }
 

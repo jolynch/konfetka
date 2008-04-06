@@ -8,7 +8,7 @@ AlbumArt::AlbumArt(DataBackend * c) {
 	numToGet=0;
 	hasAlbum = 0;
 	toReflect = 1;
-	noAlbum = QPixmap(":images/no_album180");
+	noAlbum = QPixmap(":images/no_album_old180.png");
 	setAcceptDrops(true);
 	http = new QHttp();
 	menu = new QMenu();

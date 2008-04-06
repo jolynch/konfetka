@@ -10,6 +10,7 @@
 	<file alias="checkhover.png">images/checkhover.png</file>
 	<file alias="checkback.png">images/checkback.png</file>
 
+
 	<file>images/back_button.png</file>
 	<file>images/dot_small.png</file>
 	<file>images/minus.png</file>
@@ -33,6 +34,7 @@
 	<file>images/no_album150.png</file>
 	<file>images/no_album175.png</file>
 	<file>images/no_album180.png</file>
+	<file>images/no_album_old180.png</file>
 	<file>images/playlist.png</file>
 	<file>images/shuffle2.png</file>
 	<file>images/toggle_button.png</file>

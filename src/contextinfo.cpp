@@ -68,10 +68,6 @@ void ContextInfo::slotUpdateInfo(int id){
 	setUpdatesEnabled(false);
 	//In case we get some weird problems later
 	QTimer::singleShot(4000, this, SLOT(setUpdatesEnabled()));
-	idToItem.clear();
-	albumToItem.clear();
-	
-	clearTree();
 	
 	if(mlib->getInfo("id",id).toInt() != -1) infoChanged(id);
 }
