@@ -40,6 +40,9 @@ class PanelController:public QObject
 		void changeToPanel(QString name);
 
 		void timerEvent ( QTimerEvent * event );
+		
+		void startTimer();
+		void endTimer();
 
 		static const PanelControllerFlag BLANK		=0x000000;
 	public:

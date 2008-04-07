@@ -3,7 +3,6 @@
 #include "panelcontroller.h"
 PanelController::PanelController(int width):QObject()
 	{
-	timerId=startTimer(ANIMATION_INTERVAL);
 	screenWidth=width;
 	left=NULL;
 	right=NULL;
@@ -21,6 +20,17 @@ bool PanelController::getSide(QString name)
 	if((name.split("$%$")[0])=="r")
 		return true;
 	return 0;
+	}
+
+void PanelController::startTimer()
+	{
+	timerId=((QObject*)this)->startTimer(ANIMATION_INTERVAL);
+	}
+	
+void PanelController::endTimer()
+	{
+	if(!leftAnimating&&!rightAnimating)
+		killTimer(timerId);
 	}
 
 QString PanelController::getId(QString name)
@@ -84,6 +94,7 @@ void PanelController::timerEvent ( QTimerEvent * event )
 			{
 			left->mv(leftAnimationTarget);
 			leftAnimating=false;
+			endTimer();
 			left->showAttached();
 			}
 		else if(leftAnimationTarget>left->getPosition()) left->mv(left->getPosition()+ANIMATION_STEP);
@@ -95,6 +106,7 @@ void PanelController::timerEvent ( QTimerEvent * event )
 			{
 			right->mv(rightAnimationTarget);
 			rightAnimating=false;
+			endTimer();
 			right->showAttached();
 			}
 		else if(rightAnimationTarget>right->getPosition()) right->mv(right->getPosition()+ANIMATION_STEP);
@@ -236,6 +248,7 @@ void PanelController::timerClicked(Panel * p)
 		rightAnimationTarget=screenWidth/2;
 		rightAnimating=true;
 		right->hideAttached();
+		startTimer();
 		return;
 		}
 	if(!ir&&!le&&(r==l))
@@ -246,6 +259,7 @@ void PanelController::timerClicked(Panel * p)
 		rightAnimationTarget=screenWidth/2;
 		rightAnimating=true;
 		right->hideAttached();
+		startTimer();
 		return;
 		}
 	if(ir&&(r==l))
@@ -253,6 +267,7 @@ void PanelController::timerClicked(Panel * p)
 		rightAnimationTarget=screenWidth-PBG_WIDTH/2;
 		rightAnimating=true;
 		right->hideAttached();
+		startTimer();
 		return;
 		}
 	if(!ir&&(r==l))
@@ -260,6 +275,7 @@ void PanelController::timerClicked(Panel * p)
 		leftAnimationTarget=PBG_WIDTH/2;
 		leftAnimating=true;
 		left->hideAttached();
+		startTimer();
 		return;
 		}
 	if(ir)
@@ -267,6 +283,7 @@ void PanelController::timerClicked(Panel * p)
 		rightAnimationTarget=l;
 		rightAnimating=true;
 		right->hideAttached();
+		startTimer();
 		return;
 		}
 	if(!ir)
@@ -274,6 +291,7 @@ void PanelController::timerClicked(Panel * p)
 		leftAnimationTarget=r;
 		leftAnimating=true;
 		left->hideAttached();
+		startTimer();
 		return;
 		}
 	}
