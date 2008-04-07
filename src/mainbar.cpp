@@ -53,7 +53,7 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 	volume = new QLabel();
 	volume->setText("Volume");
 
-	infoBar = new NiceLabel();
+	infoBar = new NiceLabel(120);
 	infoBar->setText("This will be replaced");
 	infoBar->setObjectName("infoBar");
 	infoBar->setFixedWidth(500);
