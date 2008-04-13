@@ -71,7 +71,7 @@ void SongPositionSlider::setDuration(int id) {
 		tmp=QTime::fromString(mlib->getInfo(QString("time"),id).toString(),"h:mm:ss");
 	int ms=tmp.msec()+tmp.second()*1000+tmp.minute()*60*1000+tmp.hour()*60*60*1000;
 	duration = ms/MAGFACTOR;
-	if(mlib->getInfo(QString("url"),id).toString().startsWith("http://")) {
+	if(mlib->getInfo(QString("url"),id).toString().startsWith("http://") || mlib->getInfo(QString("url"),id).toString().startsWith("lastfm://")) {
  	curType = STREAM;
 	emit timeChanged(-1);
 	update();

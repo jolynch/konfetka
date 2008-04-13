@@ -279,6 +279,7 @@ void Options::constructOptions() {
 	xmms2Tree = new QTreeWidget();
 	xmms2TreeHeaders << "Key" << "Value";
 	xmms2Tree->setHeaderLabels(xmms2TreeHeaders);
+	xmms2Tree->setRootIsDecorated(false);
 	connect(xmms2Tree,SIGNAL(itemClicked(QTreeWidgetItem*,int)),this,SLOT(xmms2TreeStartEdit(QTreeWidgetItem*,int)));
 	xmms2Grid->addWidget(xmms2Tree, 1,0,1,1);
 	
