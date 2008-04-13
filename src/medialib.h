@@ -38,6 +38,7 @@
 #include <QInputDialog>
 #include <QComboBox>
 #include <QMenu>
+#include <QDebug>
 
 //#include <QVariant>
 
@@ -85,9 +86,15 @@ Q_OBJECT
 	
 	//NEW LISTS
 	QHash<uint,QTreeWidgetItem*> idToSongItem;
+	QHash<QTreeWidgetItem*,uint> songItemToId;
 	Xmms::Coll::Coll * visibleMedia;
 	Xmms::Coll::Coll * baseMedia;
 	ItemType getItemType(QTreeWidgetItem*);	
+	
+	//REWRITE
+	QTreeWidgetItem * lastArtist;
+	QTreeWidgetItem * lastAlbum;
+	//REWRITE
 
 	public:
 	MediaLib(DataBackend * c, QWidget * parent = 0, Qt::WindowFlags f = 0);
@@ -98,12 +105,12 @@ Q_OBJECT
 	void setLayoutSide(bool right_side);
 	void contextMenuEvent(QContextMenuEvent *event);
 	QMimeData* getCurrentMimeData();
-	void loadUpCollection(Xmms::Coll::Coll*);
 
+	//REWRITE
+	void init();
+	void loadCollection(Xmms::Coll::Coll*);
+	bool loadCollectionCallback(const Xmms::List <Xmms::Dict> &list);
 	//NEW LISTS
-	bool gotAlbums(QTreeWidgetItem* artist,const Xmms::List <Xmms::Dict> &list);
-	bool gotSongs(QTreeWidgetItem* artist,const Xmms::List <uint> &list);
-	bool handleUnknown(const Xmms::List <uint> &list);
 
 	public slots:
 	void refreshList();
@@ -127,12 +134,6 @@ Q_OBJECT
 	void respondToConfigChange(QString name,QVariant value);
 
 	//NEW LISTS
-	void gotNewList(QString property, QList<QString> info);
-	void artistList(QList<QString> info);
-	void itemExpanded(QTreeWidgetItem* item);
-	void getAlbumList(QTreeWidgetItem* item);
-	void getSongInfo(QTreeWidgetItem* item);
-
 	void infoChanged(int id);
 };
 
