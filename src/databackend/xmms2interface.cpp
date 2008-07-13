@@ -64,7 +64,7 @@ XMMS2Interface::XMMS2Interface(QObject * parent, const std::string &name):QObjec
 	this->config.broadcastValueChanged()(Xmms::bind(&XMMS2Interface::configResponse, this));
 	this->playback.broadcastVolumeChanged()(Xmms::bind(&XMMS2Interface::volumeResponse, this));
 	this->playlist.broadcastChanged()(Xmms::bind(&XMMS2Interface::plistChangeResponse, this));
-	this->playlist.broadcastCurrentPos()(Xmms::bind(&XMMS2Interface::curPos, this));
+	this->playlist.broadcastCurrentPos()(Xmms::bind(&XMMS2Interface::curPosD, this));
 	this->playlist.broadcastLoaded()(Xmms::bind(&XMMS2Interface::getCurrentPlaylist, this));
 	this->collection.broadcastCollectionChanged()(Xmms::bind(&XMMS2Interface::handleCollChange, this));
 	this->playback.signalPlaytime()(Xmms::bind (&XMMS2Interface::handlePlaytimeSignal, this));
@@ -77,7 +77,7 @@ void XMMS2Interface::emitInitialXmms2Settings()
 	this->playback.getStatus()(Xmms::bind(&XMMS2Interface::getstatus, this));
 	this->playback.getPlaytime()(Xmms::bind(&XMMS2Interface::getCurPlaytime, this));
 	this->playback.volumeGet()(Xmms::bind(&XMMS2Interface::volumeResponse, this));
-	this->playlist.currentPos()(Xmms::bind(&XMMS2Interface::curPos,this));
+	this->playlist.currentPos()(Xmms::bind(&XMMS2Interface::curPosD,this));
 	this->config.valueList()(Xmms::bind(&XMMS2Interface::configValueList, this));
 	}
 
@@ -147,9 +147,16 @@ bool XMMS2Interface::plistChangeResponse(const Xmms::Dict& val)
 	}
 
 bool XMMS2Interface::curPos(const unsigned int& val)
+        {
+        if(quitting) return false;
+        emit (currentPos(val));
+        return true;
+        }
+
+bool XMMS2Interface::curPosD(const Xmms::Dict& val)
 	{
 	if(quitting) return false;
-	emit (currentPos(val));
+	emit (currentPos(val.get<uint> ("position")));
 	return true;
 	}
 

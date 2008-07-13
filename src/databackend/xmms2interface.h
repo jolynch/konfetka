@@ -39,6 +39,7 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		bool volumeResponse(const Xmms::Dict& val);
 		bool plistChangeResponse(const Xmms::Dict& val);
 		bool curPos(const unsigned int& val);
+		bool curPosD(const Xmms::Dict& val);
 		bool getCurrentPlaylist(const std::string& name);
 		bool handleCollChange(const Xmms::Dict& change);
 		bool handlePlaytimeSignal(uint);
