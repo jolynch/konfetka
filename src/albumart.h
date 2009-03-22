@@ -18,11 +18,10 @@
 class AlbumArt: public QWidget {
 	Q_OBJECT
 	private:
-	QHttp * http;
+	QNetworkAccessManager *manager;
 	QMenu * menu;
 	QBuffer imageBuffer;
 	QBuffer xmlBuffer;
-	int httpGetId;
 	int numToGet;
 	QString imageUrl;
 	QDomNodeList allCovers;
@@ -41,6 +40,8 @@ class AlbumArt: public QWidget {
 
 	DataBackend * conn;
 	MlibData * mlib;
+	
+	void setNoAlbum();
 
 	public:
 	AlbumArt(DataBackend * c);
@@ -53,8 +54,8 @@ class AlbumArt: public QWidget {
 	
 	public slots:
 	void fetchXML(int);
-	void fetchImage(bool err = 0,bool force = 0);
-	void setImage(bool err = 0);
+	void fetchImage(QNetworkReply * rep=NULL,bool force = 0);
+	void setImage(QNetworkReply * rep=NULL);
 	void processSettingsUpdate(QString,QVariant);
 
 	//Menuing slots

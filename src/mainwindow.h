@@ -10,6 +10,7 @@
 #include "panel.h"
 #include "collectionbrowser.h"
 #include "options.h"
+#include "webpanel.h"
 
 #include "playlistpanel.h"
 

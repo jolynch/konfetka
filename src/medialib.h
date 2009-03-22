@@ -46,7 +46,7 @@ class DropTreeWidget;
 
 typedef uint ItemType;
 typedef uint SourceType;
-typedef uint SearchType;
+//typedef uint SearchType;
 
 static const ItemType ARTIST = 0x001;
 static const ItemType ALBUM = 0x010;
@@ -56,8 +56,9 @@ static const ItemType INVALID = 0x100;
 static const SourceType SELECTED = 0x01;
 static const SourceType VISIBLE = 0x10;
 
-static const SearchType SIMPLE= 0;
-static const SearchType PARSE= 1;
+enum SearchType { SIMPLE, PARSE };
+//static const SearchType SIMPLE= 0;
+//static const SearchType PARSE= 1;
 
 class MediaLib:public LayoutPanel{	
 Q_OBJECT
@@ -74,8 +75,8 @@ Q_OBJECT
 	QPushButton * loadUniverse;
 	QPushButton * updateAll;
 	QPushButton * makeColl;
+	QPushButton * searchToggleButton;
 	QLineEdit * searchLine;
-	QLabel * searchLabel;
 	QGridLayout * layout;
 	QVBoxLayout * buttons;
 	QList<QUrl> urlList;
@@ -113,6 +114,7 @@ Q_OBJECT
 	//NEW LISTS
 
 	public slots:
+	void toggleSearchType();
 	void refreshList();
 	void checkIfRefreshIsNeeded();
 	void respondToPeriodicUpdate();

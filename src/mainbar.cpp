@@ -73,7 +73,7 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 	quitButton=new QToolButton();
 	quitButton->setIcon(QIcon(":images/quit_button.png"));
 
-	layout->addWidget(volumeSlider,1,1,1,2);
+	layout->addWidget(volumeSlider,1,1,1,1);
 	layout->addWidget(positionTime,0,0,1,1);
 	layout->addWidget(volumeButton,1,0,1,1);
 	layout->addWidget(positionSlider,0,1,1,7);
@@ -217,13 +217,12 @@ void MainBar::updateTime() {
 		else
 		positionMinusTime->setText(tmpTime.toString(format.remove(format.indexOf("h"),2)));
 	if(positionSlider->curType == positionSlider->STREAM) {
-	positionTime->setText("STREAM");
-	positionMinusTime->setText("");
-	//positionMinusTime->setText("STREAM");
+		positionTime->setText("[stream]");
+		positionMinusTime->setText("[stream]");
 	}
 	else if(positionSlider->curType == positionSlider->UNKNOWN) {
-	positionTime->setText("ERROR");
-	positionMinusTime->setText("");
+		positionTime->setText("ERROR");
+		positionMinusTime->setText("");
 	//positionMinusTime->setText("ERROR");
 	}
 }

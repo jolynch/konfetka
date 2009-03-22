@@ -71,7 +71,7 @@ class MlibData:public QObject {
 	//Pass me hex for all I care, it is getting decoded... well not really
 	QVariant getInfo(std::string property, uint id);
 	QVariant getInfo(QString property, uint id);
-	QVariant getInfo(char* property, uint id);
+	QVariant getInfo(const char* property, uint id);
 	//Kind of a useless check, but wth
 	bool hasInfo(uint id);
 	//Allows access to standard tags

@@ -154,7 +154,9 @@ PlaylistPanel::PlaylistPanel(DataBackend * c):LayoutPanel()
 		playlistView=new Playlist(conn,this);
 		centralLayout->addWidget(playlistView,1,0,1,2);
 		playlistSwitcher=new QComboBox();
-		playlistSwitcher->addItems(((CollData *)conn->getDataBackendObject(DataBackend::COLL))->getPlaylists());
+		QStringList plist_list = ((CollData *)conn->getDataBackendObject(DataBackend::COLL))->getPlaylists();
+		plist_list.sort();
+		playlistSwitcher->addItems(plist_list);
 		playlistSwitcher->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::Fixed));
 		centralLayout->addWidget(playlistSwitcher,0,1);
 		connect(((CollData *)conn->getDataBackendObject(DataBackend::COLL)),SIGNAL(playlistsChanged(QStringList)),
@@ -332,9 +334,30 @@ void PlaylistPanel::addRegPlist()
 void PlaylistPanel::addPshuffle()
 	{
 	Xmms::Coll::PartyShuffle pshuffle(0,10);
-	Xmms::Coll::Universe  univ;
-	pshuffle.setOperand(univ);
-	saveCollAs(pshuffle);
+	QStringList items;
+	CollData * coll = (CollData*)(conn->getDataBackendObject(DataBackend::COLL));
+	items.append(QString("Entire Medialib"));
+	items.append(coll->getCollections());
+	items.append(coll->getPlaylists());
+	bool ok;
+	QString item = QInputDialog::getItem(this, "Select a collection","Which Collection would you like the pshuffle to draw from?",
+		       			    items, 0, false, &ok);
+	if(ok) {
+		if(coll->getCollections().contains(item)) {
+			Xmms::Coll::Reference ref(item.toStdString(),Xmms::Collection::COLLECTIONS);
+			pshuffle.setOperand(ref);
+		}
+		else if(item == QString("Entire Medialib")){
+			Xmms::Coll::Universe ref;	
+			pshuffle.setOperand(ref);
+		}
+		else{
+			Xmms::Coll::Reference ref(item.toStdString(),Xmms::Collection::PLAYLISTS);
+			pshuffle.setOperand(ref);
+		}		
+		saveCollAs(pshuffle);
+	}
+	
 	}
 
 void PlaylistPanel::addQueue()

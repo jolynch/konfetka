@@ -8,7 +8,7 @@
 int main(int argc, char *argv[])
 	{
 	QApplication app(argc, argv);
-	app.setFont(QFont("DejaVu", 8));
+	//app.setFont(QFont("DejaVu", 8));
 
 	QPixmap pixmap(":images/logo.png");
 	QSplashScreen splash(pixmap);

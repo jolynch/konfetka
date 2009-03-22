@@ -104,7 +104,7 @@ QVariant MlibData::getInfo(std::string property, uint id) {
 	return getInfo(QString(property.c_str()),id);
 }
 
-QVariant MlibData::getInfo(char* property, uint id) {
+QVariant MlibData::getInfo(const char* property, uint id) {
 	return getInfo(QString(property),id);
 }
 

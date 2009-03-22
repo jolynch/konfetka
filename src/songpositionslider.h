@@ -23,7 +23,6 @@
 #include <QTime>
 
 class DataBackend;
-typedef int SongType;
 
 class SongPositionSlider:public QSlider 
 	{	Q_OBJECT
@@ -44,9 +43,7 @@ class SongPositionSlider:public QSlider
 		int getDuration();
 		int getPositiveTime();
 		int getNegativeTime();
-		static const SongType FILE = -0x001;
-		static const SongType STREAM = -0x010;
-		static const SongType UNKNOWN = -0x011;
+		enum SongType {FILE,STREAM,UNKNOWN};
 		SongType curType;
 		void sendToServer();
 

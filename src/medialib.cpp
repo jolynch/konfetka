@@ -44,9 +44,11 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	makeColl->setMenu(makeCollMenu);
 
 	searchLine = new QLineEdit();
-	searchLabel = new QLabel("Search");
-	searchLabel->setToolTip(QString("Search your medialib by either typing in you keywords\nor typing in")+
-	QString(" \"Parse:<query>\" and pressing enter. <query> is\nof the same syntax as cli: \"xmms2 mlib search <query>\""));
+	searchToggleButton = new QPushButton("Simple");
+	searchToggleButton->setCheckable(true);
+	searchToggleButton->setToolTip("Simple search, click for Advanced.");
+	connect(searchToggleButton,SIGNAL(clicked()),this,SLOT(toggleSearchType()));
+
 	
 	infoMenu = new QMenu("Media Information");
 	infoMenu->addAction("Append To Playlist",this,SLOT(appendToPlaylistContextInfo()));
@@ -58,7 +60,7 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	buttons = new QVBoxLayout();	
 	layout->addWidget(searchLine,0,0,1,1);
 	layout->addWidget(mediaList,1,0,1,1);
-	layout->addWidget(searchLabel,0,1,1,1,Qt::AlignHCenter);
+	layout->addWidget(searchToggleButton,0,1,1,1);
 	buttons->addWidget(loadUniverse,Qt::AlignHCenter);
 	buttons->addWidget(updateAll,Qt::AlignHCenter);
 	buttons->addWidget(makeColl,Qt::AlignHCenter);
@@ -106,7 +108,7 @@ MediaLib::~MediaLib() {
 	delete updateAll;
 	delete makeColl;
 	delete searchLine;
-	delete searchLabel;
+	delete searchToggleButton;
 }
 
 void MediaLib::init() {
@@ -117,12 +119,26 @@ void MediaLib::init() {
 	songItemToId.clear();
 }
 
+void MediaLib::toggleSearchType() {
+	if(searchType == SIMPLE) {
+		searchType = PARSE;
+		searchToggleButton->setToolTip("Simply type <query> and press enter. <query> is\nof the same syntax as cli: \"xmms2 mlib search <query>\"");
+		searchToggleButton->setText("Advanced");
+	}
+	else {
+		searchType = SIMPLE;
+		searchToggleButton->setToolTip("Simple search, click for Advanced.");
+		searchToggleButton->setText("Simple");
+		
+	}
+}
+
 void MediaLib::loadCollection(Xmms::Coll::Coll* collToLoad) {
 	init(); //make sure that we don't leave anything from last time around;
 	std::list<std::string> order;
 	order.push_back("artist");order.push_back("album");order.push_back("title");
 	std::list<std::string> fetch;
-	fetch.push_back("id");fetch.push_back("title");fetch.push_back("artist");fetch.push_back("album");
+	fetch.push_back("id");fetch.push_back("title");fetch.push_back("artist");fetch.push_back("album");fetch.push_back("picture_front");
 	std::list<std::string> group;
 	group.push_back("artist");group.push_back("album");group.push_back("title");
 	conn->collection.queryInfos(*collToLoad,fetch,order,0,0, group)(Xmms::bind(&MediaLib::loadCollectionCallback,this));
@@ -351,7 +367,7 @@ void MediaLib::loadUniv() {
 void MediaLib::possiblySearchMlib() {
 	if(searchTimer.isActive()) 
 		searchTimer.stop();
-	if(!searchLine->text().startsWith("Parse:"))
+	if(searchType == SIMPLE)
 	searchTimer.start(400);
 }
 
@@ -361,8 +377,7 @@ void MediaLib::searchMlib() {
 	searchTimer.stop();
 	std::string text = searchLine->text().trimmed().toStdString();
 	Xmms::Coll::Union allMatches;
-		if(searchLine->text().startsWith("Parse:")) {
-			text = searchLine->text().remove(0,6).toStdString();
+		if(searchType == PARSE) {
 			try {
 			Xmms::CollPtr c = conn->collection.parse(text);
 			allMatches.addOperand(*c);
@@ -379,12 +394,12 @@ void MediaLib::searchMlib() {
 		val = val.toLower();
 		val.remove(" ");
 	query = val.toStdString()+"~"+text;
-		if(text!="") {
+		if(text!="" && !(QString::fromUtf8(text.c_str()).endsWith("\\ "))) { //the \ creates a seg
 			try {
-			Xmms::CollPtr c = conn->collection.parse(query);
-			allMatches.addOperand(*c);
+				Xmms::CollPtr c = conn->collection.parse(query);
+				allMatches.addOperand(*c);
 			} catch(Xmms::collection_parsing_error c) {
-			std::cout<<"Could not parse query"<<std::endl;
+				qDebug()<<"Could not parse query";
 			}
 		}
 	}
@@ -491,7 +506,7 @@ void MediaLib::contextMenuEvent(QContextMenuEvent *event) {
 		if(!mediaList->hasFocus()) 
 		return;
 // 	std::cout<<"AHH"<<std::endl;
-	QTreeWidgetItem * itm = mediaList->currentItem();
+//	QTreeWidgetItem * itm = mediaList->currentItem();
 //	std::cout<<itm->text(0).toStdString()<<std::endl;
 	infoMenu->exec(event->globalPos());
 }

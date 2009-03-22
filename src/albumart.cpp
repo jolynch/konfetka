@@ -10,7 +10,7 @@ AlbumArt::AlbumArt(DataBackend * c) {
 	toReflect = 1;
 	noAlbum = QPixmap(":images/no_album_old180.png");
 	setAcceptDrops(true);
-	http = new QHttp();
+	manager = new QNetworkAccessManager(this);
 	menu = new QMenu();
 	menu->setTitle("Album Art");
 	menu->addAction("Next Cover",this,SLOT(getNextCover()));
@@ -20,7 +20,7 @@ AlbumArt::AlbumArt(DataBackend * c) {
 }
 
 AlbumArt::~AlbumArt() {
-	delete http;
+	delete manager;
 	delete menu;
 }
 
@@ -36,9 +36,9 @@ void AlbumArt::fetchXML(int newId) {
 	id = newId;
 	QString tmpQuery;
 		if(mlib->getInfo("arist",id).toInt()!=-1)
-		tmpQuery += mlib->getInfo("artist",id).toString();
-		if(mlib->getInfo("album",id).toInt()!=-1)
-		tmpQuery += " " +mlib->getInfo("album",id).toString();
+		tmpQuery.append(mlib->getInfo("artist",id).toString());
+		if(mlib->getInfo("album",id).toInt()!=-1 && mlib->getInfo("album",id)!="Unknown")
+		tmpQuery.append(" " +mlib->getInfo("album",id).toString());
 	if(tmpQuery == "" || query == tmpQuery) { //if it's the same don't do it again
 	return;
 	}
@@ -47,91 +47,96 @@ void AlbumArt::fetchXML(int newId) {
 
 	allCovers = QDomNodeList();
 	//This very simple really ... TODO different locals, etc.. etc..
-	QString toUrl="http://xml.amazon.com/onca/xml3?t=webservices-20&dev-t=12VHZKVBHQEAV5JTTQ02&KeywordSearch="+
-		      (QUrl::toPercentEncoding(query))+
-		      "&mode=music&type=lite&locale=us&page=1&f=xml";
+	QString toUrl="http://ecs.amazonaws.com/onca/xml?Service=AWSECommerceService&Version=2007-10-29&Operation=ItemSearch&AssociateTag=webservices-20&AWSAccessKeyId=12VHZKVBHQEAV5JTTQ02&Keywords="+QUrl::toPercentEncoding(query)+"&SearchIndex=Music&ResponseGroup=Small,Images";
+// 	QString toUrl="http://xml.amazon.com/onca/xml3?t=webservices-20&dev-t=12VHZKVBHQEAV5JTTQ02&KeywordSearch="+
+// 		      (QUrl::toPercentEncoding(query))+
+// 		      "&mode=music&type=lite&locale=us&page=1&f=xml";
 
-	QUrl url(toUrl);
-	//Just to make sure that we don't get anything wrong, use QUrl 
-	http->setHost(url.host(), url.port() != -1 ? url.port() : 80);
-	if (!url.userName().isEmpty())
-	http->setUser(url.userName(), url.password());
-	
 	if(xmlBuffer.isOpen()) 
 		xmlBuffer.close();
 	if(!xmlBuffer.isOpen()) 
 		xmlBuffer.open(QIODevice::ReadWrite);
-			
-	httpGetId = http->get(conn->encodeUrl(toUrl), &xmlBuffer);//Get the xml from amazon and store in a buffer
-	connect(&timeout, SIGNAL(timeout()), this, SLOT(fetchImage()));
+
+	//qDebug()<<toUrl;
 	timeout.start(5000); //TODO let people change the timeout time
-	connect(http, SIGNAL(done(bool)), this, SLOT(fetchImage(bool)));
+	connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(fetchImage(QNetworkReply*)));
+	manager->get(QNetworkRequest(QUrl(toUrl)));
+	connect(&timeout, SIGNAL(timeout()), this, SLOT(fetchImage()));
+	
 }
 
-void AlbumArt::fetchImage(bool err,bool force) {
-	QObject::disconnect(http, 0, this, 0);
+void AlbumArt::fetchImage(QNetworkReply* rep,bool force) {
+	QObject::disconnect(manager, 0, this, 0);
 	timeout.stop();
 	
-	if(err) {
-			qDebug()<<"Error looking up XML:"<<http->error();
-			if(http->error()!=2) {
-				setImage(1);
-				return;
-			}
-			else
-				std::cout<<"Trying from cache"<<std::endl;
-	}
-
 	if(imageBuffer.isOpen()) imageBuffer.close(); //We have to close this if we're going to use it again
 	
 	QDomDocument doc("art");
 	QDomNode details;
-	if(!force && doc.setContent(xmlBuffer.data())) {
-		//TODO debugging output from the xmlbuffer	
-		details = doc.documentElement().namedItem( "Details" );
-		allCovers = doc.elementsByTagName("Details");
-		imageUrl = allCovers.item(numToGet).namedItem("ImageUrlLarge").firstChild().nodeValue();
+
+	if(!force && rep != 0x0 && doc.setContent(rep->readAll())) {
+		//TODO debugging output from the xmlbuffer
+		//qDebug()<<"Set content";
+		details = doc.documentElement().namedItem("Items");
+		//qDebug()<<details.toElement().text();
+		allCovers = doc.elementsByTagName("Item");
+		imageUrl = allCovers.item(numToGet).namedItem("MediumImage").namedItem("URL").toElement().text();
 	}
 	else if(force) {
-		imageUrl=allCovers.item(numToGet).namedItem("ImageUrlLarge").firstChild().nodeValue();
+		imageUrl=allCovers.item(numToGet).namedItem("MediumImage").namedItem("URL").toElement().text();
 	}
 	else {
-		err = true;
+		//qDebug()<<"error error";
+// 		QFile file("/home/ereinion/error.xml");
+// 		if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+// 			QTextStream out(&file);
+// 			out<<xmlBuffer.data()<<"\n";
+// 		}
 	}
+	//qDebug()<<allCovers.size()<<"Image"<<imageUrl;
 	//Once you have the list of covers, go look to see if this artist is already caches in bindata
 		if(mlib->getInfo("picture_front",id).toString()!="Unknown" && !force) {
 			conn->bindata.retrieve(mlib->getInfo("picture_front",id).toString().toStdString())
 					      (Xmms::bind(&AlbumArt::gotInformation,this));
+			//qDebug()<<"Using cache";
 		}
-		else if(!err) {
+		else if(rep==NULL || rep->error() == QNetworkReply::NoError) {
 			QUrl url(imageUrl);
 		
 				if(!imageBuffer.isOpen()) {
 				imageBuffer.open(QIODevice::ReadWrite);
 				}
 			std::cout<<"Fetching image from server: ["<<url.host().toStdString()<<"] ["<<url.path().toStdString()<<"]"<<std::endl;
-			http->setHost(url.host(),80);
-			http->get(url.path(),&imageBuffer);
-			connect(http, SIGNAL(done(bool)), this, SLOT(setImage(bool)));
+			connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(setImage(QNetworkReply*)));
+			manager->get(QNetworkRequest(QUrl(imageUrl)));
 		} //at this point we can't fetch it and it's not in bindata
 		else {
-			hasAlbum = false;
-			emit newPixmap(noAlbum);
-			update();
+			//qDebug()<<"No album";
+			setNoAlbum();
 		}
 }
+void AlbumArt::setNoAlbum() {
+	hasAlbum = false;
+	emit newPixmap(noAlbum);
+	update();
+}
 
-void AlbumArt::setImage(bool err) {
-	QObject::disconnect(http, 0, this, 0);
-	if(err) {
-		qDebug()<<"Error looking up album cover:"<<imageUrl<<http->error();
-	return;
+void AlbumArt::setImage(QNetworkReply * rep) {
+	QObject::disconnect(manager, 0, this, 0);
+	if(rep!=NULL && rep->error() != QNetworkReply::NoError) {
+		//qDebug()<<"Error looking up album cover:"<<imageUrl<<rep->error();
+		setNoAlbum();
+		return;
 	}
+	if(imageBuffer.isOpen()) imageBuffer.close();
+	//qDebug("setting image");
+		if(rep!=NULL)
+		imageBuffer.setData(rep->readAll());
+		
 		QImage tmp = QImage::fromData(imageBuffer.data());
 			if(tmp.isNull()) {
-				emit newPixmap(noAlbum);
-				hasAlbum = false;
-				update();
+			//qDebug()<<rep<<"AHAHHAHA";
+				setNoAlbum();
 				return;
 			}
 			else
@@ -193,7 +198,7 @@ void AlbumArt::getOrigCover() {
 
 //Basically, forces us to use xml instead of the bindata (which is otherwise used if present)
 void AlbumArt::makeRequest(){
-	fetchImage(false,true);
+	fetchImage(NULL,true);
 }
 
 //Paint that album art on there
@@ -221,7 +226,7 @@ bool AlbumArt::gotInformation(const Xmms::bin& res) {
 	imageBuffer.close();
 	
 	imageBuffer.setData((const char*)(res.c_str()), res.size());
-	setImage(0);
+	setImage(NULL);
 
 	return true;
 }
@@ -243,9 +248,9 @@ void AlbumArt::dropEvent(QDropEvent * event) {
 			imageBuffer.close();
 		if(!imageBuffer.isOpen()) 
 			imageBuffer.open(QIODevice::ReadWrite);
-	http->setHost(url.host(),80);
-	http->get(url.path().replace(" ","%20"),&imageBuffer);
-	connect(http, SIGNAL(done(bool)), this, SLOT(setImage(bool)));
+	connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(setImage(QNetworkReply*)));
+	manager->get(QNetworkRequest(QUrl(url)));
+	//qDebug()<<url;
 
 	event->acceptProposedAction();
 }

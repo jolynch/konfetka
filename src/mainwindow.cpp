@@ -115,6 +115,7 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	pc->registerPanel(new Panel(this,"COLLECTIONS",new CollectionBrowser(conn,this)),"Collections",PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
 	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),"Options",PanelController::RIGHTPANEL|PanelController::LAYOUT_PANEL);
 	pc->registerPanel(new Panel(this,"OPTIONS",new Options(conn,this)),"Options",PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
+	pc->registerPanel(new Panel(this,"INTERNET",new WebPanel(conn,this)),"Internet",PanelController::LEFTPANEL|PanelController::LAYOUT_PANEL);
 	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(respondToConfigChange(QString,QVariant)));
 	conn->emitInitialQSettings();
 	conn->emitInitialXmms2Settings();

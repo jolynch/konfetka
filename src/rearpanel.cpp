@@ -167,8 +167,7 @@ void RearPanel::updateSong(int id)
 // 	finalString->append(statusString.c_str());
 // 	finalString->append(infoString);
 // 	songInfo->setText(*finalString);
-	wiki->myWiki->parseUrl(id);
-	wiki->setHome(id);
+	wiki->parseUrl(id);
 	lyrics->parseUrl(id);
 	}
 

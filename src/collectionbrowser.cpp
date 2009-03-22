@@ -151,7 +151,11 @@ void CollectionBrowser::getCollectionFromItem(QListWidgetItem * item) {
 bool CollectionBrowser::recievedNewColl(const Xmms::Coll::Coll& newColl) {
 	dispColl->setText(coll->collAsQString(newColl));
 	currentCollectionType = newColl.getType();
-	conn->collection.queryIds(newColl)(Xmms::bind(&CollectionBrowser::updateCollDisplay,this));
+	std::list<std::string> order;
+// 	order.push_back("artist");
+// 	order.push_back("album");
+	order.push_back("tracknr");
+	conn->collection.queryIds(newColl,order)(Xmms::bind(&CollectionBrowser::updateCollDisplay,this));
 	if(newColl.getAttribute("IsBin")=="true") {
 		currentCollectionType = 1337; //Its a Bin :-P
 	} 

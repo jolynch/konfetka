@@ -28,7 +28,7 @@ bool SongPositionSlider::handlePlaytimeSignal(uint newTime) {
 	time = newTime/MAGFACTOR;
 	setValue(time);
 	}
-	if(isSliderDown() && !released || duration==0 || curType != FILE) return true;
+	if((isSliderDown() && !released) || duration==0 || curType != FILE) return true;
 	newTime = newTime/MAGFACTOR;
 	setValue(newTime);                    
 	
@@ -72,9 +72,9 @@ void SongPositionSlider::setDuration(int id) {
 	int ms=tmp.msec()+tmp.second()*1000+tmp.minute()*60*1000+tmp.hour()*60*60*1000;
 	duration = ms/MAGFACTOR;
 	if(mlib->getInfo(QString("url"),id).toString().startsWith("http://") || mlib->getInfo(QString("url"),id).toString().startsWith("lastfm://")) {
- 	curType = STREAM;
-	emit timeChanged(-1);
-	update();
+		curType = STREAM;
+		emit timeChanged(-1);
+		update();
 	}
 	else if(duration>=0){
 	setRange(0,duration);
@@ -171,10 +171,24 @@ void SongPositionSlider::paintEvent(QPaintEvent * event) {
 	int pxlBlack = (int)(width()*percent);
 	int y = (height()-barheight)/2;
 	if(curType != FILE)
-	pxlBlack = 0;
+	pxlBlack = width();
 
-	painter.fillRect(0,y,pxlBlack+2,barheight,QBrush(QColor("#696969")));
-	painter.fillRect(pxlBlack,y,width()-(pxlBlack+2),barheight,QBrush(QColor("#A1A1A1")));
+	//Single Bar Colors
+	//painter.fillRect(0,y,pxlBlack+2,barheight,QBrush(QColor("#696969")));
+	//painter.fillRect(pxlBlack,y,width()-(pxlBlack+2),barheight,QBrush(QColor("#A1A1A1")));
+	
+	//Gradients for Bar Colors
+	QLinearGradient grad1(QPointF(pxlBlack/2,0), QPointF(pxlBlack/2,height()));
+	grad1.setColorAt(0, QColor("#2E3436"));
+	grad1.setColorAt(.50, QColor("#888A85"));
+	grad1.setColorAt(1, QColor("#555753"));
+// 	QLinearGradient grad2(QPointF(pxlBlack,y), QPointF(width(),y));
+// 	grad2.setColorAt(0, Qt::black);
+// 	grad2.setColorAt(1, Qt::white);
+	painter.fillRect(0,y,pxlBlack+2,barheight,QBrush(grad1));
+	painter.fillRect(pxlBlack,y,width()-(pxlBlack+2),barheight,QBrush(QColor("#BABDB7")));
+
+	
 	
 	QList<int> markerList = markers.values();
 	int curMarker=0;
@@ -198,6 +212,16 @@ void SongPositionSlider::paintEvent(QPaintEvent * event) {
 		tmp.setColorAt(1,side);
 		painter.fillRect(curMarker,y,5,barheight,QBrush(tmp));
 		}
+	}
+	else {
+		int pxlBlack = width();
+		QLinearGradient grad1(QPointF(pxlBlack/2,0), QPointF(pxlBlack/2,height()));
+		grad1.setColorAt(0, QColor("#2E3436"));
+		grad1.setColorAt(.50, QColor("#888A85"));
+		grad1.setColorAt(1, QColor("#555753"));
+		int y = (height()-barheight)/2;
+
+		painter.fillRect(0,y,pxlBlack+2,barheight,QBrush(grad1));
 	}
 }
 
