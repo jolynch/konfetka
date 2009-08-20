@@ -20,10 +20,10 @@ SongPositionSlider::SongPositionSlider(DataBackend * c,Qt::Orientation o, QWidge
 	connect(conn,SIGNAL(currentId(int)),this,SLOT(setDuration(int)));
 	connect(this,SIGNAL(valueChanged(int)),this,SIGNAL(timeChanged(int)));
 	connect(this,SIGNAL(valueChanged(int)),this,SLOT(update()));
-	connect(conn,SIGNAL(songPositionChanged(uint)), this, SLOT(handlePlaytimeSignal(uint)));
+	connect(conn,SIGNAL(songPositionChanged(int)), this, SLOT(handlePlaytimeSignal(int)));
 }
 
-bool SongPositionSlider::handlePlaytimeSignal(uint newTime) {
+bool SongPositionSlider::handlePlaytimeSignal(int newTime) {
 	if(isSliderDown() && !released && !allowUpdates) {
 	time = newTime/MAGFACTOR;
 	setValue(time);

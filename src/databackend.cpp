@@ -20,7 +20,7 @@ DataBackend::DataBackend(QObject * parent, std::string name):XMMS2Interface(pare
 
 	currId=0; curr=0;
 	QObject::connect(((XMMS2Interface *)this),SIGNAL(currentId(int)),this,SLOT(currentIdChanged(int)));
-	QObject::connect(((XMMS2Interface *)this),SIGNAL(currentPos(uint)),this,SLOT(currentPosChanged(uint)));
+	QObject::connect(((XMMS2Interface *)this),SIGNAL(currentPos(int)),this,SLOT(currentPosChanged(int)));
 	QObject::connect(((MlibData *)mlibData),SIGNAL(infoChanged(int)),this,SLOT(infoChanged(int)));
 	QObject::connect(this,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(getRandom(QString,QVariant)));
 }
@@ -53,7 +53,7 @@ void DataBackend::changeAndSaveQSettings(QString name, QVariant newValue) {
 	emit qsettingsValueChanged(name, newValue);
 }
 
-void DataBackend::currentPosChanged(uint newPos){
+void DataBackend::currentPosChanged(int newPos){
 	if(newPos!=curr)
 		{
 		curr=newPos;
@@ -110,7 +110,7 @@ void DataBackend::clearRandomData()
 	fillUpcoming();
 	}
 
-void DataBackend::checkValidity(QQueue <uint> v)
+void DataBackend::checkValidity(QQueue <int> v)
 	{
 	int n=v.head();
 	int l=((PlistData *)plistData)->getPlist()->rowCount();
@@ -123,7 +123,7 @@ void DataBackend::checkValidity(QQueue <uint> v)
 		}
 	}
 
-void DataBackend::checkValidity(QStack <uint>  v)
+void DataBackend::checkValidity(QStack <int>  v)
 	{
 	if(v.isEmpty()) return;
 	int n=v.top();

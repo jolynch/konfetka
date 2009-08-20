@@ -62,9 +62,9 @@ void Playlist::doubleClicked(const QModelIndex & index)
 	conn->playback.tickle()(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
-QList <uint> Playlist::getSortedSelectedRows()
+QList <int> Playlist::getSortedSelectedRows()
 	{
-	QList <uint> out;
+	QList <int> out;
 	QModelIndexList indexes=selectedIndexes();
 	foreach (QModelIndex index, indexes)
 		{
@@ -383,14 +383,14 @@ void PlaylistPanel::addFromCollections()
 
 void PlaylistPanel::deleteSelected()
 	{
-	QList <uint> selected=playlistView->getSortedSelectedRows();
+	QList <int> selected=playlistView->getSortedSelectedRows();
 	for(int i=selected.size()-1; i>-1; i--)
 		conn->playlist.removeEntry(selected[i],currentPlaylistName)(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 
 void PlaylistPanel::cropSelected()
 	{
-	QList <uint> selected=playlistView->getSortedSelectedRows();
+	QList <int> selected=playlistView->getSortedSelectedRows();
 	int size=currentPlaylist->rowCount();
 	int offset=selected.size()-1;
 	for(int i=size-1; i>=0; i--)

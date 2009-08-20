@@ -31,7 +31,7 @@
 struct PlaylistDragInfo
 	{
 	QString name;
-	QList <uint> positions;
+	QList <int> positions;
 	};
 
 class PlaylistDelegate:public QItemDelegate
@@ -40,7 +40,7 @@ class PlaylistDelegate:public QItemDelegate
 		DataBackend * conn;
 		QAbstractItemModel * model;
 		Xmms::Playback::Status status;
-		uint pos;
+		int pos;
 		bool editing;
 		QList<QVariant> ratios;
 	public:
@@ -52,7 +52,7 @@ class PlaylistDelegate:public QItemDelegate
 		int getWidthFor(int column, int totalWidth);
 	public slots:
 		void qsettingsValChanged(QString name, QVariant var);
-		void posChanged(uint p);
+		void posChanged(int p);
 		void statusChanged(Xmms::Playback::Status s);
 	signals:
 		void ratiosChanged();
@@ -62,7 +62,7 @@ class PlaylistDelegate:public QItemDelegate
 class SinglePlaylist:public QAbstractItemModel
 	{	Q_OBJECT
 	private:
-		QList <uint> ids;
+		QList <int> ids;
 		DataBackend * conn;
 		QStringList header;
 		QStringList humanReadableHeader;
@@ -81,8 +81,8 @@ class SinglePlaylist:public QAbstractItemModel
 		bool insertCollection(const Xmms::Coll::Coll& c);
 		PlaylistDelegate * getDelegate();
 		bool setInitialPlist(const Xmms::List< int > &list);
-		QList<uint> getIdsFromPositions(QList <uint> pos);
-		void forceRefresh(uint row);
+		QList<int> getIdsFromPositions(QList <int> pos);
+		void forceRefresh(int row);
 
 	//QAbstractItemModel function implementations
 		QModelIndex index ( int row, int column, const QModelIndex & parent = QModelIndex() ) const;
@@ -102,7 +102,7 @@ class SinglePlaylist:public QAbstractItemModel
 	//Basic modification functions
 	//These only modify the model itself - they do not call xmms2.
 	private:
-		void addToModel(uint id,int pos=-1);
+		void addToModel(int id,int pos=-1);
 		void moveInModel(int oldPos,int newPos);
 		void removeFromModel(int pos);
 		

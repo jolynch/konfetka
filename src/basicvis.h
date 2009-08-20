@@ -54,7 +54,7 @@ Q_OBJECT
 	void paintEvent(QPaintEvent *);
 	void resizeEvent(QResizeEvent *);
 	void wheelEvent(QWheelEvent * event);
-	int dummyGetChunk(short *buffer, int drawtime,unsigned int blocking);
+	int dummyGetChunk(short *buffer, int drawtime,  int blocking);
 
 	public slots:
 	void setNumAndLen(int,int);

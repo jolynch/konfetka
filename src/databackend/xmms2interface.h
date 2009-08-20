@@ -24,25 +24,25 @@ class XMMS2Interface:public QObject, public Xmms::Client
 	{	Q_OBJECT
 	private:
 		bool quitting;
-		QHash < uint32_t, QPair <QString, QString> > plist;
+		QHash < int32_t, QPair <QString, QString> > plist;
 		QEventLoop * loop;
 	public:
 		XMMS2Interface(QObject * parent, const std::string &name);
 		~XMMS2Interface();
 		bool scrapResult(); //function for async returns with unimportant results.
-		bool scrapResultI(unsigned int foo); //@overload for scrapping 1 int returns.
-		bool newSongResponse(const unsigned int& id);
+		bool scrapResultI(  int foo); //@overload for scrapping 1 int returns.
+		bool newSongResponse(const   int& id);
 		bool getstatus(const Xmms::Playback::Status& status);
 		bool getCurPlaytime(int);
 		bool configResponse(const Xmms::Dict& val);
 		bool configValueList(const Xmms::Dict& val);
 		bool volumeResponse(const Xmms::Dict& val);
 		bool plistChangeResponse(const Xmms::Dict& val);
-		bool curPos(const unsigned int& val);
+		bool curPos(const   int& val);
 		bool curPosD(const Xmms::Dict& val);
 		bool getCurrentPlaylist(const std::string& name);
 		bool handleCollChange(const Xmms::Dict& change);
-		bool handlePlaytimeSignal(uint);
+		bool handlePlaytimeSignal(int);
 		void next();
 		void previous();
 		QString encodeUrl(QString,UrlType toXmms2 = XMMS2);
@@ -61,12 +61,12 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		void configValList(const Xmms::Dict& val);
 		void volumeChanged(const Xmms::Dict& val);
 		void playlistChanged(const Xmms::Dict& val);
-		void currentPos(const unsigned int& pos);
+		void currentPos(const   int& pos);
 		void playlistNameChanged(const std::string& name);
 		void collectionsChanged(const Xmms::Dict& change);
 		void aboutToChangeSong();
 //		void changeSong(int);
 		void syncTime(int,SongPositionSlider*);
-		void songPositionChanged(uint);
+		void songPositionChanged(int);
 	};
 #endif

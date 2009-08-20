@@ -46,7 +46,7 @@ class Playlist:public QTableView
 	public:
 		Playlist(DataBackend * c,QWidget * p);
 		void setModelAndDelegate(SinglePlaylist * model);
-		QList <uint> getSortedSelectedRows(); //Sorted from lowest to highest
+		QList <int> getSortedSelectedRows(); //Sorted from lowest to highest
 		void dropEvent(QDropEvent *event);
 		void keyPressEvent(QKeyEvent* event);
 		void contextMenuEvent ( QContextMenuEvent * event );

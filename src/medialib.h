@@ -44,9 +44,9 @@
 
 class DropTreeWidget;
 
-typedef uint ItemType;
-typedef uint SourceType;
-//typedef uint SearchType;
+typedef int ItemType;
+typedef int SourceType;
+//typedef int SearchType;
 
 static const ItemType ARTIST = 0x001;
 static const ItemType ALBUM = 0x010;
@@ -81,13 +81,13 @@ Q_OBJECT
 	QVBoxLayout * buttons;
 	QList<QUrl> urlList;
 	QShortcut  * delItem;
-	QStack<uint> idStack;
+	QStack<int> idStack;
 	QMenu * infoMenu;
 	QPoint dragStartPosition;
 	
 	//NEW LISTS
-	QHash<uint,QTreeWidgetItem*> idToSongItem;
-	QHash<QTreeWidgetItem*,uint> songItemToId;
+	QHash<int,QTreeWidgetItem*> idToSongItem;
+	QHash<QTreeWidgetItem*,int> songItemToId;
 	Xmms::Coll::Coll * visibleMedia;
 	Xmms::Coll::Coll * baseMedia;
 	ItemType getItemType(QTreeWidgetItem*);	

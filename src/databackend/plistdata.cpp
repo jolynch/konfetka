@@ -8,7 +8,7 @@ PlaylistDelegate::PlaylistDelegate(QAbstractItemModel * m,DataBackend * c)
 	model=m;
 	editing=false;
 	connect(conn,SIGNAL(changeStatus(Xmms::Playback::Status)),this,SLOT(statusChanged(Xmms::Playback::Status)));
-	connect(conn,SIGNAL(currentPos(const unsigned int)),this,SLOT(posChanged(uint)));
+	connect(conn,SIGNAL(currentPos(const   int)),this,SLOT(posChanged(int)));
 	connect(conn,SIGNAL(qsettingsValueChanged(QString,QVariant)),this,SLOT(qsettingsValChanged(QString,QVariant)));
 	QSettings s;
 	bool tmp=(s.contains("konfetka/playlistValues")&&s.contains("konfetka/plistRatios")
@@ -52,7 +52,7 @@ void PlaylistDelegate::setEditing(bool val)
 	{editing=val;}
 bool PlaylistDelegate::isEditing() {return editing;}
 
-void PlaylistDelegate::posChanged(uint p)
+void PlaylistDelegate::posChanged(int p)
 	{
 	int old=pos;
 	pos=p;
@@ -188,7 +188,7 @@ void SinglePlaylist::infoChanged(int id)
 		dataChanged(index(i,0),index(i,header.size()-1));
 	}
 
-void SinglePlaylist::addToModel(uint id,int pos)
+void SinglePlaylist::addToModel(int id,int pos)
 	{
 	if(pos<0)
 		{
@@ -215,7 +215,7 @@ void SinglePlaylist::removeFromModel(int pos)
 void SinglePlaylist::moveInModel(int oldPos,int newPos)
 	{
 	if(oldPos==newPos) return;
-	uint id=ids[oldPos];
+	int id=ids[oldPos];
 	if(newPos>oldPos)
 		newPos--;
 	removeFromModel(oldPos);
@@ -226,7 +226,7 @@ void SinglePlaylist::respondToChanges(const Xmms::Dict& val)
 	{
 	if(val.get<std::string> ("name")!=plistName) return;
 	int pos = 0, npos = 0;
-	uint32_t id = 0;
+	int32_t id = 0;
 	if (val.contains ("position")) pos = val.get<int32_t> ("position");
 	if (val.contains ("id")) id = val.get<int32_t> ("id");
 	switch (val.get<int32_t> ("type"))
@@ -261,9 +261,9 @@ Qt::DropActions SinglePlaylist::supportedDropActions() const
 	}
 
 
-QList<uint> SinglePlaylist::getIdsFromPositions(QList <uint> pos)
+QList<int> SinglePlaylist::getIdsFromPositions(QList <int> pos)
 	{
-	QList <uint> out;
+	QList <int> out;
 	for(int i=0; i<pos.size(); i++)
 		out.append(ids[pos[i]]);
 	return out;
@@ -277,12 +277,12 @@ PlaylistDragInfo * SinglePlaylist::getDragInfoFromMimeData(const QMimeData *data
 		QByteArray encodedData = data->data("application/x-plistdraginfo");
 		QDataStream stream(&encodedData, QIODevice::ReadOnly);
 		QString name;
-		QList<uint> posList;
+		QList<int> posList;
 		stream>>name;
 		out->name=name;
 		while (!stream.atEnd())
 			{
-			uint tmp;
+			int tmp;
 			stream>>tmp;
 			posList.append(tmp);
 			}
@@ -305,7 +305,7 @@ bool SinglePlaylist::dropMimeData(const QMimeData *data,Qt::DropAction action, i
 			{
 			if(action==Qt::CopyAction||action==Qt::MoveAction)
 				{
-				QList <uint> ids_=(((PlistData *)conn->getDataBackendObject(DataBackend::PLIST)))
+				QList <int> ids_=(((PlistData *)conn->getDataBackendObject(DataBackend::PLIST)))
 							->getPlist(info->name.toStdString())->getIdsFromPositions(info->positions);
 				for(int i=0; i<info->positions.size(); i++)
 					{
@@ -325,7 +325,7 @@ bool SinglePlaylist::dropMimeData(const QMimeData *data,Qt::DropAction action, i
 			}
 		else if(action==Qt::CopyAction||action==Qt::MoveAction)
 			{
-			QList <uint> ids_=getIdsFromPositions(info->positions);
+			QList <int> ids_=getIdsFromPositions(info->positions);
 			int idx=-1;
 			if(parent.isValid()) idx=parent.row();
 			if(action==Qt::MoveAction)
@@ -433,7 +433,7 @@ void SinglePlaylist::sort (int column, Qt::SortOrder order)
 void SinglePlaylist::setOrder(std::list< std::string > order)
 	{sortOrder=order;}
 
-void SinglePlaylist::forceRefresh(uint row)
+void SinglePlaylist::forceRefresh(int row)
 	{dataChanged(index(row,0),index(row,header.size()-1));}
 /************************************!*********************************/
 

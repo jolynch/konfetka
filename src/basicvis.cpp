@@ -61,7 +61,7 @@ void BasicVis::paintNext(int val) {
 	}
 }
 
-int BasicVis::dummyGetChunk(short *buffer, int drawtime,unsigned int blocking) {
+int BasicVis::dummyGetChunk(short *buffer, int drawtime,  int blocking) {
 	short r = (short)rand();
 	if(r%2==0)
 	*buffer = lastChunk + ((short)(rand()))%5;
@@ -69,9 +69,9 @@ int BasicVis::dummyGetChunk(short *buffer, int drawtime,unsigned int blocking) {
 	*buffer = lastChunk - ((short)(rand()))%5;
 // 	std::cout<<*buffer<<" ";
 // 	std::cout<<"Value: "<<std::bitset<std::numeric_limits<short>::digits>(*buffer)<<std::endl;
-	unsigned short mask = 0x8000;
+	  short mask = 0x8000;
 	for(short i=0;i<15;i++) {
-// 		std::cout<<"MASK: "<< std::bitset<std::numeric_limits<unsigned short>::digits>(mask)<<std::endl;
+// 		std::cout<<"MASK: "<< std::bitset<std::numeric_limits<  short>::digits>(mask)<<std::endl;
 // 		std::cout<<"Shift: "<< std::bitset<std::numeric_limits<short>::digits>(*buffer & mask)<<std::endl;
 		mask = mask>>1;
 	}

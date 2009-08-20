@@ -342,7 +342,7 @@ void MediaLib::refreshList() {
 
 
 void MediaLib::checkIfRefreshIsNeeded() {
-	uint id;
+	int id;
 	QTreeWidgetItem* temp;
 		while(!idStack.isEmpty()) {
 		id = idStack.pop();

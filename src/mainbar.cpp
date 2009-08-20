@@ -188,13 +188,13 @@ void MainBar::slotGetVolume(const Xmms::Dict& val)
 	if (val.contains ("master"))
 		{
 		if(!muted)
-		volumeSlider->setValue(val.get<uint32_t> ("master"));
+		volumeSlider->setValue(val.get<int32_t> ("master"));
 		channels = 1;
 		}
 	else if (val.contains ("left") && val.contains ("right"))
 		{
 		if(!muted)
-		volumeSlider->setValue((val.get<uint32_t> ("left")+val.get<uint32_t> ("right")) / 2);
+		volumeSlider->setValue((val.get<int32_t> ("left")+val.get<int32_t> ("right")) / 2);
 		channels = 2;
 		}
 	emit volumeChanged(volumeSlider->value());

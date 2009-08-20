@@ -92,13 +92,13 @@ XMMS2Interface::~XMMS2Interface()
 bool XMMS2Interface::scrapResult()
 	{return true;}
 
-bool XMMS2Interface::scrapResultI(unsigned int foo)
+bool XMMS2Interface::scrapResultI(  int foo)
 	{return true;}
 
 /*bool XMMS2Interface::nonFatalError(const std::string& error)
 	{std::cout<<"Non Fatal Error: "<<error<<std::endl; return false;}*/
 
-bool XMMS2Interface::newSongResponse(const unsigned int& id)
+bool XMMS2Interface::newSongResponse(const   int& id)
 	{
 	if(quitting) return false;
 	emit(currentId(id));
@@ -146,7 +146,7 @@ bool XMMS2Interface::plistChangeResponse(const Xmms::Dict& val)
 	return true;
 	}
 
-bool XMMS2Interface::curPos(const unsigned int& val)
+bool XMMS2Interface::curPos(const   int& val)
         {
         if(quitting) return false;
         emit (currentPos(val));
@@ -156,7 +156,7 @@ bool XMMS2Interface::curPos(const unsigned int& val)
 bool XMMS2Interface::curPosD(const Xmms::Dict& val)
 	{
 	if(quitting) return false;
-	emit (currentPos(val.get<uint> ("position")));
+	emit (currentPos(val.get<int> ("position")));
 	return true;
 	}
 
@@ -175,7 +175,7 @@ bool XMMS2Interface::handleCollChange(const Xmms::Dict& change)
 	}
 XMMS2Interface::Client::~Client() {}
 
-bool XMMS2Interface::handlePlaytimeSignal(uint newTime) {
+bool XMMS2Interface::handlePlaytimeSignal(int newTime) {
 	emit songPositionChanged(newTime);
 	return true;
 }

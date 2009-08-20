@@ -21,7 +21,7 @@
 
 #define UPCOMING 10
 
-typedef uint DataBackendType;
+typedef int DataBackendType;
 
 class DataBackend:public XMMS2Interface//, public QObject
 	{	Q_OBJECT
@@ -44,19 +44,19 @@ class DataBackend:public XMMS2Interface//, public QObject
 
 ///FORWARD/BACKWARD
 	private:
-	uint curr;
-	QStack <uint> history;
-	QQueue <uint> upcoming;
+	int curr;
+	QStack <int> history;
+	QQueue <int> upcoming;
 
 	void addSongIdToQueue();
 	void fillUpcoming();
 	void clearRandomData();
-	void checkValidity(QQueue <uint> v);
-	void checkValidity(QStack <uint> v);
+	void checkValidity(QQueue <int> v);
+	void checkValidity(QStack <int> v);
 	public slots:
 	void playNextSong();
 	void playPreviousSong();
-	void currentPosChanged(uint);
+	void currentPosChanged(int);
 	private slots:
 	void getRandom(QString name, QVariant newValue);
 	void playlistChanged(QString name);

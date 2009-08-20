@@ -56,7 +56,7 @@ class SongPositionSlider:public QSlider
 		void setTimeFromSlider();
 		void setInitTime(int);	
 		void setDuration(int id);
-		bool handlePlaytimeSignal(uint);
+		bool handlePlaytimeSignal(int);
 		void setMarker(); //sets a marker at wherever the time variable is
 		void delMarker(); //same, but removes one
 		

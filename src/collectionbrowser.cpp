@@ -266,7 +266,7 @@ void CollectionBrowser::removeSelectedPlaylists() {
 //Appends an extra NOT collection
 void CollectionBrowser::removeSelectedItems(){
 	QList<QTreeWidgetItem*> temp = collDisplay->selectedItems();
-	QList<uint> toRemove;
+	QList<int> toRemove;
 		for(int i=0;i<temp.size();i++) {
 			toRemove.append(idToItem.key(temp.value(i)));
 		}
@@ -320,7 +320,7 @@ void CollectionBrowser::createNewBin() {
 	conn->collection.save(overall,text.toStdString(),collNamespace); 	
 }
 /* Untill the cpp bindings are ready
-bool CollectionBrowser::appendListToBin(QList<uint> list,const Xmms::Coll::Coll& newColl) {
+bool CollectionBrowser::appendListToBin(QList<int> list,const Xmms::Coll::Coll& newColl) {
 	if(currentCollectionType != 1337) return false;
 	//Untill they get stuff fixed
 	//qDebug()<<"Before"<<coll->collAsQString(newColl);
@@ -351,7 +351,7 @@ bool CollectionBrowser::appendCollToBin(const Xmms::Coll::Coll& coll) {
 	return true;
 }
 
-bool CollectionBrowser::removeFromBin(QList<uint> list,const Xmms::Coll::Coll& coll) {
+bool CollectionBrowser::removeFromBin(QList<int> list,const Xmms::Coll::Coll& coll) {
 	if(currentCollectionType != 1337) return false;
 	
 	return true;
@@ -393,7 +393,7 @@ xmmsc_coll_t* CollectionBrowser::findPartOfBin(xmmsc_coll_t* bin, int type) {//0
 	return NULL;
 }
 
-void CollectionBrowser::appendListToBin(QList<uint> list) {
+void CollectionBrowser::appendListToBin(QList<int> list) {
 //Disabled to force compile 08/20/09 - AF.
 /*	if(currentCollectionType!=1337) return;
 
@@ -437,7 +437,7 @@ void CollectionBrowser::appendCollToBin(const Xmms::Coll::Coll& coll) {
 */
 }
 
-void CollectionBrowser::removeFromBin(QList<uint> list) {
+void CollectionBrowser::removeFromBin(QList<int> list) {
 //Disabled to force compile 08/20/09 - AF.
 /*
 	if(currentCollectionType!=1337) return;
@@ -467,7 +467,7 @@ CollTreeWidget::CollTreeWidget(CollectionBrowser* l,DataBackend * c,QWidget * pa
 CollTreeWidget::~CollTreeWidget() {
 }
 
-bool CollTreeWidget::lookupId(bool toAdd,const uint val) {
+bool CollTreeWidget::lookupId(bool toAdd,const int val) {
 	listOfIDs<<val;
 	numIDs-=1;
 	if(numIDs == 0)

@@ -41,7 +41,7 @@ class CollectionBrowser:public LayoutPanel {
 	DataBackend * conn;
 	Xmms::Collection::Namespace collNamespace;
 	Xmms::Collection::Namespace plistNamespace;
-	QHash<uint,QTreeWidgetItem*> idToItem;
+	QHash<int,QTreeWidgetItem*> idToItem;
 	QStringList labels;
 	QString currentCollection; Xmms::Collection::Namespace currentNamespace;
 	int currentCollectionType;
@@ -83,13 +83,13 @@ class CollectionBrowser:public LayoutPanel {
 	QString getCurrentName();
 	Xmms::Collection::Namespace getCurrentNamespace();
 	xmmsc_coll_t* findPartOfBin(xmmsc_coll_t* bin,int type);
-	void appendListToBin(QList<uint> list);
+	void appendListToBin(QList<int> list);
 	void appendCollToBin(const Xmms::Coll::Coll& coll);
-	void removeFromBin(QList<uint> list);
+	void removeFromBin(QList<int> list);
 	/*For whenever we can do the collection editing through cpp bindings 
-	bool appendListToBin(QList<uint> list,const Xmms::Coll::Coll& coll);
+	bool appendListToBin(QList<int> list,const Xmms::Coll::Coll& coll);
 	bool appendCollToBin(const Xmms::Coll::Coll& coll);
-	bool removeFromBin(QList<uint> list,const Xmms::Coll::Coll& coll);
+	bool removeFromBin(QList<int> list,const Xmms::Coll::Coll& coll);
 	*/
 
 
@@ -113,12 +113,12 @@ class CollTreeWidget:public QTreeWidget {
 	DataBackend * conn;
 	int numIDs;
 	bool addingIDs;
-	QList<uint> listOfIDs;
+	QList<int> listOfIDs;
 	public:
 	CollTreeWidget(CollectionBrowser* l,DataBackend* c,QWidget * parent = 0);
 	~CollTreeWidget();
 
-	bool lookupId(bool isAdd,const uint val);	
+	bool lookupId(bool isAdd,const int val);	
 	bool lookupColl(const Xmms::Coll::Coll& coll);
 	//Drag Drop / User interaction
 	void dropEvent(QDropEvent *event);

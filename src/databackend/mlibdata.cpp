@@ -73,7 +73,7 @@ void MlibData::fetchSomeMore() {
 	}
 }
 
-bool MlibData::mlibChanged(const unsigned int& id) {
+bool MlibData::mlibChanged(const   int& id) {
 	if(cache.contains(id)) {
 		if(changeTimer.isActive())
 		changeTimer.stop();
@@ -88,7 +88,7 @@ QStringList MlibData::getStandardTags() {
 	return standardTags;
 }
 
-QVariant MlibData::getInfo(QString property, uint id) {
+QVariant MlibData::getInfo(QString property, int id) {
 	if(cache.contains(id)) {
 		if(property=="title" && cache.value(id)->info(property).toString()=="Unknown")
 		return cache.value(id)->info("filename");
@@ -100,19 +100,19 @@ QVariant MlibData::getInfo(QString property, uint id) {
 	}
 }
 	
-QVariant MlibData::getInfo(std::string property, uint id) {
+QVariant MlibData::getInfo(std::string property, int id) {
 	return getInfo(QString(property.c_str()),id);
 }
 
-QVariant MlibData::getInfo(const char* property, uint id) {
+QVariant MlibData::getInfo(const char* property, int id) {
 	return getInfo(QString(property),id);
 }
 
-bool MlibData::hasInfo(uint id) {
+bool MlibData::hasInfo(int id) {
 	return cache.contains(id);
 }
 
-void MlibData::getInfoFromServer(uint id) {
+void MlibData::getInfoFromServer(int id) {
 	if(!waitingIds.contains(id)) {
 // 		std::cout<<"enqueueing more songs "<<id<<std::endl;
 		waitingIds.enqueue(id);
@@ -168,8 +168,8 @@ bool MlibData::getAllMediaInfoForId(int id,std::string key,Xmms::Dict::Variant v
 				}
 			}
 		}
-		else if(val.type() == typeid(uint32_t)) {
-		newValue = QVariant(boost::get<uint32_t>(val));
+		else if(val.type() == typeid(int32_t)) {
+		newValue = QVariant(boost::get<int32_t>(val));
 		}
 		else {
 			if(key == "url") {
