@@ -228,7 +228,7 @@ void SinglePlaylist::respondToChanges(const Xmms::Dict& val)
 	int pos = 0, npos = 0;
 	uint32_t id = 0;
 	if (val.contains ("position")) pos = val.get<int32_t> ("position");
-	if (val.contains ("id")) id = val.get<uint32_t> ("id");
+	if (val.contains ("id")) id = val.get<int32_t> ("id");
 	switch (val.get<int32_t> ("type"))
 		{
 		case XMMS_PLAYLIST_CHANGED_ADD:
