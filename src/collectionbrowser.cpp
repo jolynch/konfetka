@@ -162,17 +162,18 @@ bool CollectionBrowser::recievedNewColl(const Xmms::Coll::Coll& newColl) {
 	return true;
 }
 
-bool CollectionBrowser::updateCollDisplay(const Xmms::List <uint> &list) {
+bool CollectionBrowser::updateCollDisplay(const Xmms::List <int> &list) {
 	collDisplay->clear();
 	numFetched = 0;
 	idToItem.clear();int limit=50;
-	for (list.first();list.isValid(); ++list) {
-		if(idToItem.contains(*list)) continue;
+	Xmms::List_const_iterator_ < int > iter;
+	for (iter=list.begin();!iter.equal(list.end()); ++iter){
+		if(idToItem.contains(*iter)) continue;
 		if(limit>0) { 
-		addIdToView(*list,true);
+		addIdToView(*iter,true);
 		}
 		else
-		addIdToView(*list,false);
+		addIdToView(*iter,false);
 		limit--;
 	}
 	return true;
@@ -362,7 +363,8 @@ bool CollectionBrowser::removeFromBin(QList<uint> list,const Xmms::Coll::Coll& c
 //So all the for loops and such just find the correct part of the bin to change
 
 xmmsc_coll_t* CollectionBrowser::findPartOfBin(xmmsc_coll_t* bin, int type) {//0=InBin idlist, 1=InBin union, 2=NotInBin idlist
-	if(currentCollectionType!=1337 || collList->currentItem()==NULL || collList->currentRow()<=0) return NULL;
+//Disabled to force compile 08/20/09 - AF.
+/*	if(currentCollectionType!=1337 || collList->currentItem()==NULL || collList->currentRow()<=0) return NULL;
 
 	xmmsc_coll_t *op;
 	for(xmmsc_coll_operand_list_first(bin);xmmsc_coll_operand_list_valid(bin);xmmsc_coll_operand_list_next(bin)) {
@@ -387,12 +389,13 @@ xmmsc_coll_t* CollectionBrowser::findPartOfBin(xmmsc_coll_t* bin, int type) {//0
 				}
 			}
 		}
-	}
+	}*/
 	return NULL;
 }
 
 void CollectionBrowser::appendListToBin(QList<uint> list) {
-	if(currentCollectionType!=1337) return;
+//Disabled to force compile 08/20/09 - AF.
+/*	if(currentCollectionType!=1337) return;
 
 	xmmsc_result_t* res = xmmsc_coll_get (conn->getConnection(),currentCollection.toStdString().c_str(),"Collections");
 	xmmsc_result_wait (res);
@@ -409,9 +412,12 @@ void CollectionBrowser::appendListToBin(QList<uint> list) {
 		getCollectionFromItem(collList->currentItem());
 	}
 	xmmsc_coll_unref(new_coll);
+*/
 }
 
 void CollectionBrowser::appendCollToBin(const Xmms::Coll::Coll& coll) {
+//Disabled to force compile 08/20/09 - AF.
+/*
 	if(currentCollectionType!=1337) return;
 
 	xmmsc_coll_t * to_append = coll.getColl();
@@ -428,9 +434,12 @@ void CollectionBrowser::appendCollToBin(const Xmms::Coll::Coll& coll) {
 		getCollectionFromItem(collList->currentItem());
 	}
 	xmmsc_coll_unref(new_coll);
+*/
 }
 
 void CollectionBrowser::removeFromBin(QList<uint> list) {
+//Disabled to force compile 08/20/09 - AF.
+/*
 	if(currentCollectionType!=1337) return;
 
 	xmmsc_result_t* res = xmmsc_coll_get (conn->getConnection(),currentCollection.toStdString().c_str(),"Collections");
@@ -447,6 +456,7 @@ void CollectionBrowser::removeFromBin(QList<uint> list) {
 		getCollectionFromItem(collList->currentItem());
 	}
 	xmmsc_coll_unref(new_coll);
+*/
 }
 
 CollTreeWidget::CollTreeWidget(CollectionBrowser* l,DataBackend * c,QWidget * parent):QTreeWidget(parent) {

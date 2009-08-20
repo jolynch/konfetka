@@ -66,7 +66,7 @@ class CollectionBrowser:public LayoutPanel {
 	CollectionBrowser(DataBackend * c,QWidget * parent = 0, Qt::WindowFlags f = 0);
 	void setLayoutSide(bool);
 	bool recievedNewColl(const Xmms::Coll::Coll& newColl);
-	bool updateCollDisplay(const Xmms::List <uint> &list);
+	bool updateCollDisplay(const Xmms::List <int> &list);
 	//Removes a collection
 	void removeSelectedCollections();
 	//Removes a playlist

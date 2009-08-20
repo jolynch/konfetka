@@ -168,11 +168,15 @@ bool SinglePlaylist::removeRows ( int row, int count, const QModelIndex & parent
 	return true;
 	}
 
-bool SinglePlaylist::setInitialPlist(const Xmms::List< unsigned int > &list)
+bool SinglePlaylist::setInitialPlist(const Xmms::List< int > &list)
 	{
 	ids.clear();
-	for (list.first (); list.isValid (); ++list)
-		{ids.append(*list);}
+	Xmms::List_const_iterator_ < int > iter;
+	for (iter=list.begin();!iter.equal(list.end()); ++iter)
+	{
+		int v=*iter;
+		ids.append(v);
+	}
 	this->reset();
 	return true;
 	}

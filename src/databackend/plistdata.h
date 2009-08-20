@@ -73,14 +73,14 @@ class SinglePlaylist:public QAbstractItemModel
 
 		void parseHumanReadableHeader();
 	public:
-	static PlaylistDragInfo * getDragInfoFromMimeData(const QMimeData *data);
+		static PlaylistDragInfo * getDragInfoFromMimeData(const QMimeData *data);
 
 		SinglePlaylist(DataBackend * c,std::string name,QStringList hv_=QStringList());
 		void setHeader(QStringList newVal);
 		void setOrder(std::list< std::string > order);
 		bool insertCollection(const Xmms::Coll::Coll& c);
 		PlaylistDelegate * getDelegate();
-		bool setInitialPlist(const Xmms::List< unsigned int > &list);
+		bool setInitialPlist(const Xmms::List< int > &list);
 		QList<uint> getIdsFromPositions(QList <uint> pos);
 		void forceRefresh(uint row);
 

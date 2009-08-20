@@ -21,10 +21,11 @@ void CollData::respondToConfigChange(QString name,QVariant value) {
 bool CollData::getPlaylistsFromServer(const Xmms::List<std::string>& list)
 	{
 		playlistsOnly.clear();
-		for (list.first (); list.isValid (); ++list)
+		Xmms::List_const_iterator_ < std::string > iter;
+		for (iter=list.begin();!iter.equal(list.end()); ++iter)
 			{
-			if((*list).substr(0,1)=="_") continue;
-			playlistsOnly.append((*list).c_str());
+			if((*iter).substr(0,1)=="_") continue;
+			playlistsOnly.append((*iter).c_str());
 			}
 		emit playlistsChanged(playlistsOnly);
 	return false;
@@ -33,10 +34,11 @@ bool CollData::getPlaylistsFromServer(const Xmms::List<std::string>& list)
 bool CollData::getCollectionsFromServer(const Xmms::List<std::string>& list)
 	{
 		collectionsOnly.clear();
-		for (list.first (); list.isValid (); ++list)
+		Xmms::List_const_iterator_ < std::string > iter;
+		for (iter=list.begin();!iter.equal(list.end()); ++iter)
 			{
-			if((*list).substr(0,1)=="_") continue;
-			collectionsOnly.append((*list).c_str());
+			if((*iter).substr(0,1)=="_") continue;
+			collectionsOnly.append((*iter).c_str());
 			}
 		emit collectionsChanged(collectionsOnly);
 	return false;

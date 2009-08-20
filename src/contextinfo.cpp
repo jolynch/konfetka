@@ -87,9 +87,10 @@ void ContextInfo::constructArtist() {
 
 bool ContextInfo::gotAlbums(const Xmms::List <Xmms::Dict> &list) {
 	QStringList albumList; QString tmp;
-	for (list.first();list.isValid(); ++list) {
-		if(list->contains("album")) {
-		tmp = QString::fromUtf8((list->get<std::string>("album")).c_str());
+	Xmms::List_const_iterator_ < Xmms::Dict > iter;
+	for (iter=list.begin();!iter.equal(list.end()); ++iter) {
+		if(iter->contains("album")) {
+		tmp = QString::fromUtf8((iter->get<std::string>("album")).c_str());
 		}
 		else {
 		continue;
@@ -119,10 +120,11 @@ bool ContextInfo::gotAlbums(const Xmms::List <Xmms::Dict> &list) {
 bool ContextInfo::constructAlbum(QTreeWidgetItem* album,const Xmms::List <Xmms::Dict> &list) {
 	if(album == NULL || lastID != curId || artistHeader->indexOfChild(album)<0) return false;
 	QHash<QString,int> songList; QString tmp; int tmpId;
-	for (list.first();list.isValid(); ++list) {
-		if(list->contains("id")&&list->contains("title")) {
-		tmp = QString::fromUtf8(list->get<std::string>("title").c_str());
-		tmpId = list->get<int>("id");
+	Xmms::List_const_iterator_ < Xmms::Dict > iter;
+	for (iter=list.begin();!iter.equal(list.end()); ++iter) {
+		if(iter->contains("id")&&iter->contains("title")) {
+		tmp = QString::fromUtf8(iter->get<std::string>("title").c_str());
+		tmpId = iter->get<int>("id");
 			if(songList.contains(tmp)) {
 				continue;
 			}
@@ -184,10 +186,11 @@ void ContextInfo::addToPlist(QTreeWidgetItem * item) {
 	}
 }
 
-bool ContextInfo::addAlbumToPlist(const Xmms::List <uint> &list) {
+bool ContextInfo::addAlbumToPlist(const Xmms::List <int> &list) {
 	int num = ((PlistData*)(conn->getDataBackendObject(DataBackend::PLIST)))->getPlist()->rowCount();
-	for(list.first();list.isValid();++list) {
-		conn->playlist.addId(*list);
+	Xmms::List_const_iterator_ < int > iter;
+	for (iter=list.begin();!iter.equal(list.end()); ++iter) {
+		conn->playlist.addId(*iter);
 	}
 	if(doubleClickPlay) {
 		conn->playlist.setNext(num);

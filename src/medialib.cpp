@@ -149,9 +149,10 @@ bool MediaLib::loadCollectionCallback(const Xmms::List <Xmms::Dict> &list) {
 	QTreeWidgetItem * temp;
 	bool diffArt;
 	bool diffAlb;
-	for(list.first();list.isValid(); ++list) {
-		if(list->contains("artist")) {
-			art = QString::fromUtf8(list->get<std::string>("artist").c_str());
+	Xmms::List_const_iterator_ < Xmms::Dict > iter;
+	for (iter=list.begin();!iter.equal(list.end()); ++iter){
+		if(iter->contains("artist")) {
+			art = QString::fromUtf8(iter->get<std::string>("artist").c_str());
 			if(lastArtist == NULL || lastArtist->text(0)!=art) {
 				temp = new QTreeWidgetItem();
 				temp->setText(0,art);
@@ -161,8 +162,8 @@ bool MediaLib::loadCollectionCallback(const Xmms::List <Xmms::Dict> &list) {
 			}
 			else
 				diffArt = false;
-			if(list->contains("album"))
-				alb = QString::fromUtf8(list->get<std::string>("album").c_str());
+			if(iter->contains("album"))
+				alb = QString::fromUtf8(iter->get<std::string>("album").c_str());
 			else
 				alb = "Unknown Album";
 			if(lastAlbum == NULL || lastAlbum->text(0)!=alb || diffArt) {
@@ -172,15 +173,15 @@ bool MediaLib::loadCollectionCallback(const Xmms::List <Xmms::Dict> &list) {
 				lastAlbum = temp;
 				diffAlb = true;
 			}
-			if(list->contains("title")) 
-				titl = QString::fromUtf8(list->get<std::string>("title").c_str());
+			if(iter->contains("title")) 
+				titl = QString::fromUtf8(iter->get<std::string>("title").c_str());
 			else
 				titl = "Unknown Title";
 			temp  = new QTreeWidgetItem();
 			temp->setText(0,titl);
 			lastAlbum->addChild(temp);
-			idToSongItem.insert(list->get<int>("id"),temp);
-			songItemToId.insert(temp,list->get<int>("id"));
+			idToSongItem.insert(iter->get<int>("id"),temp);
+			songItemToId.insert(temp,iter->get<int>("id"));
 		}
 	}
 	return true;
@@ -315,10 +316,11 @@ void MediaLib::removeNodes(QList<QTreeWidgetItem*> list) {
 		}
 }
 	
-bool MediaLib::removeIds(const Xmms::List <uint> &list) {
-	for (list.first();list.isValid(); ++list) {
+bool MediaLib::removeIds(const Xmms::List <int> &list) {
+	Xmms::List_const_iterator_ < int > iter;
+	for (iter=list.begin();!iter.equal(list.end()); ++iter){
 // 	std::cout<<"Would be removing "<<*list<<std::endl;
-	conn->medialib.removeEntry(*list)(Xmms::bind(&DataBackend::scrapResult, conn));
+	conn->medialib.removeEntry(*iter)(Xmms::bind(&DataBackend::scrapResult, conn));
 	}
 	return true;
 }
@@ -480,10 +482,11 @@ void MediaLib::addFromMlibDrag(QTreeWidgetItem*,int) {
 
 bool MediaLib::addToPlaylistFromCollectionDrag(const Xmms::List <Xmms::Dict> &list) {
 	std::string tmpString;
-	for (list.first();list.isValid(); ++list) {
-		if(list->contains("url")) {
-		tmpString = list->get<std::string>("url");
-		tmpString = QString::fromUtf8 (xmmsc_result_decode_url (NULL,tmpString.c_str())).toStdString();
+	Xmms::List_const_iterator_ < Xmms::Dict > iter;
+	for (iter=list.begin();!iter.equal(list.end()); ++iter){
+		if(iter->contains("url")) {
+		tmpString = iter->get<std::string>("url");
+		//tmpString = QString::fromUtf8 (xmmsc_result_decode_url (NULL,tmpString.c_str())).toStdString();
 		urlList.append(QUrl(QString(tmpString.c_str())));
 // 		std::cout<<tmpString<<std::endl;
 		} 

@@ -174,7 +174,8 @@ bool MlibData::getAllMediaInfoForId(int id,std::string key,Xmms::Dict::Variant v
 		else {
 			if(key == "url") {
 				std::string tmpStr = boost::get<std::string>(val);
-				tmpStr = xmmsc_result_decode_url(NULL,tmpStr.c_str());
+//Commented 8/20/09 to force compile -AF
+				//tmpStr = xmmsc_result_decode_url(NULL,tmpStr.c_str());
 				newValue = QVariant(tmpStr.c_str());
 				
 				//xmms2 doesn't keep the filename, but this is usefull for unknown titles
@@ -215,9 +216,10 @@ void MlibData::getListFromServer(Xmms::Coll::Coll* mlib,QString property) {
 
 bool MlibData::gotList(std::string property,const Xmms::List <Xmms::Dict> &list) {
 	QList<QString> info;
-	for (list.first();list.isValid(); ++list) {
-		if(list->contains(property))
-		info.append(QString::fromUtf8((list->get<std::string>(property)).c_str()));
+	Xmms::List_const_iterator_ < Xmms::Dict > iter;
+	for (iter=list.begin();!iter.equal(list.end()); ++iter) {
+		if(iter->contains(property))
+		info.append(QString::fromUtf8((iter->get<std::string>(property)).c_str()));
 	}
 
 // 	std::cout<<"BEGIN MLIB TEST"<<std::endl;

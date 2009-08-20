@@ -48,7 +48,7 @@ class ContextInfo:public QWidget {
 	bool gotAlbums(const Xmms::List <Xmms::Dict> &list);
 	bool constructAlbum(QTreeWidgetItem*,const Xmms::List <Xmms::Dict> &list);
 	bool gotAlbumCover(int id,const Xmms::bin& res);
-	bool addAlbumToPlist(const Xmms::List <uint> &list);
+	bool addAlbumToPlist(const Xmms::List <int> &list);
 	void clearTree();
 
 	public slots:

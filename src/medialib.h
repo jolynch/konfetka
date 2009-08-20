@@ -131,7 +131,7 @@ Q_OBJECT
 
 	void slotRemove();
 	void removeNodes(QList<QTreeWidgetItem*>);
-	bool removeIds(const Xmms::List <uint> &list);
+	bool removeIds(const Xmms::List <int> &list);
 	
 	void respondToConfigChange(QString name,QVariant value);
 
