@@ -15,6 +15,8 @@
 #include <QSettings>
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QList>
+
 class AlbumArt: public QWidget {
 	Q_OBJECT
 	private:
@@ -24,7 +26,7 @@ class AlbumArt: public QWidget {
 	QBuffer xmlBuffer;
 	int numToGet;
 	QString imageUrl;
-	QDomNodeList allCovers;
+	QList<QString> allCovers;
 	int id;
 	bool toReflect;
 	

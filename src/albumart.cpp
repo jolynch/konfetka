@@ -1,7 +1,7 @@
 #ifndef ALBUMART_CPP
 #define ALBUMART_CPP
 #include "albumart.h"
-
+#include <QtDebug>
 AlbumArt::AlbumArt(DataBackend * c) {
 	conn=c;
 	mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
@@ -34,20 +34,23 @@ void AlbumArt::processSettingsUpdate(QString name,QVariant value) {
 
 void AlbumArt::fetchXML(int newId) {
 	id = newId;
-	QString tmpQuery;
-		if(mlib->getInfo("arist",id).toInt()!=-1)
-		tmpQuery.append(mlib->getInfo("artist",id).toString());
+	QString tmpQuery="";
 		if(mlib->getInfo("album",id).toInt()!=-1 && mlib->getInfo("album",id)!="Unknown")
-		tmpQuery.append(" " +mlib->getInfo("album",id).toString());
+			tmpQuery.append("&album=" +mlib->getInfo("album",id).toString());
 	if(tmpQuery == "" || query == tmpQuery) { //if it's the same don't do it again
 	return;
 	}
 	if(tmpQuery!=query)
 	query = tmpQuery;
 
-	allCovers = QDomNodeList();
+	allCovers = QList<QString>();
+// 	qDebug()<<query;
 	//This very simple really ... TODO different locals, etc.. etc..
-	QString toUrl="http://ecs.amazonaws.com/onca/xml?Service=AWSECommerceService&Version=2007-10-29&Operation=ItemSearch&AssociateTag=webservices-20&AWSAccessKeyId=12VHZKVBHQEAV5JTTQ02&Keywords="+QUrl::toPercentEncoding(query)+"&SearchIndex=Music&ResponseGroup=Small,Images";
+	QString toUrl="http://ws.audioscrobbler.com/2.0/?method=album.search&api_key=a6d4c32a66df79c84a3269469c86d749"+query;
+// 	QString toUrl="http://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=a6d4c32a66df79c84a3269469c86d749"+(query);
+
+//Before Amazon got all silly and made their webservices way too hard to use
+//	QString toUrl="http://ecs.amazonaws.com/onca/xml?Service=AWSECommerceService&Version=2007-10-29&Operation=ItemSearch&AssociateTag=webservices-20&AWSAccessKeyId=12VHZKVBHQEAV5JTTQ02&Keywords="+QUrl::toPercentEncoding(query)+"&SearchIndex=Music&ResponseGroup=Small,Images";
 // 	QString toUrl="http://xml.amazon.com/onca/xml3?t=webservices-20&dev-t=12VHZKVBHQEAV5JTTQ02&KeywordSearch="+
 // 		      (QUrl::toPercentEncoding(query))+
 // 		      "&mode=music&type=lite&locale=us&page=1&f=xml";
@@ -57,7 +60,6 @@ void AlbumArt::fetchXML(int newId) {
 	if(!xmlBuffer.isOpen()) 
 		xmlBuffer.open(QIODevice::ReadWrite);
 
-	//qDebug()<<toUrl;
 	timeout.start(5000); //TODO let people change the timeout time
 	connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(fetchImage(QNetworkReply*)));
 	manager->get(QNetworkRequest(QUrl(toUrl)));
@@ -68,22 +70,37 @@ void AlbumArt::fetchXML(int newId) {
 void AlbumArt::fetchImage(QNetworkReply* rep,bool force) {
 	QObject::disconnect(manager, 0, this, 0);
 	timeout.stop();
-	
 	if(imageBuffer.isOpen()) imageBuffer.close(); //We have to close this if we're going to use it again
 	
 	QDomDocument doc("art");
 	QDomNode details;
-
+	
 	if(!force && rep != 0x0 && doc.setContent(rep->readAll())) {
 		//TODO debugging output from the xmlbuffer
 		//qDebug()<<"Set content";
-		details = doc.documentElement().namedItem("Items");
-		//qDebug()<<details.toElement().text();
-		allCovers = doc.elementsByTagName("Item");
-		imageUrl = allCovers.item(numToGet).namedItem("MediumImage").namedItem("URL").toElement().text();
+		
+// 		details = doc.documentElement().namedItem("Items");
+// 		qDebug()<<details.toElement().text();
+		QDomNodeList possibleCovers = doc.elementsByTagName("album");
+		QDomAttr a;
+		for (int i = 0; i < possibleCovers.size(); i++) {
+			details = possibleCovers.item(i).namedItem("image");
+			while(details.toElement().tagName()=="image")
+			{
+				QDomElement e = details.toElement();
+				a = e.attributeNode("size");
+				if(a.value() == "extralarge")
+				{
+					allCovers.append(e.text());
+				}
+				details=details.nextSibling();
+			}
+		}
+// 		qDebug()<<allCovers.size();
+		imageUrl = allCovers[numToGet];
 	}
 	else if(force) {
-		imageUrl=allCovers.item(numToGet).namedItem("MediumImage").namedItem("URL").toElement().text();
+		imageUrl = allCovers[numToGet];
 	}
 	else {
 		//qDebug()<<"error error";
