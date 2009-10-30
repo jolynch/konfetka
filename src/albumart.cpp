@@ -38,7 +38,8 @@ void AlbumArt::fetchXML(int newId) {
 		if(mlib->getInfo("album",id).toInt()!=-1 && mlib->getInfo("album",id)!="Unknown")
 			tmpQuery.append("&album=" +mlib->getInfo("album",id).toString());
 	if(tmpQuery == "" || query == tmpQuery) { //if it's the same don't do it again
-	return;
+		if(tmpQuery == "") setNoAlbum();
+		return;
 	}
 	if(tmpQuery!=query)
 	query = tmpQuery;
@@ -97,9 +98,11 @@ void AlbumArt::fetchImage(QNetworkReply* rep,bool force) {
 			}
 		}
 // 		qDebug()<<allCovers.size();
+		if(allCovers.size()>numToGet)
 		imageUrl = allCovers[numToGet];
 	}
 	else if(force) {
+		if(allCovers.size()>numToGet)
 		imageUrl = allCovers[numToGet];
 	}
 	else {
@@ -117,7 +120,7 @@ void AlbumArt::fetchImage(QNetworkReply* rep,bool force) {
 					      (Xmms::bind(&AlbumArt::gotInformation,this));
 			//qDebug()<<"Using cache";
 		}
-		else if(rep==NULL || rep->error() == QNetworkReply::NoError) {
+		else if( (rep==NULL || rep->error() == QNetworkReply::NoError) && allCovers.size()>numToGet) {
 			QUrl url(imageUrl);
 		
 				if(!imageBuffer.isOpen()) {
