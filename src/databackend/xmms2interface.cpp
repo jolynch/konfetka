@@ -199,5 +199,22 @@ QString XMMS2Interface::encodeUrl(QString val,int forWhat) {
         return final;
 }
 
+QString XMMS2Interface::convertBoostVariantToQString(boost::variant<int32_t, uint32_t, std::string> v){
+	QString val;
+	try{
+		val = QString::fromUtf8(boost::get<std::string>(v).c_str());
+	} catch (boost::bad_get& e) {
+		try {
+			val = QString::number(boost::get<int32_t>(v));
+		} catch (boost::bad_get& e){
+			try {
+				val = QString::number(boost::get<uint32_t>(v));
+			} catch (boost::bad_get& e){
+				val = QString("ERROR GETTING VALUE");
+			}
+		}
+	}
+	return val;
+}
 
 #endif

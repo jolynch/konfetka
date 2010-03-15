@@ -24,7 +24,6 @@ class XMMS2Interface:public QObject, public Xmms::Client
 	{	Q_OBJECT
 	private:
 		bool quitting;
-		QHash < int32_t, QPair <QString, QString> > plist;
 		QEventLoop * loop;
 	public:
 		XMMS2Interface(QObject * parent, const std::string &name);
@@ -46,7 +45,8 @@ class XMMS2Interface:public QObject, public Xmms::Client
 		void next();
 		void previous();
 		QString encodeUrl(QString,UrlType toXmms2 = XMMS2);
-
+		QString convertBoostVariantToQString(boost::variant<int32_t, uint32_t, std::string>);
+		
 		void emitInitialXmms2Settings();
 		void changeAndSaveXMMS2Settings(const std::string &key, const std::string &val);
 		static const UrlType WIKI = 0x001;

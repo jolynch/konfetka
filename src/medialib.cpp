@@ -98,7 +98,7 @@ MediaLib::MediaLib(DataBackend * c,  QWidget * parent, Qt::WindowFlags f):Layout
 	loadCollection(baseMedia);
 	adding=false; dblClickAdd = true;
 	searchTags<<"artist"<<"album"<<"title"<<"url"<<"genre"<<"id";
-	
+
 // 	loadFromFile();
 }
 
@@ -152,7 +152,7 @@ bool MediaLib::loadCollectionCallback(const Xmms::List <Xmms::Dict> &list) {
 	Xmms::List_const_iterator_ < Xmms::Dict > iter;
 	for (iter=list.begin();!iter.equal(list.end()); ++iter){
 		if(iter->contains("artist")) {
-			art = QString::fromUtf8(iter->get<std::string>("artist").c_str());
+			art = conn->convertBoostVariantToQString((*iter)["artist"]);
 			if(lastArtist == NULL || lastArtist->text(0)!=art) {
 				temp = new QTreeWidgetItem();
 				temp->setText(0,art);
@@ -163,7 +163,7 @@ bool MediaLib::loadCollectionCallback(const Xmms::List <Xmms::Dict> &list) {
 			else
 				diffArt = false;
 			if(iter->contains("album"))
-				alb = QString::fromUtf8(iter->get<std::string>("album").c_str());
+				alb = conn->convertBoostVariantToQString((*iter)["album"]);
 			else
 				alb = "Unknown Album";
 			if(lastAlbum == NULL || lastAlbum->text(0)!=alb || diffArt) {
@@ -174,7 +174,7 @@ bool MediaLib::loadCollectionCallback(const Xmms::List <Xmms::Dict> &list) {
 				diffAlb = true;
 			}
 			if(iter->contains("title")) 
-				titl = QString::fromUtf8(iter->get<std::string>("title").c_str());
+				titl = conn->convertBoostVariantToQString((*iter)["title"]);
 			else
 				titl = "Unknown Title";
 			temp  = new QTreeWidgetItem();
@@ -560,7 +560,7 @@ DropTreeWidget::~DropTreeWidget() {
 }
 
 void DropTreeWidget::dragEnterEvent(QDragEnterEvent *event) {
-	if(event->mimeData()->hasUrls() || event->mimeData()->hasFormat("application/x-collname") && event->source()!=this)
+	if((event->mimeData()->hasUrls() || event->mimeData()->hasFormat("application/x-collname")) && event->source()!=this)
 	event->acceptProposedAction();
 	else
 	event->ignore();
