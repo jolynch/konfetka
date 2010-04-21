@@ -147,8 +147,8 @@ void MediaLib::loadCollection(Xmms::Coll::Coll* collToLoad) {
 bool MediaLib::loadCollectionCallback(const Xmms::List <Xmms::Dict> &list) {
 	QString art,alb,titl;
 	QTreeWidgetItem * temp;
-	bool diffArt;
-	bool diffAlb;
+	bool diffArt = false;
+	bool diffAlb = false;
 	Xmms::List_const_iterator_ < Xmms::Dict > iter;
 	for (iter=list.begin();!iter.equal(list.end()); ++iter){
 		if(iter->contains("artist")) {

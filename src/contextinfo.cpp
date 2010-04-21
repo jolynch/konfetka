@@ -90,12 +90,12 @@ bool ContextInfo::gotAlbums(const Xmms::List <Xmms::Dict> &list) {
 	Xmms::List_const_iterator_ < Xmms::Dict > iter;
 	for (iter=list.begin();!iter.equal(list.end()); ++iter) {
 		if(iter->contains("album")) {
-		tmp = QString::fromUtf8((iter->get<std::string>("album")).c_str());
+			tmp = conn->convertBoostVariantToQString((*iter)["album"]);
 		}
 		else {
-		continue;
+			continue;
 		}
-			if(albumList.contains(tmp))continue;
+		if(albumList.contains(tmp)) continue;
 		albumList.append(tmp);
 		}
 	qSort(albumList);

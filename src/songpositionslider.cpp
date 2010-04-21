@@ -137,9 +137,9 @@ void SongPositionSlider::mouseReleaseEvent(QMouseEvent * event) {
 			temp = false;
 			}
 		if(temp)
-		menu->addAction("Add Cue Point",this,SLOT(setMarker()));
+			menu->addAction("Add Cue Point",this,SLOT(setMarker()));
 		else
-		menu->addAction("Remove Cue Point",this,SLOT(delMarker()));
+			menu->addAction("Remove Cue Point",this,SLOT(delMarker()));
 		menu->popup(event->globalPos());
 	}
 	else
@@ -174,10 +174,10 @@ void SongPositionSlider::paintEvent(QPaintEvent * event) {
 	pxlBlack = width();
 
 	//Single Bar Colors
-	//painter.fillRect(0,y,pxlBlack+2,barheight,QBrush(QColor("#696969")));
-	//painter.fillRect(pxlBlack,y,width()-(pxlBlack+2),barheight,QBrush(QColor("#A1A1A1")));
+	painter.fillRect(0,y,pxlBlack+2,barheight,QBrush(QColor("#696969")));
+	painter.fillRect(pxlBlack,y,width()-(pxlBlack+2),barheight,QBrush(QColor("#A1A1A1")));
 	
-	//Gradients for Bar Colors
+/*	//Gradients for Bar Colors
 	QLinearGradient grad1(QPointF(pxlBlack/2,0), QPointF(pxlBlack/2,height()));
 	grad1.setColorAt(0, QColor("#2E3436"));
 	grad1.setColorAt(.50, QColor("#888A85"));
@@ -187,7 +187,7 @@ void SongPositionSlider::paintEvent(QPaintEvent * event) {
 // 	grad2.setColorAt(1, Qt::white);
 	painter.fillRect(0,y,pxlBlack+2,barheight,QBrush(grad1));
 	painter.fillRect(pxlBlack,y,width()-(pxlBlack+2),barheight,QBrush(QColor("#BABDB7")));
-
+*/
 	
 	
 	QList<int> markerList = markers.values();
@@ -245,10 +245,13 @@ void SongPositionSlider::sendToServer() {
 	QStringList temp;
 	QList<int> tmp = markers.values();
 	for(int i=0;i<tmp.size();i++) {
-	temp.append(QString::number(tmp.value(i)));
+		temp.append(QString::number(tmp.value(i)));
 	}
 	QString val = temp.join(",");
-	conn->medialib.entryPropertySet(currentID,"cuepoints",val.toStdString(),"konfetka");
+	if(tmp.size()==0)
+		conn->medialib.entryPropertyRemove(currentID,"cuepoints","konfetka");
+	else
+		conn->medialib.entryPropertySet(currentID,"cuepoints",val.toStdString(),"konfetka");
 }
 
 #endif
