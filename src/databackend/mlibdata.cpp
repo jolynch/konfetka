@@ -90,13 +90,14 @@ QStringList MlibData::getStandardTags() {
 
 QVariant MlibData::getInfo(QString property, int id) {
 	if(cache.contains(id)) {
-		if(property=="title" && cache.value(id)->info(property).toString()=="Unknown")
-		return cache.value(id)->info("filename");
-	return (cache.value(id))->info(property);
+		if(property=="title" && cache.value(id)->info(property).toString()=="Unknown") {
+			return cache.value(id)->info("filename");
+		}
+		return (cache.value(id))->info(property);
 	}
 	else {
-	getInfoFromServer(id);
-	return QVariant(-1);
+		getInfoFromServer(id);
+		return QVariant(-1);
 	}
 }
 	

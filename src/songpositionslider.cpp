@@ -12,6 +12,7 @@ SongPositionSlider::SongPositionSlider(DataBackend * c,Qt::Orientation o, QWidge
 	released = false;
 	songEmitted = false;
 	allowUpdates =  true;
+	curType = UNKNOWN;
 	//How sensitive do we want the slider to be. A MAGFACTOR of 1000 indicates that the ms values will be divided into seconds (/1000)
 	MAGFACTOR = 1000;
 	GRACE_DISTANCE = 10;

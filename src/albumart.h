@@ -24,13 +24,13 @@ class AlbumArt: public QWidget {
 	QMenu * menu;
 	QBuffer imageBuffer;
 	QBuffer xmlBuffer;
-	int numToGet;
 	QString imageUrl;
 	QList<QString> allCovers;
+	int numToGet;
 	int id;
-	bool toReflect;
 	
 	//Rendering Related
+	bool toReflect;
 	bool hasAlbum;
 	QPixmap left;
 	QPixmap right;

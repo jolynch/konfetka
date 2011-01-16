@@ -54,7 +54,7 @@ MainBar::MainBar(DataBackend * c,QWidget * papa,
 	volume->setText("Volume");
 
 	infoBar = new NiceLabel(120);
-	infoBar->setText("This will be replaced");
+	infoBar->setText("Awaiting Server Connection");
 	infoBar->setObjectName("infoBar");
 	infoBar->setFixedWidth(500);
 
@@ -227,13 +227,19 @@ void MainBar::updateTime() {
 	}
 }
 
-void MainBar::slotUpdateInfo(int id)
-{
-	MlibData * mlib=((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
-	scrollInfo=(mlib->getInfo(QString("artist"),id).toString())+"  -  ";
-	scrollInfo+=(mlib->getInfo(QString("album"),id).toString())+"  -  ";
-	scrollInfo+=(mlib->getInfo(QString("title"),id).toString());
-	scrollInfo+=" (";scrollInfo+=(mlib->getInfo(QString("time"),id).toString());scrollInfo+=")";
+void MainBar::slotUpdateInfo(int id) {
+	MlibData * mlib = ((MlibData *)conn->getDataBackendObject(DataBackend::MLIB));
+	if (mlib->hasInfo(id)) {
+		scrollInfo = mlib->getInfo(QString("artist"),id).toString() + "  -  " ;
+		scrollInfo += mlib->getInfo(QString("album"),id).toString() + "  -  ";
+		scrollInfo += mlib->getInfo(QString("title"),id).toString();
+		scrollInfo += " (";
+		scrollInfo += mlib->getInfo(QString("time"),id).toString();
+		scrollInfo += ")";
+	}
+	else {
+		scrollInfo = QString("Awaiting Server Data");		
+	}
 	infoBar->setText(scrollInfo);
 	emit infoChanged();
 }

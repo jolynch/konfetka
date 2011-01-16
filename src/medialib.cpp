@@ -220,9 +220,9 @@ void MediaLib::newColl(SourceType type) {
 
 	QString tmp;
 	if(type == SELECTED)
-	tmp = "selected";
+                tmp = "selected";
 	else
-	tmp = "visible";
+                tmp = "visible";
 
 	int val = QMessageBox::information(this,"Save To Collection",
 			"Are you sure that you want to save\nthe "+tmp+" items to the collection: "+name,

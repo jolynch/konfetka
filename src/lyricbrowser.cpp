@@ -3,10 +3,13 @@
 #include "lyricbrowser.h"
 LyricBrowser::LyricBrowser(DataBackend * c):QTextBrowser()
 	{
-	conn=c;
-	browser=new QHttp();
-	connect(browser,SIGNAL(requestFinished(int,bool)),this,SLOT(httpData(int,bool)));
+	//Store a connection to our databackend, and initialize our intial id to -1 (no id)
+	conn = c;
+	currentID = -1;
+	
+	browser = new QHttp();
 	browser->setHost("lyrc.com.ar");
+	connect(browser,SIGNAL(requestFinished(int,bool)),this,SLOT(httpData(int,bool)));
 	}
 
 LyricBrowser::~LyricBrowser()

@@ -53,49 +53,52 @@ class MediaInfo{
 //will give data about an id, or if it doesn't have it go get it from the server
 class MlibData:public QObject {
 	Q_OBJECT
-	private:
-	DataBackend * conn;
-	//Requests for new Ids are queued and then fetched every half second to reduce lag gui-side
-	QQueue<int> waitingIds;
-	QTimer waitTimer;
-	QTimer changeTimer;
-	//This is all the ids that have been fetched so far, does not contain all ids in the mlib
-	QHash<int,MediaInfo*> cache;
-	//What tags gui should supply
-	QStringList standardTags;
-	//Periodically tells gui-side to update
-	QTimer periodicUpdateTimer;
 	
-	public:
-	MlibData(DataBackend *c,QObject * parent = 0);
-	//Pass me hex for all I care, it is getting decoded... well not really
-	QVariant getInfo(std::string property, int id);
-	QVariant getInfo(QString property, int id);
-	QVariant getInfo(const char* property, int id);
-	//Kind of a useless check, but wth
-	bool hasInfo(int id);
-	//Allows access to standard tags
-	QStringList getStandardTags();
+	private:
+                DataBackend * conn;
+		//Requests for new Ids are queued and then fetched every half second to reduce lag gui-side
+		QQueue<int> waitingIds;
+		QTimer waitTimer;
+		QTimer changeTimer;
+		//This is all the ids that have been fetched so far, does not contain all ids in the mlib
+		QHash<int,MediaInfo*> cache;
+		//What tags gui should supply
+		QStringList standardTags;
+		//Periodically tells gui-side to update
+		//TODO actually do this
+		QTimer periodicUpdateTimer;
+		
+		public:
+		MlibData(DataBackend *c,QObject * parent = 0);
+		//Pass me hex for all I care, it is getting decoded... well not really
+		QVariant getInfo(std::string property, int id);
+		QVariant getInfo(QString property, int id);
+		QVariant getInfo(const char* property, int id);
+		//Kind of a useless check, but wth
+		bool hasInfo(int id);
+		//Allows access to standard tags
+		QStringList getStandardTags();
 
-	void clearCache();
-	void getInfoFromServer(int id);
-	void getListFromServer(Xmms::Coll::Coll* coll,QString property);
-	bool gotList(std::string property,const Xmms::List <Xmms::Dict> &list);
-	bool getMediaInfo(const Xmms::PropDict& info);
-	bool mlibChanged(const   int& id);
-	bool getAllMediaInfoForId(int,std::string,Xmms::Dict::Variant,std::string);
-	//very important, lets us store album art in our caches ... for now too much mem is used though
-	//bool gotAlbumCover(int id,const Xmms::bin& res);
-	//QImage getAlbumArtForId(int id);
+		void clearCache();
+		void getInfoFromServer(int id);
+		void getListFromServer(Xmms::Coll::Coll* coll,QString property);
+		bool gotList(std::string property,const Xmms::List <Xmms::Dict> &list);
+		bool getMediaInfo(const Xmms::PropDict& info);
+		bool mlibChanged(const   int& id);
+		bool getAllMediaInfoForId(int,std::string,Xmms::Dict::Variant,std::string);
+		//very important, lets us store album art in our caches ... for now too much mem is used though
+		//bool gotAlbumCover(int id,const Xmms::bin& res);
+		//QImage getAlbumArtForId(int id);
 	public slots:
-	void fetchSomeMore();
+		void fetchSomeMore();
 	
 	signals:
-	void infoChanged(int id);
-	void gotListFromServer(QString property, QList<QString> info);
-	void updatesDone();
-	void periodicUpdate();
-
+		void infoChanged(int id);
+		void gotListFromServer(QString property, QList<QString> info);
+		void updatesDone();
+		void periodicUpdate();
+	public:
+		static const int NoInfo = -1;
 };
 
 #endif

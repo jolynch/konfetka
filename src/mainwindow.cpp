@@ -12,10 +12,10 @@ MainWindow::MainWindow(QApplication * a, QWidget * parent, Qt::WindowFlags f):QW
 	QString foo=Xmms::getUserConfDir().c_str();
 	foo.append("/clients/konfetka/stylesheet");
 	QFile file(foo);
-	QString sheet;
-	if (file.open(QIODevice::ReadOnly))
-	sheet = QString(file.readAll());
-	qApp->setStyleSheet(sheet);
+	if (file.open(QIODevice::ReadOnly)) {
+		qApp->setStyleSheet(QString(file.readAll()));
+	}
+	
 	animator=new QTimer();
 	mainbar=new MainBar(conn,this,this,NULL);
 	QDesktopWidget *desktop = papa->desktop();

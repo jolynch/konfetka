@@ -31,6 +31,8 @@ else{
 
 system(cp -r data/eqPresets $$KONFPATH/eqPresets)
 system(cp -r data/helpFiles $$KONFPATH/helpFiles)
+system(chown -R $$USER:$$USER $$KONFPATH)
+
 
 #Global Shortcut (from Psi ((http://psi-im.org) )
 
